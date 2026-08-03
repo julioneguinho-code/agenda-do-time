@@ -1,0 +1,12 @@
+{
+  "name": "agenda-do-time",
+  "version": "1.0.0",
+  "description": "Agenda do Time — gestao de agenda, check-in e atividades",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

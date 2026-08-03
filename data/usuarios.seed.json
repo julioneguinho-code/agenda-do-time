@@ -1,0 +1,277 @@
+[
+  {
+    "email": "gestorchama",
+    "nome": "Gestor Chama",
+    "papel": "gestor",
+    "sal": "ac45b4fd715abc7b",
+    "hash": "437fd6d4e1f858c219d21a66efc154985f4254d41eea81c83c169ae72ba5e147",
+    "time": "Chama",
+    "ativo": true,
+    "calendarId": ""
+  },
+  {
+    "email": "gestorjulio",
+    "nome": "Gestor Equipe Julio",
+    "papel": "gestor",
+    "sal": "9198d52f462aeb5c",
+    "hash": "7fc9daff130a132563083fa520de5721d722eed3e016f58d5d266041140f73e5",
+    "time": "Equipe Julio",
+    "ativo": true,
+    "calendarId": ""
+  },
+  {
+    "email": "gestorinovare",
+    "nome": "Gestor Inovare",
+    "papel": "gestor",
+    "sal": "94e1a169c78a742d",
+    "hash": "6c1d9119a98831848d0a2dd7d16e36bf1a898d0e580b27e53d98e64b0878de08",
+    "time": "Inovare",
+    "ativo": true,
+    "calendarId": ""
+  },
+  {
+    "email": "gestorcronos",
+    "nome": "Gestor Cronos",
+    "papel": "gestor",
+    "sal": "fd1d6bb9b7534929",
+    "hash": "df6529ae9878c63979347bdb6f7b554cc64def9c3925f091ab5486919d08edea",
+    "time": "Cronos",
+    "ativo": true,
+    "calendarId": ""
+  },
+  {
+    "email": "gestoralpha",
+    "nome": "Gestor Alpha",
+    "papel": "gestor",
+    "sal": "8a301808a1c8535c",
+    "hash": "99d2e34cdf86f0a53baa32cd1b27f84754ece8ef11b8567e36503a9ee4e19fcd",
+    "time": "Alpha",
+    "ativo": true,
+    "calendarId": ""
+  },
+  {
+    "email": "allanys",
+    "nome": "Allanys",
+    "papel": "consultor",
+    "sal": "54098a0ea68a6305",
+    "hash": "677b6d95e33c7c12febcace521043e8f1a09e2b001fc5946f0faa5b904807ffc",
+    "time": "Equipe Julio",
+    "ativo": true
+  },
+  {
+    "email": "ana",
+    "nome": "Ana",
+    "papel": "consultor",
+    "sal": "9a71a02814aa4fce",
+    "hash": "356ff447497bfc1e6cedd8e11de22679cdbd87246833e5b22afa6d11fb8d66b2",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "ariel",
+    "nome": "Ariel",
+    "papel": "consultor",
+    "sal": "f512756cc8e522dc",
+    "hash": "bd721327039803758db7b6115a4f0f40b7103592a7f283af3544b549bfa30aa7",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "ariovaldo",
+    "nome": "Ariovaldo",
+    "papel": "consultor",
+    "sal": "45f7435939a92e3c",
+    "hash": "5cae757ed71237f338c34f756a06a7e403af62f396b0f625eaa31cda2cd08947",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "carlos",
+    "nome": "Carlos",
+    "papel": "consultor",
+    "sal": "ae6f7e2561100765",
+    "hash": "24cbec4443ea851b1cfe5447876a4be3f04cfbaecc42a98d1d01132ae62e7202",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "caua",
+    "nome": "Cauã",
+    "papel": "consultor",
+    "sal": "9afc39691ed4ad86",
+    "hash": "9641ccd727f9f95a15750b3bbe87052c568d74974a23acb9ea394f949709c7b9",
+    "time": "Alpha",
+    "ativo": true
+  },
+  {
+    "email": "cleu",
+    "nome": "Cleu",
+    "papel": "consultor",
+    "sal": "68ee10f22252963a",
+    "hash": "3d3bdacb42d00865f263c2740633f9527ee4b09ec6997884e60fbd45d8108962",
+    "time": "Equipe Julio",
+    "ativo": true
+  },
+  {
+    "email": "danilo",
+    "nome": "Danilo",
+    "papel": "consultor",
+    "sal": "30c025a812949cff",
+    "hash": "c59b511fe636d2b28355466b5820585fc5d8327922d73f219d895c343cab77dc",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "dantas",
+    "nome": "Dantas",
+    "papel": "consultor",
+    "sal": "0e587dd88568321c",
+    "hash": "77b2f85ebdbd8a330d9f0103b56a3b795ca3898c954e112972ffcb02472663ce",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "diego",
+    "nome": "Diego",
+    "papel": "consultor",
+    "sal": "c7825b5d9aed4c05",
+    "hash": "100edffe96db90217806a4142d638119e7a330eb1318e758c088f9f8b1cbc4ec",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "douglas",
+    "nome": "Douglas",
+    "papel": "consultor",
+    "sal": "53524374d1bf5db7",
+    "hash": "9a1e6f8489d041609d382f7fe57a0902b8c23a3f92d20f014d7b4292b39bae9e",
+    "time": "Equipe Julio",
+    "ativo": true
+  },
+  {
+    "email": "edson",
+    "nome": "Edson",
+    "papel": "consultor",
+    "sal": "4874ef82888a3bf7",
+    "hash": "ee8065a6a8f4a786731152afb69d7ac2750438b7b90c7f37fd72958724c27bb0",
+    "time": "Alpha",
+    "ativo": true
+  },
+  {
+    "email": "julio",
+    "nome": "Julio",
+    "papel": "consultor",
+    "sal": "6725f7a5e6e0e2ca",
+    "hash": "6af55870459e5b26b56c070737254e4159fe3518eee6f6b0adcc113ff8f46892",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "leandro",
+    "nome": "Leandro",
+    "papel": "consultor",
+    "sal": "ea50a26f54694f07",
+    "hash": "b473db29f39d319f7e251f15a6a11040b99bf3d46c3c7e2e2e1282d7dd74ba83",
+    "time": "Alpha",
+    "ativo": true
+  },
+  {
+    "email": "lindsay",
+    "nome": "Lindsay",
+    "papel": "consultor",
+    "sal": "c276965916251997",
+    "hash": "1b4f62063bf7addb5fef12e21f2468c0e5b26ec53fc5750410342b70ad55189a",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "marcia",
+    "nome": "Marcia",
+    "papel": "consultor",
+    "sal": "f44535db53338dc5",
+    "hash": "7c9a1da67a713631a867b8b78a88a983dac8ade0172ac75799674a927e95ae5e",
+    "time": "Alpha",
+    "ativo": true
+  },
+  {
+    "email": "muchenski",
+    "nome": "MUCHENSKI",
+    "papel": "consultor",
+    "sal": "64a5f9d5f0e399ef",
+    "hash": "4e77b9d5c07c378a2242215cdcc2bf659fe90a5352a0343c903a79095f0a2833",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "paola",
+    "nome": "Paola",
+    "papel": "consultor",
+    "sal": "186ccd246caeebd5",
+    "hash": "bcc9aaa01896d9a1f18b5daa0092c55c9bcbfdae19bd5771964bd5d0d5f9d3c0",
+    "time": "Equipe Julio",
+    "ativo": true
+  },
+  {
+    "email": "patrick",
+    "nome": "Patrick",
+    "papel": "consultor",
+    "sal": "378b92bb99769a5a",
+    "hash": "7b2daf94561aff7666e7a7695781712ae7bad0f4f42c998975d4788a46e6b9ca",
+    "time": "Alpha",
+    "ativo": true
+  },
+  {
+    "email": "rosano",
+    "nome": "Rosano",
+    "papel": "consultor",
+    "sal": "ddad72390b310c19",
+    "hash": "1d5548f4f6c8a56a6f2cd8e6d9a241232772c2368e667949cf7709b51944d981",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "sandra",
+    "nome": "Sandra",
+    "papel": "consultor",
+    "sal": "72a950088a0726b0",
+    "hash": "b1ee0162dccdd43939bc4f2109676271416e9d687d05983cdafd2e11cb20fdac",
+    "time": "Inovare",
+    "ativo": true
+  },
+  {
+    "email": "sandrino",
+    "nome": "Sandrino",
+    "papel": "consultor",
+    "sal": "c4d9c3868fc67680",
+    "hash": "e6299f3e36dc994dadebebfab063a2a54c7e8e27a9a16e156702d20d6f81612f",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "stephanie",
+    "nome": "Stephanie",
+    "papel": "consultor",
+    "sal": "34c49b485df97f3a",
+    "hash": "3d1107941a28c846d49593606693d78bd505d9ff9dc1d8d3dce4d995c25ffd40",
+    "time": "Alpha",
+    "ativo": true
+  },
+  {
+    "email": "walker",
+    "nome": "Walker",
+    "papel": "consultor",
+    "sal": "1b85f3f933226411",
+    "hash": "294bfc170ab156cbe6b521bfb09917ee635ca0183644b62e54df7251c8a899ea",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "wallison",
+    "nome": "Wallison",
+    "papel": "consultor",
+    "sal": "eef600f0f4cb5dc2",
+    "hash": "8dda54eba78161c75398ad5a13989b1b80d19b5f412d0682d2885daf3d0f59e4",
+    "time": "Inovare",
+    "ativo": true
+  }
+]

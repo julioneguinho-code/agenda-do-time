@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel do Gestor</title>
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--txt:#1a1a18;--mut:#8a887f;--acc:#185FA5;--accbg:#E6F1FB;--ok:#0F6E56;--okbg:#E1F5EE;--warnbg:#FAEEDA;--warn:#854F0B;--no:#A32D2D;--nobg:#FCEBEB;--ia:#3C3489;--iabg:#EEEDFE;--bord:#e4e2db}
+*{box-sizing:border-box;margin:0}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:76px}
+.top{padding:18px 18px 10px;display:flex;justify-content:space-between;align-items:center}
+.top .sub{font-size:12px;color:var(--mut)}.top .nome{font-size:18px;font-weight:600}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--accbg);color:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
+.sec{padding:6px 18px 4px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.kpi{background:var(--card);border:1px solid var(--bord);border-radius:14px;padding:12px 8px;text-align:center}
+.kpi .l{font-size:11px;color:var(--mut)}.kpi .v{font-size:20px;font-weight:600}
+.card{background:var(--card);border:1px solid var(--bord);border-radius:16px;padding:14px 16px;margin-bottom:10px}
+.card.ia{background:var(--iabg);border-color:transparent}
+.h{font-size:13px;font-weight:600;color:var(--mut);margin:10px 0 8px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.badge{font-size:11px;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.b-ok{background:var(--okbg);color:var(--ok)}.b-warn{background:var(--warnbg);color:var(--warn)}.b-no{background:var(--nobg);color:var(--no)}
+.btn{border:none;border-radius:12px;padding:9px 13px;font-size:13px;font-weight:600;cursor:pointer;background:var(--acc);color:#fff}
+.btn.sec2{background:transparent;border:1px solid var(--bord);color:var(--txt)}
+.btn.no{background:transparent;border:1px solid #F09595;color:var(--no)}
+.mut{color:var(--mut);font-size:12px}
+.titulo{font-size:14px;font-weight:600}
+.exe{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.exe .n{font-size:12px;width:64px}
+.exe .bar{flex:1;height:8px;background:#eee;border-radius:99px;overflow:hidden}
+.exe .pct{font-size:11px;color:var(--mut);width:34px;text-align:right}
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bord);display:flex;justify-content:space-around;padding:8px 0 14px}
+.nav a{text-decoration:none;color:var(--mut);font-size:10px;text-align:center;flex:1}
+.nav a.on{color:var(--acc)}
+.nav .ic{font-size:20px;display:block}
+.aba{display:none}.aba.on{display:block}
+.dia{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:8px;text-align:center;min-height:86px}
+.dia .d{font-size:11px;color:var(--mut)}.dia .num{font-size:15px;font-weight:600;margin-bottom:4px}
+.ev{font-size:10px;border-radius:6px;padding:2px 4px;margin-bottom:3px;background:var(--accbg);color:var(--acc)}
+.ev.p{background:var(--warnbg);color:var(--warn)}
+textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#fbfaf8;resize:none}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--txt);color:#fff;font-size:13px;padding:10px 18px;border-radius:99px;display:none;z-index:9}
+.resp-ia{white-space:pre-wrap;font-size:13px;line-height:1.6;color:var(--ia)}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)fecharPop()">
+  <div style="background:var(--card);border-radius:18px;padding:20px;max-width:440px;width:100%;max-height:82vh;overflow:auto">
+    <div class="row" style="margin-bottom:10px"><div class="titulo" id="modal-titulo" style="font-size:16px"></div><button onclick="fecharPop()" style="border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--mut)">✕</button></div>
+    <div id="modal-corpo"></div>
+  </div>
+</div>
+<div class="top">
+  <div><div class="sub">Painel do gestor</div><div class="nome" id="time">…</div></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button onclick="abrirAvisos()" title="Avisos" style="position:relative;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔔<span id="badge-avisos" style="display:none;position:absolute;top:-5px;right:-5px;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:17px;height:17px;line-height:17px;text-align:center"></span></button>
+    <button onclick="irAba('acessos');carregarUsuarios()" title="Acessos e identidade" style="border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">⚙️</button>
+    <button onclick="carregar();toast('Atualizado ✓')" title="Atualizar" style="border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔄</button>
+    <div class="avatar" id="avatar"></div>
+    <button onclick="sair()" style="border:1px solid var(--bord);background:var(--card);color:var(--mut);border-radius:12px;padding:8px 12px;font-size:12px;cursor:pointer">Sair</button>
+  </div>
+</div>
+
+<!-- PAINEL -->
+<div class="aba on" id="aba-painel">
+  <div class="sec">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+      <div onclick="irControleFiltro('atrasadas')" style="cursor:pointer;background:#FCEBEB;border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:600;color:#A32D2D" id="t-atr">0</div><div style="font-size:12px;color:#A32D2D">Atrasadas</div></div>
+      <div onclick="irControleFiltro('abertas')" style="cursor:pointer;background:#FAEEDA;border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:600;color:#854F0B" id="t-pen">0</div><div style="font-size:12px;color:#854F0B">Pendentes</div></div>
+      <div onclick="irControleFiltro('feitas')" style="cursor:pointer;background:#E1F5EE;border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:600;color:#0F6E56" id="t-fin">0</div><div style="font-size:12px;color:#0F6E56">Finalizadas</div></div>
+    </div>
+    <div class="h">Execução por consultor · semana</div>
+    <div class="card" id="execucao"></div>
+    <div class="h" id="bloco-atrasadas">Atividades atrasadas · por consultor</div>
+    <div id="atrasadas"></div>
+    <div class="h">＋ Nova atividade</div>
+    <div class="card">
+      <select id="na-consultor" style="width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#fbfaf8"></select>
+      <input type="text" id="na-titulo" placeholder="O que precisa ser feito" style="width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#fbfaf8;margin-top:8px">
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <select id="na-tipo" style="flex:1;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#fbfaf8"><option>Prospecção</option><option>Conteúdo</option><option>Treinamento</option><option>Cobrança</option><option>Reunião</option><option>Outro</option></select>
+        <input type="date" id="na-prazo" style="flex:1;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#fbfaf8">
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--txt);cursor:pointer"><input type="checkbox" id="na-recorrente" style="width:18px;height:18px;accent-color:var(--acc)"> 🔁 Repetir toda semana (recria ao concluir)</label>
+      <button class="btn" style="width:100%;margin-top:10px" onclick="novaAtividade()">Criar atividade</button>
+    </div>
+  </div>
+</div>
+
+<!-- APROVAÇÕES -->
+<div class="aba" id="aba-aprov">
+  <div class="sec">
+    <div class="h">Solicitações pendentes</div><div id="pendentes"></div>
+    <div class="h">Últimas decididas</div><div id="decididas"></div>
+  </div>
+</div>
+
+<!-- AGENDA -->
+<div class="aba" id="aba-agenda">
+  <div class="sec">
+    <div class="h" style="display:flex;justify-content:space-between;align-items:center">
+      <button class="btn sec2" style="padding:5px 12px" onclick="mudarSemana(-1)">◀</button>
+      <span id="semana-label">Sua semana</span>
+      <button class="btn sec2" style="padding:5px 12px" onclick="mudarSemana(1)">▶</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px" id="semana"></div>
+    <div class="h">Todos os compromissos</div>
+    <div id="eventos"></div>
+  </div>
+</div>
+
+<!-- CONTROLE -->
+<div class="aba" id="aba-controle">
+  <div class="sec">
+    <div class="h">Envio do check-in · últimos 7 dias</div>
+    <div class="card" style="overflow-x:auto;padding:12px">
+      <table style="width:100%;border-collapse:collapse;font-size:12px" id="ctrl-tabela"></table>
+    </div>
+    <div class="h">Tarefas por consultor</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+      <input type="text" id="ctrl-busca" placeholder="🔎 Buscar tarefa…" oninput="renderTarefas()" style="flex:1;min-width:120px;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#fbfaf8">
+      <select id="ctrl-consultor" onchange="renderTarefas()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#fbfaf8"><option value="">Todos</option></select>
+      <select id="ctrl-status" onchange="renderTarefas()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#fbfaf8"><option value="">Status: todos</option><option value="atrasadas">Atrasadas</option><option value="abertas">Pendentes</option><option value="feitas">Finalizadas</option></select>
+    </div>
+    <div id="ctrl-tarefas"></div>
+  </div>
+</div>
+
+<!-- RANKING -->
+<div class="aba" id="aba-ranking">
+  <div class="sec">
+    <div class="h">🏆 Ranking da semana</div>
+    <div class="card" style="margin-bottom:10px">
+      <div class="row"><span class="mut">Meta semanal (rotinas por consultor)</span><span></span></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input type="number" id="meta-input" min="1" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8">
+        <button class="btn" onclick="salvarMeta()">Salvar meta</button>
+      </div>
+    </div>
+    <div id="ranking-lista"></div>
+  </div>
+</div>
+
+<!-- PERFIL DO CONSULTOR -->
+<div class="aba" id="aba-perfil">
+  <div class="sec">
+    <button class="btn sec2" style="margin-bottom:10px" onclick="irAba('consultores');carregarConsultores()">← Voltar</button>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div class="avatar" id="pf-avatar" style="width:48px;height:48px;font-size:16px"></div>
+        <div><div style="font-size:17px;font-weight:600" id="pf-nome"></div><div class="mut" id="pf-time"></div></div>
+      </div>
+      <div class="kpis" style="margin-bottom:0">
+        <div class="kpi"><div class="l">Execução</div><div class="v" id="pf-exec">–</div></div>
+        <div class="kpi"><div class="l">Check-in hoje</div><div class="v" id="pf-ck">–</div></div>
+        <div class="kpi"><div class="l">Pendentes</div><div class="v" id="pf-pend">–</div></div>
+      </div>
+    </div>
+    <div class="h">Check-in · últimos 7 dias <span class="mut" style="font-weight:400;font-size:11px">(toque num dia)</span></div>
+    <div class="card"><div style="display:flex;align-items:flex-end;gap:6px;height:76px" id="pf-historico"></div></div>
+    <div class="h" id="pf-rotinas-titulo">Rotinas do check-in</div>
+    <div class="card"><div id="pf-rotinas"></div></div>
+    <div class="h">Atividades pendentes</div>
+    <div id="pf-atividades"></div>
+    <div class="h">Atividades concluídas</div>
+    <div id="pf-atividades-feitas"></div>
+    <div class="h">Agendas solicitadas</div>
+    <div id="pf-agendas"></div>
+  </div>
+</div>
+
+<!-- CONSULTORES -->
+<div class="aba" id="aba-consultores">
+  <div class="sec">
+    <div class="h">👥 Consultores do time</div>
+    <input type="text" id="cons-busca" placeholder="🔎 Buscar consultor…" oninput="renderConsultores()" style="width:100%;padding:10px 12px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8;margin-bottom:8px">
+    <div id="lista-consultores"></div>
+  </div>
+</div>
+
+<!-- ACESSOS -->
+<div class="aba" id="aba-acessos">
+  <div class="sec">
+    <button class="btn sec2" style="margin-bottom:10px" onclick="irAba('painel')">← Voltar</button>
+    <div class="h">⚙️ Criar novo acesso</div>
+    <div class="card">
+      <input type="text" id="u-nome" placeholder="Nome" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8">
+      <input type="text" id="u-email" placeholder="Usuário (login)" autocapitalize="none" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8;margin-top:8px">
+      <input type="text" id="u-senha" placeholder="Senha inicial" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8;margin-top:8px">
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <select id="u-papel" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8" onchange="document.getElementById('u-cal').style.display=this.value==='gestor'?'block':'none'"><option value="consultor">Consultor</option><option value="gestor">Gestor</option></select>
+        <input type="text" id="u-time" placeholder="Time (ex: Chama)" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8">
+      </div>
+      <input type="email" id="u-cal" placeholder="E-mail da agenda Google (só gestor)" autocapitalize="none" style="display:none;width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8;margin-top:8px">
+      <button class="btn" style="width:100%;margin-top:10px" onclick="criarUsuario()">Criar acesso</button>
+    </div>
+    <div class="h">Acessos existentes</div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <input type="text" id="us-busca" placeholder="🔎 Buscar…" oninput="renderUsuarios()" style="flex:1;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#fbfaf8">
+      <select id="us-filtro" onchange="renderUsuarios()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#fbfaf8"><option value="">Todos</option><option value="ativo">Só ativos</option><option value="inativo">Só inativos</option></select>
+    </div>
+    <div id="lista-usuarios"></div>
+  </div>
+</div>
+
+
+<div class="nav">
+  <a href="#" class="on" data-aba="painel" onclick="irAba('painel');return false"><span class="ic">📊</span>Painel</a>
+  <a href="#" data-aba="controle" onclick="irAba('controle');carregarControle();return false"><span class="ic">📋</span>Controle</a>
+  <a href="#" data-aba="aprov" onclick="irAba('aprov');return false"><span class="ic">✅</span>Aprovações</a>
+  <a href="#" data-aba="consultores" onclick="irAba('consultores');carregarConsultores();return false"><span class="ic">👥</span>Consultores</a>
+  <a href="#" data-aba="agenda" onclick="irAba('agenda');return false"><span class="ic">📅</span>Agenda</a>
+  <a href="#" data-aba="ranking" onclick="irAba('ranking');carregarRanking();return false"><span class="ic">🏆</span>Ranking</a>
+</div>
+
+<!-- BALÃO DE NOTIFICAÇÕES (flutuante) -->
+<div id="notif-panel" style="display:none;position:fixed;top:64px;right:12px;width:min(360px,92vw);max-height:70vh;overflow:auto;background:var(--card);border:1px solid var(--bord);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);z-index:9997;padding:12px">
+  <div class="row" style="margin-bottom:8px"><div class="titulo">🔔 Notificações</div><button onclick="apagarAvisos()" style="border:none;background:transparent;font-size:12px;color:var(--acc);cursor:pointer">Limpar todas</button></div>
+  <div id="lista-avisos"></div>
+</div>
+
+<!-- CHAT FLUTUANTE (canto inferior direito) -->
+<button id="chat-fab" onclick="toggleChat()" style="position:fixed;bottom:88px;right:16px;width:56px;height:56px;border-radius:50%;background:var(--acc);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:9996">💬<span id="badge-chat-g" style="display:none;position:absolute;top:-2px;right:-2px;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:18px;height:18px;line-height:18px;text-align:center">0</span></button>
+<div id="chat-box" style="display:none;position:fixed;bottom:88px;right:16px;width:min(360px,92vw);height:min(480px,72vh);background:var(--card);border:1px solid var(--bord);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.25);z-index:9997;flex-direction:column;overflow:hidden">
+  <div style="background:var(--acc);color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:14px" id="chat-titulo">💬 Conversas do time</span><button onclick="toggleChat()" style="border:none;background:transparent;color:#fff;font-size:18px;cursor:pointer">✕</button></div>
+  <div style="flex:1;overflow:auto;background:var(--bg)">
+    <div id="chat-lista-wrap" style="padding:10px"><div id="chat-lista"></div></div>
+    <div id="chat-thread-wrap" style="display:none;flex-direction:column;height:100%">
+      <button class="btn sec2" style="margin:8px 10px" onclick="voltarChatLista()">← Consultores</button>
+      <div id="chat-msgs" style="flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:10px"></div>
+      <div style="display:flex;gap:8px;padding:10px;border-top:1px solid var(--bord)">
+        <input type="text" id="chat-input" placeholder="Mensagem…" onkeydown="if(event.key==='Enter')enviarMsgGestor()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:20px;font-size:14px;background:var(--bg)">
+        <button class="btn" onclick="enviarMsgGestor()" style="border-radius:20px;padding:8px 14px">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let painel=null;let semanaOffset=0;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
+function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n))}
+function fmtData(iso){const d=new Date(iso);const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];return `${dias[d.getDay()]} ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
+function corPct(p){return p>=70?'#1D9E75':p>=40?'#EF9F27':'#E24B4A'}
+function estiloCor(cor){
+  if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#1a1a18 50%,#1a1a18 100%);color:#fff';
+  if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';
+  if(cor)return `background:${cor}40;color:#1a1a18`;
+  return 'background:transparent;color:#1a1a18';
+}
+function balaoNome(nome,cor){return `<span style="${estiloCor(cor)};padding:3px 10px;border-radius:12px;font-weight:500;display:inline-block">${nome}</span>`}
+const PALETA=[{n:'— sem cor —',c:''},{n:'Branca',c:'#FFFFFF'},{n:'Vermelha',c:'#E23B3B'},{n:'Vermelha e Preta',c:'grad'},{n:'Laranja',c:'#FB923C'},{n:'Roxo',c:'#A78BFA'},{n:'Cinza',c:'#9CA3AF'}];
+
+async function carregar(){
+  const res = await fetch('/api/gestor/painel');
+  if(res.status===401||res.status===403){location.href='/login';return}
+  painel = await res.json();
+  document.getElementById('time').textContent = 'Equipe ' + (painel.time||'');
+  const gav=document.getElementById('avatar');
+  gav.textContent = (painel.nome||painel.time||'G').replace(/^Gestor\s+/i,'').trim().slice(0,2).toUpperCase();
+  aplicarCorAvatar(gav,painel.cor);
+  if(painel.tarefas){document.getElementById('t-atr').textContent=painel.tarefas.atrasadas;document.getElementById('t-pen').textContent=painel.tarefas.pendentes;document.getElementById('t-fin').textContent=painel.tarefas.finalizadas;}
+  document.getElementById('execucao').innerHTML = painel.execucao.map(e=>`<div class="exe" style="cursor:pointer" onclick="abrirPerfil('${e.nome}')"><span class="n" style="width:auto;min-width:70px">${balaoNome(e.nome,e.cor)}</span><div class="bar"><div style="width:${e.pct}%;height:100%;background:${corPct(e.pct)}"></div></div><span class="pct" style="${e.pct<40?'color:var(--no)':''}">${e.pct}%</span></div>`).join('');
+  document.getElementById('atrasadas').innerHTML = painel.atividadesAtrasadas.map(a=>`<div class="card row"><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:30px;height:30px;font-size:11px;background:var(--nobg);color:var(--no)">${a.consultor.slice(0,2).toUpperCase()}</div><div><div class="titulo" style="font-weight:500;color:var(--acc);cursor:pointer" onclick="abrirPerfil('${a.consultor}')">${a.consultor}</div><div class="mut">${a.titulo} · venceu ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma 🎉</div>';
+  const sel=document.getElementById('na-consultor');
+  sel.innerHTML='<option value="">Escolha o consultor…</option>'+(painel.consultores||[]).map(c=>`<option>${c}</option>`).join('');
+  document.getElementById('decididas').innerHTML=(painel.decididas||[]).map(s=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${s.consultor} · ${fmtData(s.inicio)}</div><div class="mut">${s.resposta||''}</div></div><span class="badge ${s.status==='Aprovada'?'b-ok':s.status==='Recusada'?'b-no':'b-warn'}">${s.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma ainda</div>';
+  document.getElementById('pendentes').innerHTML = painel.pendentes.map(s=>`
+    <div class="card">
+      <div class="row" style="margin-bottom:8px">
+        <div><div class="titulo">${s.assunto||'Reunião'}</div><div class="mut">${s.consultor} · ${s.time} · ${fmtData(s.inicio)} · ${s.duracao} min · ${s.local||''}</div></div>
+        <span class="badge ${s.conflito?'b-no':'b-ok'}">${s.conflito?'⚠ conflito':'horário livre ✓'}</span>
+      </div>
+      <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn no" style="padding:7px 11px" onclick="decidir('${s.id}','Recusada')">Recusar</button>
+        <button class="btn sec2" style="padding:7px 11px" onclick="decidir('${s.id}','Reagendar')">Reagendar</button>
+        <button class="btn sec2" style="padding:7px 11px" onclick="transferir('${s.id}')">Transferir</button>
+        <button class="btn" style="padding:7px 11px" onclick="decidir('${s.id}','Aprovada')">Aprovar</button>
+      </div>
+    </div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma pendente 🎉</div>';
+  carregarAgenda();
+}
+let ctrlData=null;
+async function carregarControle(){
+  const res=await fetch('/api/gestor/controle');
+  const c=await res.json();ctrlData=c;
+  const selC=document.getElementById('ctrl-consultor');
+  if(selC.options.length<=1)selC.innerHTML='<option value="">Todos</option>'+c.consultores.map(x=>`<option>${x.nome}</option>`).join('');
+  document.getElementById('ctrl-tabela').innerHTML =
+    '<tr><th style="text-align:left;padding:6px 4px;color:var(--mut);font-weight:500">Consultor</th>'
+    + c.dias.map(d=>`<th style="padding:6px 2px;color:var(--mut);font-weight:500;font-size:10px">${d.label}<br>${d.data.slice(0,5)}</th>`).join('')
+    + '<th style="padding:6px 4px;color:var(--mut);font-weight:500">Total</th></tr>'
+    + c.consultores.map(x=>`<tr style="border-top:1px solid var(--bord)">
+        <td style="padding:8px 4px;cursor:pointer" onclick="abrirPerfil('${x.nome}')">${balaoNome(x.nome,x.cor)}</td>
+        ${(x.enviosDetalhe||x.envios.map(e=>({enviou:e,feitas:0}))).map(e=>`<td style="text-align:center;padding:8px 2px;font-size:11px" title="${e.feitas||0} rotinas">${e.enviou?`<span style="color:#0F6E56;font-weight:600">${e.feitas}</span>`:'<span style="color:#E24B4A">0</span>'}</td>`).join('')}
+        <td style="text-align:center;padding:8px 4px;font-weight:600;color:${x.totalEnvios>=5?'#0F6E56':x.totalEnvios>=3?'#854F0B':'#A32D2D'}">${x.totalEnvios}/7</td>
+      </tr>`).join('');
+  renderTarefas();
+}
+function renderTarefas(){
+  if(!ctrlData)return;
+  const busca=(document.getElementById('ctrl-busca').value||'').toLowerCase();
+  const fc=document.getElementById('ctrl-consultor').value;
+  const fs=document.getElementById('ctrl-status').value;
+  document.getElementById('ctrl-tarefas').innerHTML = ctrlData.consultores.filter(x=>!fc||x.nome===fc).map(x=>{
+    let ab=x.tarefas.abertas, ft=x.tarefas.feitas;
+    if(busca){ab=ab.filter(t=>t.titulo.toLowerCase().includes(busca));ft=ft.filter(t=>t.titulo.toLowerCase().includes(busca))}
+    if(fs==='feitas')ab=[];if(fs==='abertas'){ft=[];ab=ab.filter(t=>!t.atrasada)}if(fs==='atrasadas'){ft=[];ab=ab.filter(t=>t.atrasada)}
+    if(busca&&!ab.length&&!ft.length)return '';
+    return `<div class="card">
+      <div class="row" style="margin-bottom:6px">
+        <div class="titulo" style="cursor:pointer;color:var(--acc)" onclick="abrirPerfil('${x.nome}')">${x.nome}</div>
+        <div style="display:flex;gap:6px"><span class="badge b-warn">${ab.length} abertas</span><span class="badge b-ok">${ft.length} feitas</span></div>
+      </div>
+      ${ab.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--bord)"><span style="font-size:13px">${t.atrasada?'🔴':'🟡'} ${t.titulo}</span><span style="display:flex;gap:6px;align-items:center;white-space:nowrap;margin-left:8px"><span class="mut">${t.status}${t.prazo?' · '+t.prazo.slice(8,10)+'/'+t.prazo.slice(5,7):''}</span>${t.id?`<button class="btn sec2" style="padding:4px 8px;font-size:11px;color:var(--no)" onclick="cancelarAtvGestor('${t.id}')" title="Cancelar">✕</button>`:''}</span></div>`).join('')}
+      ${ft.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--bord);opacity:.55"><span style="font-size:13px">✅ <s>${t.titulo}</s></span><span class="mut">${t.tipo}</span></div>`).join('')}
+      ${!ab.length&&!ft.length?'<div class="mut">Sem tarefas nesse filtro</div>':''}
+    </div>`;
+  }).join('')||'<div class="mut" style="padding:0 4px">Nada encontrado</div>';
+}
+async function carregarRanking(){
+  const res=await fetch('/api/gestor/ranking');const r=await res.json();
+  document.getElementById('meta-input').value=r.metaSemanal;
+  document.getElementById('ranking-lista').innerHTML=r.ranking.map(x=>`<div class="card"><div class="row"><div class="titulo" style="cursor:pointer;color:var(--acc)" onclick="abrirPerfil('${x.nome}')">${x.medalha||x.pos+'º'} ${x.nome}</div><div style="font-weight:600">${x.pontos} pts</div></div><div class="prog" style="margin-top:8px"><div style="width:${x.meta.pct}%;height:100%;background:${corPct(x.meta.pct)}"></div></div><div class="mut" style="margin-top:4px">meta: ${x.meta.atual}/${x.meta.alvo} rotinas (${x.meta.pct}%)</div></div>`).join('');
+}
+let chatConsultor=null;
+async function abrirChatLista(){
+  document.getElementById('chat-lista-wrap').style.display='block';
+  document.getElementById('chat-thread-wrap').style.display='none';
+  document.getElementById('chat-titulo').textContent='💬 Conversas do time';
+  const res=await fetch('/api/chat');const j=await res.json();
+  document.getElementById('chat-lista').innerHTML=(j.lista||[]).map(c=>`<div class="card row" style="cursor:pointer" onclick="abrirChatThread('${c.nome}')"><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:34px;height:34px;font-size:12px">${c.nome.slice(0,2).toUpperCase()}</div><div class="titulo">${c.nome}</div></div>${c.naoLidas>0?`<span class="badge b-no">${c.naoLidas} nova(s)</span>`:'<span class="mut">›</span>'}</div>`).join('');
+}
+async function abrirChatThread(nome){
+  chatConsultor=nome;
+  document.getElementById('chat-lista-wrap').style.display='none';
+  document.getElementById('chat-thread-wrap').style.display='flex';
+  document.getElementById('chat-titulo').textContent='💬 '+nome;
+  const res=await fetch('/api/chat?consultor='+encodeURIComponent(nome));const j=await res.json();
+  const box=document.getElementById('chat-msgs');
+  box.innerHTML=(j.mensagens||[]).map(m=>{const meu=m.de==='gestor';return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px"><div style="font-size:14px">${m.texto}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`}).join('')||'<div class="mut" style="text-align:center;padding:20px">Sem mensagens ainda</div>';
+  box.scrollTop=box.scrollHeight;
+}
+function voltarChatLista(){chatConsultor=null;abrirChatLista()}
+async function enviarMsgGestor(){const t=document.getElementById('chat-input');if(!t.value.trim()||!chatConsultor)return;await fetch('/api/chat/enviar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({consultor:chatConsultor,texto:t.value})});t.value='';abrirChatThread(chatConsultor)}
+async function salvarMeta(){
+  const alvo=+document.getElementById('meta-input').value;
+  await fetch('/api/gestor/meta',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alvo})});
+  toast('Meta salva ✓');carregarRanking();
+}
+let _consultores=[];
+async function irControleFiltro(f){await carregarControle();document.getElementById('ctrl-status').value=f;renderTarefas();irAba('controle');}
+async function carregarConsultores(){
+  const res=await fetch('/api/gestor/controle');const c=await res.json();_consultores=c.consultores||[];renderConsultores();
+}
+function renderConsultores(){
+  const busca=(document.getElementById('cons-busca').value||'').toLowerCase();
+  const lista=_consultores.filter(c=>c.nome.toLowerCase().includes(busca));
+  document.getElementById('lista-consultores').innerHTML=lista.map(c=>{
+    const ab=c.tarefas.abertas.length,ft=c.tarefas.feitas.length;
+    return `<div class="card row" style="cursor:pointer" onclick="abrirPerfil('${c.nome}')"><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:34px;height:34px;font-size:12px;${estiloCorSolidaG(c.cor)}">${c.nome.slice(0,2).toUpperCase()}</div><div>${balaoNome(c.nome,c.cor)}<div class="mut" style="font-size:11px;margin-top:2px">${c.totalEnvios}/7 check-ins · ${ab} tarefas abertas · ${ft} feitas</div></div></div><span class="mut">›</span></div>`;
+  }).join('')||'<div class="mut" style="padding:0 4px">Nenhum consultor</div>';
+}
+function estiloCorSolidaG(cor){if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#1a1a18 50%,#1a1a18 100%);color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#1a1a18`;return ''}
+function aplicarCorAvatar(el,cor){if(!cor)return;el.style.border='none';if(cor==='grad'){el.style.background='linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#1a1a18 50%,#1a1a18 100%)';el.style.color='#fff'}else if((cor||'').toLowerCase()==='#ffffff'){el.style.background='#fff';el.style.color='#1a1a18';el.style.border='1px solid #d4d2cb'}else{el.style.background=cor;el.style.color='#1a1a18'}}
+let perfilAtual=null;
+async function abrirPerfil(nome){
+  perfilAtual=nome;
+  const res=await fetch('/api/gestor/consultor?nome='+encodeURIComponent(nome));
+  const p=await res.json();
+  const av=document.getElementById('pf-avatar');av.textContent=nome.slice(0,2).toUpperCase();av.style.cssText='width:48px;height:48px;font-size:16px';aplicarCorAvatar(av,p.cor);
+  document.getElementById('pf-nome').innerHTML=p.nome+(p.cargo?` <span style="font-size:11px;${estiloCor(p.cor)};padding:2px 9px;border-radius:10px;font-weight:500">${p.cargo}</span>`:'');
+  document.getElementById('pf-time').textContent='Time '+(p.time||'');
+  document.getElementById('pf-exec').textContent=p.execucao+'%';
+  document.getElementById('pf-exec').style.color=corPct(p.execucao);
+  document.getElementById('pf-ck').textContent=p.checkinHoje.feitas+'/'+p.checkinHoje.total;
+  document.getElementById('pf-pend').textContent=p.atividades.pendentes.length;
+  window._perfil=p;
+  document.getElementById('pf-historico').innerHTML=p.historico7d.map((h,i)=>`<div style="flex:1;text-align:center;cursor:pointer" onclick="verDiaCheckin(${i})" title="${h.data}: ${h.feitas}/${h.total}"><div style="font-size:9px;color:var(--mut)">${h.feitas}</div><div id="pf-bar-${i}" style="height:${Math.max(4,h.pct*0.4)}px;background:${corPct(h.pct)};border-radius:4px 4px 0 0;margin:2px 2px 0;border:2px solid transparent"></div><div class="mut" style="font-size:9px;margin-top:3px;line-height:1.2">${h.dia}<br>${h.data.slice(0,5)}</div></div>`).join('');
+  verDiaCheckin(p.historico7d.length-1);
+  document.getElementById('pf-atividades').innerHTML=p.atividades.pendentes.map(a=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${a.titulo}</div><div class="mut">${a.tipo} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><span class="badge ${a.prazo<new Date().toISOString().slice(0,10)?'b-no':'b-warn'}">${a.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma pendente ✓</div>';
+  document.getElementById('pf-atividades-feitas').innerHTML=(p.atividades.feitas||[]).map(a=>`<div class="card row" style="opacity:.75"><div class="titulo" style="font-weight:500"><s>${a.titulo}</s></div><span class="mut">${a.tipo}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma concluída ainda</div>';
+  document.getElementById('pf-agendas').innerHTML=(p.agendas||[]).map(r=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${r.assunto}</div><div class="mut">${fmtData(r.inicio)} · ${r.duracao} min · ${r.local||'—'}${r.resposta?' · '+r.resposta:''}</div></div><span class="badge ${r.status==='Aprovada'?'b-ok':r.status==='Pendente'?'b-warn':'b-no'}">${r.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma agenda solicitada</div>';
+  irAba('perfil');
+}
+function verDiaCheckin(i){
+  const p=window._perfil;if(!p)return;const h=p.historico7d[i];
+  document.querySelectorAll('[id^="pf-bar-"]').forEach(b=>b.style.border='2px solid transparent');
+  const bar=document.getElementById('pf-bar-'+i);if(bar)bar.style.border='2px solid var(--acc)';
+  document.getElementById('pf-rotinas-titulo').innerHTML=`Rotinas de ${h.hoje?'hoje':h.dia+' '+h.data} <span class="mut" style="font-weight:400;font-size:12px">· ${h.feitas}/${h.total}</span>`;
+  const feitasSet=new Set(h.rotinasFeitas||[]);
+  document.getElementById('pf-rotinas').innerHTML=(p.todasRotinas||[]).map(r=>{const ok=feitasSet.has(r);return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bord)"><span style="font-size:15px">${ok?'✅':'⬜'}</span><span style="font-size:13px;${ok?'':'color:var(--mut)'}">${r}</span></div>`}).join('');
+}
+function mudarSemana(dir){semanaOffset+=dir;carregarAgenda()}
+async function concluirAtv(id){await fetch('/api/atividade',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:'Feito'})});toast('Concluída ✓');carregar()}
+async function cancelarAtvGestor(id){if(!confirm('Cancelar esta atividade? (o consultor será avisado)'))return;const res=await fetch('/api/atividade/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Atividade cancelada ✓':(j.erro||'Erro'));carregarControle();carregar()}
+async function novaAtividade(){
+  const consultor=document.getElementById('na-consultor').value, titulo=document.getElementById('na-titulo').value.trim();
+  if(!consultor||!titulo){toast('Escolha o consultor e escreva a atividade');return}
+  const res=await fetch('/api/gestor/atividade',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({consultor,titulo,tipo:document.getElementById('na-tipo').value,prazo:document.getElementById('na-prazo').value,recorrente:document.getElementById('na-recorrente').checked})});
+  const j=await res.json();
+  if(j.ok){toast('Atividade criada ✓');document.getElementById('na-titulo').value='';document.getElementById('na-recorrente').checked=false;carregar()}else toast(j.erro||'Erro');
+}
+async function carregarAgenda(){
+  const res = await fetch('/api/gestor/agenda');
+  const ag = await res.json();
+  const hoje = new Date(); hoje.setDate(hoje.getDate()+semanaOffset*7);
+  const seg = new Date(hoje); seg.setDate(hoje.getDate()-((hoje.getDay()+6)%7));
+  document.getElementById('semana-label').textContent = semanaOffset===0?'Sua semana':`Semana de ${String(seg.getDate()).padStart(2,'0')}/${String(seg.getMonth()+1).padStart(2,'0')}`;
+  const dias=['SEG','TER','QUA','QUI','SEX'];
+  let html='';
+  for(let i=0;i<5;i++){
+    const d=new Date(seg); d.setDate(seg.getDate()+i);
+    const evs=(ag.eventos||[]).filter(e=>new Date(e.inicio).toDateString()===d.toDateString());
+    html+=`<div class="dia"><div class="d">${dias[i]}</div><div class="num">${d.getDate()}</div>${evs.map(e=>`<div class="ev ${e.status==='Pendente'?'p':''}">${String(new Date(e.inicio).getHours()).padStart(2,'0')}:${String(new Date(e.inicio).getMinutes()).padStart(2,'0')}${e.status==='Pendente'?' ?':''}</div>`).join('')||'<div class="mut" style="font-size:10px">livre</div>'}</div>`;
+  }
+  document.getElementById('semana').innerHTML=html;
+  const todos=[...(ag.eventos||[]),...(ag.googleEventos||[])].sort((a,b)=>a.inicio<b.inicio?-1:1);
+  document.getElementById('eventos').innerHTML=todos.map(e=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${e.assunto||'Reunião'}${e.google?'':' · '+e.consultor}</div><div class="mut">${fmtData(e.inicio)} · ${e.duracao} min · ${e.local||''}</div></div><div style="display:flex;gap:6px;align-items:center">${e.vinculado||e.google?`<a href="${e.link||'#'}" target="_blank" class="badge b-blue" style="text-decoration:none">🔗 Google</a>`:''}<span class="badge ${e.status==='Aprovada'?'b-ok':e.status==='Google'?'b-blue':'b-warn'}">${e.status}</span></div></div>`).join('')||'<div class="mut" style="padding:0 4px">Sem compromissos</div>';
+  if(ag.googleAtivo===false&&!document.getElementById('aviso-google')){const d=document.createElement('div');d.id='aviso-google';d.className='mut';d.style.cssText='padding:8px 4px;font-size:12px';d.textContent='ℹ️ Conexão com Google Calendar ativa após a publicação — aqui aparecem só as solicitações do sistema.';document.getElementById('eventos').parentNode.insertBefore(d,document.getElementById('eventos'));}
+}
+async function decidir(id,decisao){
+  let resposta='';
+  if(decisao!=='Aprovada'){resposta=prompt(decisao==='Recusada'?'Motivo da recusa (o consultor verá):':'Sugestão de novo horário:')||''}
+  const res=await fetch('/api/gestor/decidir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,decisao,resposta})});
+  const json=await res.json();
+  toast(decisao==='Aprovada'?(json.googleCalendar||'Aprovada ✓'):decisao+' ✓');
+  carregar();
+}
+async function transferir(id){
+  const res=await fetch('/api/gestor/usuarios');const j=await res.json();
+  const meuEmail=(painel&&painel.email)||'';
+  const gestores=(j.usuarios||[]).filter(u=>u.papel==='gestor'&&u.email!==meuEmail);
+  if(!gestores.length){toast('Cadastre outro gestor em ⚙️ Acessos para transferir');return}
+  abrirPop('Transferir para outro gestor',`<div class="mut" style="margin-bottom:8px">Escolha o gestor que vai aprovar na agenda dele:</div><select id="tr-gestor" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8">${gestores.map((g,i)=>`<option value="${i}">${g.nome}${g.time?' · '+g.time:''}</option>`).join('')}</select><textarea id="tr-obs" rows="2" placeholder="Observação (opcional)" style="width:100%;margin-top:8px;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8"></textarea><button class="btn" style="width:100%;margin-top:10px" onclick="confirmarTransfer('${id}')">Transferir</button>`);
+  window._gestoresTransf=gestores;
+}
+async function confirmarTransfer(id){
+  const g=window._gestoresTransf[+document.getElementById('tr-gestor').value];
+  const resposta=document.getElementById('tr-obs').value;
+  const res=await fetch('/api/gestor/decidir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,decisao:'Transferir',paraEmail:g.email,paraTime:g.time,paraNome:g.nome,resposta})});
+  const j=await res.json();fecharPop();toast(j.ok?'Transferida para '+g.nome+' ✓':(j.erro||'Erro'));carregar();
+}
+async function sair(){await fetch('/api/logout',{method:'POST'});location.href='/login'}
+function abrirPop(titulo,corpo){document.getElementById('modal-titulo').textContent=titulo;document.getElementById('modal-corpo').innerHTML=corpo;document.getElementById('modal').style.display='flex'}
+function fecharPop(){document.getElementById('modal').style.display='none'}
+let _avisos=[];let _notifVistos=null;
+function iniciarNotif(){if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();if('serviceWorker'in navigator)navigator.serviceWorker.register('/public/sw.js').catch(()=>{});}
+function notificarNovos(avisos){
+  const naoLidos=avisos.filter(a=>!a.lida);
+  if(_notifVistos===null){_notifVistos=new Set(avisos.map(a=>a.id));return;}
+  naoLidos.forEach(a=>{if(!_notifVistos.has(a.id)){_notifVistos.add(a.id);if('Notification'in window&&Notification.permission==='granted'){try{new Notification(a.titulo,{body:a.texto,icon:'/public/icon.png',tag:a.id})}catch(e){}}}});
+  avisos.forEach(a=>_notifVistos.add(a.id));
+}
+async function carregarAvisos(){
+  const res=await fetch('/api/avisos');const j=await res.json();_avisos=j.avisos||[];
+  notificarNovos(_avisos);
+  const b=document.getElementById('badge-avisos');
+  if(j.naoLidas>0){b.textContent=j.naoLidas;b.style.display='block'}else b.style.display='none';
+  document.getElementById('lista-avisos').innerHTML=(_avisos.length?`<div style="text-align:right;margin-bottom:8px"><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="apagarAvisos()">Limpar todas</button></div>`:'')+
+    (_avisos.map((a,i)=>`<div class="card row" style="${a.lida?'opacity:.65':''}"><div style="cursor:pointer;flex:1" onclick="abrirAviso(${i})"><div class="titulo">${a.lida?'':'🔵 '}${a.titulo}</div><div class="mut" style="font-size:12px;margin-top:2px">${new Date(a.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div><button onclick="apagarAviso('${a.id}')" title="Apagar" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--mut)">🗑</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum aviso</div>');
+}
+function abrirAvisos(){const p=document.getElementById('notif-panel');if(p.style.display==='none'||!p.style.display){p.style.display='block';carregarAvisos()}else p.style.display='none'}
+document.addEventListener('click',e=>{const p=document.getElementById('notif-panel');if(p.style.display==='block'&&!p.contains(e.target)&&!e.target.closest('[onclick*="abrirAvisos"]'))p.style.display='none'});
+function toggleChat(){const box=document.getElementById('chat-box');const abrir=box.style.display==='none'||!box.style.display;box.style.display=abrir?'flex':'none';document.getElementById('chat-fab').style.display=abrir?'none':'block';if(abrir)abrirChatLista()}
+async function abrirAviso(i){const a=_avisos[i];abrirPop(a.titulo,`<div style="font-size:14px;line-height:1.7">${a.texto}</div><div class="mut" style="margin-top:10px;font-size:12px">${new Date(a.data).toLocaleString('pt-BR')}</div><div style="text-align:right;margin-top:12px"><button class="btn sec2" style="padding:6px 12px" onclick="apagarAviso('${a.id}');fecharPop()">🗑 Apagar</button></div>`);if(!a.lida){await fetch('/api/avisos/ler',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id})});carregarAvisos()}}
+async function apagarAviso(id){await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});carregarAvisos()}
+async function apagarAvisos(){if(!confirm('Apagar todas as notificações?'))return;await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({todos:true})});carregarAvisos()}
+async function carregarUsuarios(){
+  const res=await fetch('/api/gestor/usuarios');const j=await res.json();
+  window._usuarios=j.usuarios||[];
+  renderUsuarios();
+}
+function renderUsuarios(){
+  const busca=(document.getElementById('us-busca').value||'').toLowerCase();
+  const f=document.getElementById('us-filtro').value;
+  const lista=(window._usuarios||[]).map((u,i)=>({u,i})).filter(({u})=>{
+    if(f==='ativo'&&u.ativo===false)return false;
+    if(f==='inativo'&&u.ativo!==false)return false;
+    if(busca&&!(u.nome+' '+u.email+' '+(u.time||'')).toLowerCase().includes(busca))return false;
+    return true;
+  });
+  const ativos=(window._usuarios||[]).filter(u=>u.ativo!==false).length;
+  document.getElementById('lista-usuarios').innerHTML=`<div class="mut" style="font-size:12px;margin-bottom:6px">${ativos} ativos · ${(window._usuarios||[]).length-ativos} inativos</div>`+
+    lista.map(({u,i})=>`<div class="card" style="${u.ativo===false?'opacity:.55':''}"><div class="row"><div><div class="titulo">${u.nome} <span class="badge ${u.papel==='gestor'?'b-blue':'b-ok'}" style="margin-left:4px">${u.papel}</span>${u.ativo===false?' <span class="badge b-no">inativo</span>':''}</div><div class="mut" style="font-size:12px">usuário: ${u.email}${u.time?' · '+u.time:''}${u.calendarId?' · 📅 '+u.calendarId:''}</div></div></div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap"><button class="btn sec2" style="padding:5px 10px;font-size:12px;color:${u.ativo===false?'var(--ok)':'var(--warn)'}" onclick="toggleAtivo('${u.email}',${u.ativo===false})">${u.ativo===false?'✓ Ativar':'⏸ Desativar'}</button><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="editarUsuario(${i})">✏️ Editar</button><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="resetSenha('${u.email}')">🔑 Senha</button><button class="btn sec2" style="padding:5px 10px;font-size:12px;color:var(--no)" onclick="removerUsuario('${u.email}')">✕</button></div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum acesso</div>';
+}
+async function toggleAtivo(email,ativo){await fetch('/api/gestor/usuarios/ativo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,ativo})});toast(ativo?'Acesso ativado ✓':'Acesso desativado');carregarUsuarios()}
+async function criarUsuario(){
+  const b={nome:document.getElementById('u-nome').value,email:document.getElementById('u-email').value,senha:document.getElementById('u-senha').value,papel:document.getElementById('u-papel').value,time:document.getElementById('u-time').value,calendarId:document.getElementById('u-cal').value};
+  if(!b.nome||!b.email||!b.senha){toast('Preencha nome, usuário e senha');return}
+  const res=await fetch('/api/gestor/usuarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await res.json();
+  if(j.ok){toast('Acesso criado ✓');['u-nome','u-email','u-senha','u-time','u-cal'].forEach(id=>document.getElementById(id).value='');carregarUsuarios()}else toast(j.erro||'Erro');
+}
+async function removerUsuario(email){if(!confirm('Remover o acesso de '+email+'?'))return;const res=await fetch('/api/gestor/usuarios/remover',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});const j=await res.json();toast(j.ok?'Removido ✓':(j.erro||'Erro'));carregarUsuarios()}
+async function resetSenha(email){const senha=prompt('Nova senha para '+email+':');if(!senha)return;await fetch('/api/gestor/usuarios/senha',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,senha})});toast('Senha redefinida ✓')}
+function editarUsuario(i){
+  const u=window._usuarios[i];
+  abrirPop('Editar acesso — '+u.email,`
+    <label style="font-size:12px;color:var(--mut)">Nome</label>
+    <input type="text" id="ed-nome" value="${(u.nome||'').replace(/"/g,'&quot;')}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
+    <label style="font-size:12px;color:var(--mut)">Papel</label>
+    <select id="ed-papel" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"><option value="consultor"${u.papel==='consultor'?' selected':''}>Consultor</option><option value="gestor"${u.papel==='gestor'?' selected':''}>Gestor</option></select>
+    <label style="font-size:12px;color:var(--mut)">Time</label>
+    <input type="text" id="ed-time" value="${(u.time||'').replace(/"/g,'&quot;')}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
+    <label style="font-size:12px;color:var(--mut)">Cargo (rótulo do balão)</label>
+    <input type="text" id="ed-cargo" value="${(u.cargo||'').replace(/"/g,'&quot;')}" placeholder="Ex: Consultor Sênior, Líder…" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
+    <label style="font-size:12px;color:var(--mut)">Cor do cargo</label>
+    <select id="ed-cor" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">${PALETA.map(p=>`<option value="${p.c}"${u.cor===p.c?' selected':''}>${p.n}</option>`).join('')}</select>
+    <div style="margin-bottom:8px">Prévia: ${balaoNome(u.nome,u.cor)}</div>
+    <label style="font-size:12px;color:var(--mut)">E-mail da agenda Google (só gestor)</label>
+    <input type="text" id="ed-cal" value="${(u.calendarId||'').replace(/"/g,'&quot;')}" autocapitalize="none" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
+    <button class="btn" style="width:100%;margin-top:6px" onclick="salvarEdicaoUsuario('${u.email}')">Salvar alterações</button>
+    <button class="btn sec2" style="width:100%;margin-top:8px" onclick="resetSenha('${u.email}')">🔑 Redefinir senha</button>`);
+}
+async function salvarEdicaoUsuario(email){
+  const b={email,nome:document.getElementById('ed-nome').value,papel:document.getElementById('ed-papel').value,time:document.getElementById('ed-time').value,calendarId:document.getElementById('ed-cal').value,cargo:document.getElementById('ed-cargo').value,cor:document.getElementById('ed-cor').value};
+  const res=await fetch('/api/gestor/usuarios/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  const j=await res.json();fecharPop();toast(j.ok?'Acesso atualizado ✓':(j.erro||'Erro'));carregarUsuarios();
+}
+setInterval(carregarAvisos,30000);carregarAvisos();
+async function checarChatG(){const res=await fetch('/api/chat');const j=await res.json();const tot=(j.lista||[]).reduce((s,c)=>s+c.naoLidas,0);const b=document.getElementById('badge-chat-g');const aberto=document.getElementById('chat-box').style.display==='flex';if(tot>0&&!aberto){b.textContent=tot;b.style.display='block'}else b.style.display='none';}
+setInterval(()=>{if(!document.hidden){checarChatG();if(document.getElementById('chat-box').style.display==='flex'){if(chatConsultor)abrirChatThread(chatConsultor);else abrirChatLista();}}},10000);checarChatG();
+iniciarNotif();
+// atualização automática do painel (quase tempo real) — pausa fora da aba
+setInterval(()=>{if(!document.hidden){carregar();if(document.getElementById('aba-controle').classList.contains('on'))carregarControle();if(document.getElementById('aba-ranking').classList.contains('on'))carregarRanking();if(document.getElementById('aba-perfil').classList.contains('on')&&perfilAtual)abrirPerfil(perfilAtual);}},8000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){carregar();carregarAvisos();if(document.getElementById('aba-controle').classList.contains('on'))carregarControle();}});
+carregar();
+</script>
+</body>
+</html>
