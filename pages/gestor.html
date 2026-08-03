@@ -71,6 +71,8 @@ textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px
       <div onclick="irControleFiltro('abertas')" style="cursor:pointer;background:#FAEEDA;border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:600;color:#854F0B" id="t-pen">0</div><div style="font-size:12px;color:#854F0B">Pendentes</div></div>
       <div onclick="irControleFiltro('feitas')" style="cursor:pointer;background:#E1F5EE;border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:600;color:#0F6E56" id="t-fin">0</div><div style="font-size:12px;color:#0F6E56">Finalizadas</div></div>
     </div>
+    <div class="h" id="h-minhas-tarefas" style="display:none">📥 Tarefas enviadas para mim</div>
+    <div id="minhas-tarefas"></div>
     <div class="h">Execução por consultor · semana</div>
     <div class="card" id="execucao"></div>
     <div class="h" id="bloco-atrasadas">Atividades atrasadas · por consultor</div>
@@ -196,6 +198,16 @@ textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px
       <input type="email" id="u-cal" placeholder="E-mail da agenda Google (só gestor)" autocapitalize="none" style="display:none;width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8;margin-top:8px">
       <button class="btn" style="width:100%;margin-top:10px" onclick="criarUsuario()">Criar acesso</button>
     </div>
+    <div class="h">✅ Tarefas do check-in diário</div>
+    <div class="card">
+      <div class="mut" style="font-size:12px;margin-bottom:8px">Estas são as rotinas que os consultores marcam todo dia. Edite, adicione ou remova.</div>
+      <div id="lista-rotinas-edit"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input type="text" id="nova-rotina" placeholder="Nova rotina…" onkeydown="if(event.key==='Enter')addRotina()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8">
+        <button class="btn sec2" onclick="addRotina()">+ Adicionar</button>
+      </div>
+      <button class="btn" style="width:100%;margin-top:10px" onclick="salvarRotinas()">Salvar check-in</button>
+    </div>
     <div class="h">Acessos existentes</div>
     <div style="display:flex;gap:6px;margin-bottom:8px">
       <input type="text" id="us-busca" placeholder="🔎 Buscar…" oninput="renderUsuarios()" style="flex:1;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#fbfaf8">
@@ -264,8 +276,11 @@ async function carregar(){
   if(painel.tarefas){document.getElementById('t-atr').textContent=painel.tarefas.atrasadas;document.getElementById('t-pen').textContent=painel.tarefas.pendentes;document.getElementById('t-fin').textContent=painel.tarefas.finalizadas;}
   document.getElementById('execucao').innerHTML = painel.execucao.map(e=>`<div class="exe" style="cursor:pointer" onclick="abrirPerfil('${e.nome}')"><span class="n" style="width:auto;min-width:70px">${balaoNome(e.nome,e.cor)}</span><div class="bar"><div style="width:${e.pct}%;height:100%;background:${corPct(e.pct)}"></div></div><span class="pct" style="${e.pct<40?'color:var(--no)':''}">${e.pct}%</span></div>`).join('');
   document.getElementById('atrasadas').innerHTML = painel.atividadesAtrasadas.map(a=>`<div class="card row"><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:30px;height:30px;font-size:11px;background:var(--nobg);color:var(--no)">${a.consultor.slice(0,2).toUpperCase()}</div><div><div class="titulo" style="font-weight:500;color:var(--acc);cursor:pointer" onclick="abrirPerfil('${a.consultor}')">${a.consultor}</div><div class="mut">${a.titulo} · venceu ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma 🎉</div>';
-  const sel=document.getElementById('na-consultor');
-  sel.innerHTML='<option value="">Escolha o consultor…</option>'+(painel.consultores||[]).map(c=>`<option>${c}</option>`).join('');
+  // Minhas tarefas (enviadas por outros gestores)
+  const mt=(painel.minhasTarefas||[]).filter(t=>t.status!=='Feito');
+  document.getElementById('h-minhas-tarefas').style.display=mt.length?'block':'none';
+  document.getElementById('minhas-tarefas').innerHTML=mt.map(a=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${a.titulo}</div><div class="mut">${a.tipo}${a.de?' · de '+a.de:''} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('');
+  carregarDestinatarios();
   document.getElementById('decididas').innerHTML=(painel.decididas||[]).map(s=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${s.consultor} · ${fmtData(s.inicio)}</div><div class="mut">${s.resposta||''}</div></div><span class="badge ${s.status==='Aprovada'?'b-ok':s.status==='Recusada'?'b-no':'b-warn'}">${s.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma ainda</div>';
   document.getElementById('pendentes').innerHTML = painel.pendentes.map(s=>`
     <div class="card">
@@ -396,6 +411,16 @@ function verDiaCheckin(i){
 function mudarSemana(dir){semanaOffset+=dir;carregarAgenda()}
 async function concluirAtv(id){await fetch('/api/atividade',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:'Feito'})});toast('Concluída ✓');carregar()}
 async function cancelarAtvGestor(id){if(!confirm('Cancelar esta atividade? (o consultor será avisado)'))return;const res=await fetch('/api/atividade/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Atividade cancelada ✓':(j.erro||'Erro'));carregarControle();carregar()}
+async function carregarDestinatarios(){
+  const sel=document.getElementById('na-consultor');
+  try{
+    const res=await fetch('/api/gestor/destinatarios');const d=await res.json();
+    let html='<option value="">Escolha o destinatário…</option>';
+    if((d.consultores||[]).length){html+='<optgroup label="Consultores">'+d.consultores.map(c=>`<option>${c.nome}</option>`).join('')+'</optgroup>';}
+    if((d.gestores||[]).length){html+='<optgroup label="Gestores">'+d.gestores.map(g=>`<option>${g.nome}</option>`).join('')+'</optgroup>';}
+    sel.innerHTML=html;
+  }catch(e){}
+}
 async function novaAtividade(){
   const consultor=document.getElementById('na-consultor').value, titulo=document.getElementById('na-titulo').value.trim();
   if(!consultor||!titulo){toast('Escolha o consultor e escreva a atividade');return}
@@ -472,6 +497,22 @@ async function carregarUsuarios(){
   const res=await fetch('/api/gestor/usuarios');const j=await res.json();
   window._usuarios=j.usuarios||[];
   renderUsuarios();
+  carregarRotinasEdit();
+}
+let _rotinas=[];
+async function carregarRotinasEdit(){
+  const res=await fetch('/api/gestor/rotinas');const j=await res.json();_rotinas=j.rotinas||[];renderRotinasEdit();
+}
+function renderRotinasEdit(){
+  document.getElementById('lista-rotinas-edit').innerHTML=_rotinas.map((r,i)=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="text" value="${(r||'').replace(/"/g,'&quot;')}" onchange="_rotinas[${i}]=this.value" style="flex:1;padding:9px 11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8"><button onclick="removerRotina(${i})" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--no)">🗑</button></div>`).join('')||'<div class="mut">Nenhuma rotina</div>';
+}
+function addRotina(){const v=document.getElementById('nova-rotina').value.trim();if(!v)return;_rotinas.push(v);document.getElementById('nova-rotina').value='';renderRotinasEdit()}
+function removerRotina(i){_rotinas.splice(i,1);renderRotinasEdit()}
+async function salvarRotinas(){
+  const lista=_rotinas.map(r=>r.trim()).filter(Boolean);
+  if(!lista.length){toast('A lista não pode ficar vazia');return}
+  const res=await fetch('/api/gestor/rotinas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rotinas:lista})});
+  const j=await res.json();if(j.ok){_rotinas=j.rotinas;renderRotinasEdit();toast('Check-in atualizado ✓')}else toast(j.erro||'Erro');
 }
 function renderUsuarios(){
   const busca=(document.getElementById('us-busca').value||'').toLowerCase();

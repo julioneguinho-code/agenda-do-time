@@ -92,6 +92,15 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/atividade' && req.method === 'POST') {
         return send(res, 200, await notion.criarAtividade(session, await readBody(req)));
       }
+      if (p === '/api/gestor/destinatarios') {
+        return send(res, 200, await notion.destinatarios(session));
+      }
+      if (p === '/api/gestor/rotinas' && req.method === 'GET') {
+        return send(res, 200, await notion.listarRotinas());
+      }
+      if (p === '/api/gestor/rotinas' && req.method === 'POST') {
+        return send(res, 200, await notion.salvarRotinas(session, await readBody(req)));
+      }
       if (p === '/api/gestor/usuarios' && req.method === 'GET') {
         return send(res, 200, { usuarios: auth.listarUsuarios() });
       }
