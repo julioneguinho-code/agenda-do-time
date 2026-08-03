@@ -1,0 +1,248 @@
+[
+  {
+    "email": "gestorchama",
+    "nome": "Gestor Chama",
+    "papel": "gestor",
+    "sal": "77a17eb867eedba8",
+    "hash": "8993e3c19ad31302552782f79ab6c2c36c75fac345777eaed3731f95590bbed1",
+    "time": "Chama",
+    "cor": ""
+  },
+  {
+    "email": "gestorjulio",
+    "nome": "Gestor Equipe Julio",
+    "papel": "gestor",
+    "sal": "05ba5ccbb1739891",
+    "hash": "c848a60eb0b0aa5c8a17c027f33b695f0049337172b5c22a2dbd0cee1d1b4047",
+    "time": "Equipe Julio"
+  },
+  {
+    "email": "gestorinovare",
+    "nome": "Gestor Inovare",
+    "papel": "gestor",
+    "sal": "97e8d3a5a5d850ca",
+    "hash": "f5f6157a400b0f85afc774fdfd87596fa2bf347bc370eb36dd17963a8c05590e",
+    "time": "Inovare"
+  },
+  {
+    "email": "gestorcronos",
+    "nome": "Gestor Cronos",
+    "papel": "gestor",
+    "sal": "7483a1ec27b0b679",
+    "hash": "f4ef5ad285fcc695a854199a279ecf44a68a64e940944118b0ba526e294bd007",
+    "time": "Cronos"
+  },
+  {
+    "email": "gestoralpha",
+    "nome": "Gestor Alpha",
+    "papel": "gestor",
+    "sal": "56ec94188b327c7a",
+    "hash": "1dffe54ab3f24f4c3026bfaec588d80bf7432739049ab64017f358df7d59acd2",
+    "time": "Alpha"
+  },
+  {
+    "email": "allanys",
+    "nome": "Allanys",
+    "papel": "consultor",
+    "sal": "f6a231ced0834a67",
+    "hash": "05d7394fc64bdfabb105b8056ca18696069f7215046dacca1eb095ed0451155a",
+    "time": "Equipe Julio"
+  },
+  {
+    "email": "ana",
+    "nome": "Ana",
+    "papel": "consultor",
+    "sal": "e4f0cc3dd90606f8",
+    "hash": "56a1691803b2c5c5b93a89a5ac69164873c7f7546e0dd6451a7ce7c306a73910",
+    "time": "Chama",
+    "cargo": "",
+    "cor": ""
+  },
+  {
+    "email": "ariel",
+    "nome": "Ariel",
+    "papel": "consultor",
+    "sal": "39fb63b0cc91ce26",
+    "hash": "97478d03280daa86e7ff9b53dcb42b2ffabb2d6aca80c4ffcc3268d9f8d1a93c",
+    "time": "Chama"
+  },
+  {
+    "email": "ariovaldo",
+    "nome": "Ariovaldo",
+    "papel": "consultor",
+    "sal": "374d4f4f369f0e91",
+    "hash": "250bc0068f0920d0364e4a0380a93505690355c5ece26acaeb37b740da3e48cf",
+    "time": "Chama"
+  },
+  {
+    "email": "carlos",
+    "nome": "Carlos",
+    "papel": "consultor",
+    "sal": "cc686ab879958155",
+    "hash": "f31ee5d9e8b9b0984264efc3ad22d6b167726ade0f20a1c8bcb57a6554dbfd37",
+    "time": "Chama",
+    "cargo": "Líder",
+    "cor": "#A78BFA"
+  },
+  {
+    "email": "caua",
+    "nome": "Cauã",
+    "papel": "consultor",
+    "sal": "bb5f0b568c445ed3",
+    "hash": "dd1bf69445520421a23fd74437dd232c9838308c3a3cabcc2f6ff166800205da",
+    "time": "Alpha"
+  },
+  {
+    "email": "cleu",
+    "nome": "Cleu",
+    "papel": "consultor",
+    "sal": "bd6c89bf4e80bb1f",
+    "hash": "9a0cad80866731712f4f8ad761e5e9b4219e50fafa54dd8f57a68f2356b8dd8c",
+    "time": "Equipe Julio"
+  },
+  {
+    "email": "danilo",
+    "nome": "Danilo",
+    "papel": "consultor",
+    "sal": "1a88006496283011",
+    "hash": "896f265e51954baf751caa61fdf6b53788bf0fccacbf6586c6c03dc0cf8fea83",
+    "time": "Chama"
+  },
+  {
+    "email": "dantas",
+    "nome": "Dantas",
+    "papel": "consultor",
+    "sal": "0f47818ec4cbe33d",
+    "hash": "36e4814036175fbe0f2b313cbba39adaaa816e273686aee27ea0b9aa8336a9d2",
+    "time": "Chama"
+  },
+  {
+    "email": "diego",
+    "nome": "Diego",
+    "papel": "consultor",
+    "sal": "e4d59aeaeca3f443",
+    "hash": "854300ea3d86ef0bdea14ffc61295ba50d9194f8a110c7d038d91e7b945e41fa",
+    "time": "Chama",
+    "ativo": true
+  },
+  {
+    "email": "douglas",
+    "nome": "Douglas",
+    "papel": "consultor",
+    "sal": "6f6e8bc335d1b454",
+    "hash": "7e807ca1a79b58e8356e1a19331fc71d761a885212512027dbe04f062b99c166",
+    "time": "Equipe Julio"
+  },
+  {
+    "email": "edson",
+    "nome": "Edson",
+    "papel": "consultor",
+    "sal": "09861756e1eae254",
+    "hash": "ff580931843054761afa95ed14fe2ad986e7e9779418ceaeca7f2e580821e04e",
+    "time": "Alpha"
+  },
+  {
+    "email": "julio",
+    "nome": "Julio",
+    "papel": "consultor",
+    "sal": "fa0d05a24c32e2c5",
+    "hash": "aa532e2df4be6ecb91bc50112476a52dc4a3005d44bcb97ee2a225d5fd0a6adc",
+    "time": "Chama"
+  },
+  {
+    "email": "leandro",
+    "nome": "Leandro",
+    "papel": "consultor",
+    "sal": "7fc75899c18512e0",
+    "hash": "36758d3d8a911e7a9524fa2378a61df9679aa8da89ea83b56c30eeaf9e2c5227",
+    "time": "Alpha"
+  },
+  {
+    "email": "lindsay",
+    "nome": "Lindsay",
+    "papel": "consultor",
+    "sal": "9527e5e5da17b5f5",
+    "hash": "938ef7e1c16e6edf5933f36a6b58f89f2b2c268436cdede3d78fad805d1d0356",
+    "time": "Chama"
+  },
+  {
+    "email": "marcia",
+    "nome": "Marcia",
+    "papel": "consultor",
+    "sal": "622485e280878e18",
+    "hash": "7beb0bc9a4f7c7dc279c1e39e1b9ae507f37ec68f150dd17756062a4e53ff63f",
+    "time": "Alpha"
+  },
+  {
+    "email": "muchenski",
+    "nome": "MUCHENSKI",
+    "papel": "consultor",
+    "sal": "42dcdb22a0132b40",
+    "hash": "de882eac18d72c55fd0e1966763cee116e7ccc2752243eb6c1da0959d1484307",
+    "time": "Chama"
+  },
+  {
+    "email": "paola",
+    "nome": "Paola",
+    "papel": "consultor",
+    "sal": "932228586a1bc947",
+    "hash": "05dabdde00ed5fc98a0fc0cc20a4cf83c44847d47f351eb6f4e7d774d3a259fc",
+    "time": "Equipe Julio"
+  },
+  {
+    "email": "patrick",
+    "nome": "Patrick",
+    "papel": "consultor",
+    "sal": "28ed2ee862ddd6b6",
+    "hash": "6fd4287f9a3ff6050f3827df23f84c549549ac3f787f8bf68165149bbd44fcba",
+    "time": "Alpha"
+  },
+  {
+    "email": "rosano",
+    "nome": "Rosano",
+    "papel": "consultor",
+    "sal": "8e8a7975fe61e9df",
+    "hash": "87a18c4ed75a75e852d814f0d45bf1ef0880cfe438275a3abce3f7ac0ff8a26d",
+    "time": "Chama"
+  },
+  {
+    "email": "sandra",
+    "nome": "Sandra",
+    "papel": "consultor",
+    "sal": "34c719bb6a957853",
+    "hash": "ec3fb66222ae8de6383bb9a3c7df7f16dce57e593a38a8b84f7d1a86fc72cc0e",
+    "time": "Inovare"
+  },
+  {
+    "email": "sandrino",
+    "nome": "Sandrino",
+    "papel": "consultor",
+    "sal": "e451053923ef1c55",
+    "hash": "299199f6bafa12fbd6879a9bb703002b76b4384747da6afdae98414a78a1cb2e",
+    "time": "Chama"
+  },
+  {
+    "email": "stephanie",
+    "nome": "Stephanie",
+    "papel": "consultor",
+    "sal": "b2b14bc209b50b3d",
+    "hash": "4404e3b7245942268af7565a8d2ce937bd4e14aab7b5fd8593dfb5abba7e9b7a",
+    "time": "Alpha"
+  },
+  {
+    "email": "walker",
+    "nome": "Walker",
+    "papel": "consultor",
+    "sal": "b3bd19ab6e0869e9",
+    "hash": "3919929d827a38cf580d024195e9ecd8b07a82484db06962780d32bd3f5a5446",
+    "time": "Chama"
+  },
+  {
+    "email": "wallison",
+    "nome": "Wallison",
+    "papel": "consultor",
+    "sal": "a59d7b86d3993a77",
+    "hash": "9ed74fb003fa9c941d74f7466be53840976891b74b08684544455293230bb1db",
+    "time": "Inovare"
+  }
+]

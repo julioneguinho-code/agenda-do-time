@@ -54,6 +54,10 @@ const server = http.createServer(async (req, res) => {
       if (!session) return send(res, 401, { erro: 'Não autenticado' });
 
       if (p === '/api/me') return send(res, 200, session);
+      if (p === '/api/senha' && req.method === 'POST') {
+        const { atual, nova } = await readBody(req);
+        return send(res, 200, auth.trocarSenha(session.email, atual, nova));
+      }
       if (p === '/api/avisos') return send(res, 200, await notion.listarAvisos(session));
       if (p === '/api/chat') return send(res, 200, await notion.listarChat(session, url.searchParams.get('consultor')));
       if (p === '/api/chat/enviar' && req.method === 'POST') return send(res, 200, await notion.enviarChat(session, await readBody(req)));

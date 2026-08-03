@@ -193,7 +193,7 @@ textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px
       <input type="text" id="u-senha" placeholder="Senha inicial" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8;margin-top:8px">
       <div style="display:flex;gap:8px;margin-top:8px">
         <select id="u-papel" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8" onchange="document.getElementById('u-cal').style.display=this.value==='gestor'?'block':'none'"><option value="consultor">Consultor</option><option value="gestor">Gestor</option></select>
-        <input type="text" id="u-time" placeholder="Time (ex: Chama)" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8">
+        <select id="u-time" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8"><option value="">Time…</option></select>
       </div>
       <input type="email" id="u-cal" placeholder="E-mail da agenda Google (só gestor)" autocapitalize="none" style="display:none;width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8;margin-top:8px">
       <button class="btn" style="width:100%;margin-top:10px" onclick="criarUsuario()">Criar acesso</button>
@@ -411,14 +411,18 @@ function verDiaCheckin(i){
 function mudarSemana(dir){semanaOffset+=dir;carregarAgenda()}
 async function concluirAtv(id){await fetch('/api/atividade',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:'Feito'})});toast('Concluída ✓');carregar()}
 async function cancelarAtvGestor(id){if(!confirm('Cancelar esta atividade? (o consultor será avisado)'))return;const res=await fetch('/api/atividade/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Atividade cancelada ✓':(j.erro||'Erro'));carregarControle();carregar()}
-async function carregarDestinatarios(){
+async function carregarDestinatarios(force){
   const sel=document.getElementById('na-consultor');
+  // não reconstruir se já está preenchido (evita perder a seleção durante o auto-refresh)
+  if(!force && sel.options.length>1) return;
+  const atual=sel.value;
   try{
     const res=await fetch('/api/gestor/destinatarios');const d=await res.json();
     let html='<option value="">Escolha o destinatário…</option>';
     if((d.consultores||[]).length){html+='<optgroup label="Consultores">'+d.consultores.map(c=>`<option>${c.nome}</option>`).join('')+'</optgroup>';}
     if((d.gestores||[]).length){html+='<optgroup label="Gestores">'+d.gestores.map(g=>`<option>${g.nome}</option>`).join('')+'</optgroup>';}
     sel.innerHTML=html;
+    if(atual)sel.value=atual;
   }catch(e){}
 }
 async function novaAtividade(){
@@ -497,7 +501,16 @@ async function carregarUsuarios(){
   const res=await fetch('/api/gestor/usuarios');const j=await res.json();
   window._usuarios=j.usuarios||[];
   renderUsuarios();
+  preencherTimes();
   carregarRotinasEdit();
+}
+function timesExistentes(){
+  return [...new Set((window._usuarios||[]).map(u=>(u.time||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+}
+function preencherTimes(){
+  const times=timesExistentes();
+  const sel=document.getElementById('u-time');
+  if(sel){const atual=sel.value;sel.innerHTML='<option value="">Time…</option>'+times.map(t=>`<option>${t}</option>`).join('');if(atual)sel.value=atual;}
 }
 let _rotinas=[];
 async function carregarRotinasEdit(){
@@ -544,7 +557,7 @@ function editarUsuario(i){
     <label style="font-size:12px;color:var(--mut)">Papel</label>
     <select id="ed-papel" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"><option value="consultor"${u.papel==='consultor'?' selected':''}>Consultor</option><option value="gestor"${u.papel==='gestor'?' selected':''}>Gestor</option></select>
     <label style="font-size:12px;color:var(--mut)">Time</label>
-    <input type="text" id="ed-time" value="${(u.time||'').replace(/"/g,'&quot;')}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
+    <select id="ed-time" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"><option value="">Time…</option>${[...new Set([...timesExistentes(),...(u.time?[u.time]:[])])].map(t=>`<option${u.time===t?' selected':''}>${t}</option>`).join('')}</select>
     <label style="font-size:12px;color:var(--mut)">Cargo (rótulo do balão)</label>
     <input type="text" id="ed-cargo" value="${(u.cargo||'').replace(/"/g,'&quot;')}" placeholder="Ex: Consultor Sênior, Líder…" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
     <label style="font-size:12px;color:var(--mut)">Cor do cargo</label>

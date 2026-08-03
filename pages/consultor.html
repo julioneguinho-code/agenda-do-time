@@ -53,6 +53,7 @@ input[type=datetime-local],input[type=text],select{width:100%;padding:12px;borde
   <div style="display:flex;align-items:center;gap:8px">
     <button onclick="abrirAvisos()" title="Avisos" style="position:relative;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔔<span id="badge-avisos" style="display:none;position:absolute;top:-5px;right:-5px;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:17px;height:17px;line-height:17px;text-align:center"></span></button>
     <button onclick="carregar();toast('Atualizado ✓')" title="Atualizar" style="border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔄</button>
+    <button onclick="abrirSenha()" title="Trocar senha" style="border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">⚙️</button>
     <div class="avatar" id="avatar"></div>
     <button onclick="sair()" style="border:1px solid var(--bord);background:var(--card);color:var(--mut);border-radius:12px;padding:8px 12px;font-size:12px;cursor:pointer">Sair</button>
   </div>
@@ -254,6 +255,21 @@ async function mudarAtv(id,status){await fetch('/api/atividade',{method:'POST',h
 async function sair(){await fetch('/api/logout',{method:'POST'});location.href='/login'}
 function abrirPop(titulo,corpo){document.getElementById('modal-titulo').textContent=titulo;document.getElementById('modal-corpo').innerHTML=corpo;document.getElementById('modal').style.display='flex'}
 function fecharPop(){document.getElementById('modal').style.display='none'}
+function abrirSenha(){abrirPop('Trocar minha senha',`
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <input id="sn-atual" type="password" placeholder="Senha atual" style="padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px">
+    <input id="sn-nova" type="password" placeholder="Nova senha (mín. 4 caracteres)" style="padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px">
+    <input id="sn-conf" type="password" placeholder="Confirmar nova senha" style="padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px">
+    <button class="btn full" onclick="salvarSenha()" style="background:var(--ok);color:#fff;border:none">Salvar nova senha</button>
+  </div>`)}
+async function salvarSenha(){
+  const atual=document.getElementById('sn-atual').value, nova=document.getElementById('sn-nova').value, conf=document.getElementById('sn-conf').value;
+  if(!atual||!nova){toast('Preencha os campos');return}
+  if(nova!==conf){toast('As senhas novas não conferem');return}
+  const res=await fetch('/api/senha',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({atual,nova})});
+  const j=await res.json();
+  if(j.ok){toast('Senha alterada ✓');fecharPop()}else{toast(j.erro||'Erro')}
+}
 function verReuniao(i){const r=window._reunioes[i];abrirPop(r.assunto||'Reunião',`<div style="font-size:14px;line-height:1.9"><div><b>Data:</b> ${fmtData(r.inicio)}</div><div><b>Duração:</b> ${r.duracao} min</div><div><b>Local:</b> ${r.local||'—'}</div><div><b>Status:</b> Aprovada ✅</div>${r.resposta?`<div><b>Obs. do gestor:</b> ${r.resposta}</div>`:''}</div>`)}
 let _avisos=[];let _notifVistos=null;
 function iniciarNotif(){if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();if('serviceWorker'in navigator)navigator.serviceWorker.register('/public/sw.js').catch(()=>{});}
