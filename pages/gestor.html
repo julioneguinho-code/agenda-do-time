@@ -105,12 +105,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-agenda">
   <div class="sec">
     <div class="h" style="display:flex;justify-content:space-between;align-items:center">
-      <button class="btn sec2" style="padding:5px 12px" onclick="mudarSemana(-1)">◀</button>
-      <span id="semana-label">Sua semana</span>
-      <button class="btn sec2" style="padding:5px 12px" onclick="mudarSemana(1)">▶</button>
+      <button class="btn sec2" style="padding:5px 12px" onclick="mudarMes(-1)">◀</button>
+      <span id="mes-label">Agenda</span>
+      <button class="btn sec2" style="padding:5px 12px" onclick="mudarMes(1)">▶</button>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px" id="semana"></div>
-    <div class="h">Todos os compromissos</div>
+    <div id="cal-dow" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px"></div>
+    <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
+    <div style="display:flex;gap:12px;margin:8px 2px;font-size:10px;color:var(--mut)"><span>🟩 aprovada</span><span>🟨 pendente</span><span>🟦 Google</span></div>
+    <div class="h" id="dia-label">Compromissos do dia</div>
     <div id="eventos"></div>
   </div>
 </div>
@@ -297,8 +299,11 @@ async function carregar(){
   document.getElementById('pendentes').innerHTML = painel.pendentes.map(s=>`
     <div class="card">
       <div class="row" style="margin-bottom:8px">
-        <div><div class="titulo">${s.assunto||'Reunião'}</div><div class="mut">${s.consultor} · ${s.time} · ${fmtData(s.inicio)} · ${s.duracao} min · ${s.local||''}</div></div>
-        <span class="badge ${s.conflito?'b-no':'b-ok'}">${s.conflito?'⚠ conflito':'horário livre ✓'}</span>
+        <div style="display:flex;align-items:center;gap:10px;min-width:0">
+          <div class="avatar" style="width:38px;height:38px;font-size:13px;flex:none;${estiloCorSolidaG(s.cor)}">${(s.consultor||'?').slice(0,2).toUpperCase()}</div>
+          <div style="min-width:0"><div>${balaoNome(s.consultor,s.cor)}</div><div class="mut" style="margin-top:3px">${s.assunto||'Reunião'} · ${fmtData(s.inicio)} · ${s.duracao} min${s.local?' · '+s.local:''}</div></div>
+        </div>
+        <span class="badge ${s.conflito?'b-no':'b-ok'}" style="flex:none">${s.conflito?'⚠ conflito':'livre ✓'}</span>
       </div>
       <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
         <button class="btn no" style="padding:7px 11px" onclick="decidir('${s.id}','Recusada')">Recusar</button>
@@ -420,7 +425,7 @@ function verDiaCheckin(i){
   const feitasSet=new Set(h.rotinasFeitas||[]);
   document.getElementById('pf-rotinas').innerHTML=(p.todasRotinas||[]).map(r=>{const ok=feitasSet.has(r);return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bord)"><span style="font-size:15px">${ok?'✅':'⬜'}</span><span style="font-size:13px;${ok?'':'color:var(--mut)'}">${r}</span></div>`}).join('');
 }
-function mudarSemana(dir){semanaOffset+=dir;carregarAgenda()}
+function mudarMes(dir){if(!mesRef)mesRef=new Date();mesRef=new Date(mesRef.getFullYear(),mesRef.getMonth()+dir,1);diaSel=null;renderCalendario()}
 async function concluirAtv(id){await fetch('/api/atividade',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:'Feito'})});toast('Concluída ✓');carregar()}
 async function cancelarAtvGestor(id){if(!confirm('Cancelar esta atividade? (o consultor será avisado)'))return;const res=await fetch('/api/atividade/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Atividade cancelada ✓':(j.erro||'Erro'));carregarControle();carregar()}
 async function carregarDestinatarios(force){
@@ -444,23 +449,39 @@ async function novaAtividade(){
   const j=await res.json();
   if(j.ok){toast('Atividade criada ✓');document.getElementById('na-titulo').value='';document.getElementById('na-recorrente').checked=false;carregar()}else toast(j.erro||'Erro');
 }
+let mesRef=null, diaSel=null, _agenda={eventos:[],googleEventos:[]};
+function isoLocal(dt){const d=new Date(dt);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function appsDoDia(iso){return [...(_agenda.eventos||[]),...(_agenda.googleEventos||[])].filter(e=>isoLocal(e.inicio)===iso).sort((a,b)=>a.inicio<b.inicio?-1:1)}
+function corStatusEv(e){return (e.google||e.status==='Google')?'#7AA2FF':e.status==='Aprovada'?'#4ADE80':e.status==='Pendente'?'#FBBF24':'#9CA3AF'}
 async function carregarAgenda(){
-  const res = await fetch('/api/gestor/agenda');
-  const ag = await res.json();
-  const hoje = new Date(); hoje.setDate(hoje.getDate()+semanaOffset*7);
-  const seg = new Date(hoje); seg.setDate(hoje.getDate()-((hoje.getDay()+6)%7));
-  document.getElementById('semana-label').textContent = semanaOffset===0?'Sua semana':`Semana de ${String(seg.getDate()).padStart(2,'0')}/${String(seg.getMonth()+1).padStart(2,'0')}`;
-  const dias=['SEG','TER','QUA','QUI','SEX'];
-  let html='';
-  for(let i=0;i<5;i++){
-    const d=new Date(seg); d.setDate(seg.getDate()+i);
-    const evs=(ag.eventos||[]).filter(e=>new Date(e.inicio).toDateString()===d.toDateString());
-    html+=`<div class="dia"><div class="d">${dias[i]}</div><div class="num">${d.getDate()}</div>${evs.map(e=>`<div class="ev ${e.status==='Pendente'?'p':''}">${String(new Date(e.inicio).getHours()).padStart(2,'0')}:${String(new Date(e.inicio).getMinutes()).padStart(2,'0')}${e.status==='Pendente'?' ?':''}</div>`).join('')||'<div class="mut" style="font-size:10px">livre</div>'}</div>`;
+  const res = await fetch('/api/gestor/agenda');_agenda = await res.json();
+  if(!mesRef){const h=new Date();mesRef=new Date(h.getFullYear(),h.getMonth(),1);}
+  renderCalendario();
+}
+function renderCalendario(){
+  const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const y=mesRef.getFullYear(),m=mesRef.getMonth();
+  document.getElementById('mes-label').textContent=meses[m]+' '+y;
+  document.getElementById('cal-dow').innerHTML=['D','S','T','Q','Q','S','S'].map(d=>`<div style="text-align:center;font-size:10px;color:var(--mut)">${d}</div>`).join('');
+  const ini=new Date(y,m,1).getDay(), diasNoMes=new Date(y,m+1,0).getDate(), hojeIso=isoLocal(new Date());
+  let cells='';
+  for(let i=0;i<ini;i++)cells+='<div></div>';
+  for(let d=1;d<=diasNoMes;d++){
+    const iso=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const apps=appsDoDia(iso);
+    const dots=apps.slice(0,4).map(e=>`<span style="width:6px;height:6px;border-radius:50%;background:${corStatusEv(e)};display:inline-block"></span>`).join('');
+    const sel=iso===diaSel, hoje=iso===hojeIso;
+    cells+=`<div onclick="selDia('${iso}')" style="min-height:54px;border:1px solid ${sel?'var(--acc)':'var(--bord)'};border-radius:8px;padding:5px;cursor:pointer;background:${hoje?'rgba(228,0,43,.10)':'var(--card)'}"><div style="font-size:12px;font-weight:600;${hoje?'color:var(--acc)':''}">${d}</div><div style="display:flex;gap:2px;flex-wrap:wrap;margin-top:4px">${dots}</div></div>`;
   }
-  document.getElementById('semana').innerHTML=html;
-  const todos=[...(ag.eventos||[]),...(ag.googleEventos||[])].sort((a,b)=>a.inicio<b.inicio?-1:1);
-  document.getElementById('eventos').innerHTML=todos.map(e=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${e.assunto||'Reunião'}${e.google?'':' · '+e.consultor}</div><div class="mut">${fmtData(e.inicio)} · ${e.duracao} min · ${e.local||''}</div></div><div style="display:flex;gap:6px;align-items:center">${e.vinculado||e.google?`<a href="${e.link||'#'}" target="_blank" class="badge b-blue" style="text-decoration:none">🔗 Google</a>`:''}<span class="badge ${e.status==='Aprovada'?'b-ok':e.status==='Google'?'b-blue':'b-warn'}">${e.status}</span></div></div>`).join('')||'<div class="mut" style="padding:0 4px">Sem compromissos</div>';
-  if(ag.googleAtivo===false&&!document.getElementById('aviso-google')){const d=document.createElement('div');d.id='aviso-google';d.className='mut';d.style.cssText='padding:8px 4px;font-size:12px';d.textContent='ℹ️ Conexão com Google Calendar ativa após a publicação — aqui aparecem só as solicitações do sistema.';document.getElementById('eventos').parentNode.insertBefore(d,document.getElementById('eventos'));}
+  document.getElementById('cal-grid').innerHTML=cells;
+  if(!diaSel){diaSel=(new Date().getFullYear()===y&&new Date().getMonth()===m)?hojeIso:`${y}-${String(m+1).padStart(2,'0')}-01`;}
+  renderDiaAgenda();
+}
+function selDia(iso){diaSel=iso;renderCalendario()}
+function renderDiaAgenda(){
+  const apps=appsDoDia(diaSel), dd=diaSel.split('-');
+  document.getElementById('dia-label').textContent='Compromissos · '+dd[2]+'/'+dd[1];
+  document.getElementById('eventos').innerHTML=apps.map(e=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${e.assunto||'Reunião'}${e.google?'':' · '+e.consultor}</div><div class="mut">${fmtData(e.inicio)} · ${e.duracao} min · ${e.local||''}</div></div><div style="display:flex;gap:6px;align-items:center">${e.vinculado||e.google?`<a href="${e.link||'#'}" target="_blank" class="badge b-blue" style="text-decoration:none">🔗 Google</a>`:''}<span class="badge ${e.status==='Aprovada'?'b-ok':e.status==='Google'?'b-blue':'b-warn'}">${e.status}</span></div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum compromisso neste dia</div>';
 }
 async function decidir(id,decisao){
   let resposta='';
