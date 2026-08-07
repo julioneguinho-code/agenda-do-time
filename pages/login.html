@@ -5,24 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Agenda do Time — Entrar</title>
 <style>
-:root{--bg:#f6f5f2;--card:#fff;--txt:#1a1a18;--mut:#8a887f;--acc:#185FA5;--accbg:#E6F1FB;--bord:#e4e2db;--r:14px}
+:root{--bg:#0F1115;--card:#191C22;--txt:#F2F3F5;--mut:#9096A1;--acc:#E4002B;--acc2:#FF2E4D;--accbg:rgba(228,0,43,.14);--bord:rgba(255,255,255,.09);--r:14px}
 *{box-sizing:border-box;margin:0}
-body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{background:var(--card);border:1px solid var(--bord);border-radius:20px;padding:32px 24px;width:100%;max-width:380px}
-.logo{width:52px;height:52px;border-radius:14px;background:var(--accbg);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px}
-h1{font-size:20px;font-weight:600;text-align:center}
-p.sub{font-size:13px;color:var(--mut);text-align:center;margin:4px 0 24px}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:radial-gradient(1200px 600px at 50% -10%,rgba(228,0,43,.16),transparent 60%),var(--bg);color:var(--txt);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:var(--card);border:1px solid var(--bord);border-radius:22px;padding:34px 26px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;margin:0 auto 16px;box-shadow:0 8px 24px rgba(228,0,43,.4)}
+h1{font-size:21px;font-weight:700;text-align:center;letter-spacing:-.3px}
+p.sub{font-size:13px;color:var(--mut);text-align:center;margin:5px 0 26px}
 label{font-size:13px;color:var(--mut);display:block;margin:14px 0 6px}
-input{width:100%;padding:13px 14px;border:1px solid var(--bord);border-radius:var(--r);font-size:15px;background:#fbfaf8}
-input:focus{outline:none;border-color:var(--acc)}
-button{width:100%;margin-top:22px;padding:14px;border:none;border-radius:var(--r);background:var(--acc);color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+input{width:100%;padding:13px 14px;border:1px solid var(--bord);border-radius:var(--r);font-size:15px;background:#12151B;color:var(--txt)}
+input::placeholder{color:#5b616d}
+input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
+button{width:100%;margin-top:24px;padding:14px;border:none;border-radius:var(--r);background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 8px 22px rgba(228,0,43,.35)}
 button:active{transform:scale(.98)}
-.erro{display:none;background:#FCEBEB;color:#791F1F;font-size:13px;padding:10px 12px;border-radius:10px;margin-top:14px;text-align:center}
+.erro{display:none;background:var(--accbg);color:#FF6B7A;font-size:13px;padding:10px 12px;border-radius:10px;margin-top:14px;text-align:center;border:1px solid rgba(228,0,43,.3)}
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="logo">📅</div>
+  <div class="logo">A</div>
   <h1>Agenda do Time</h1>
   <p class="sub">Gestão de agenda e execução — Ademicon</p>
   <form id="f">
@@ -31,7 +32,7 @@ button:active{transform:scale(.98)}
     <label>Senha</label>
     <div style="position:relative">
       <input type="password" id="senha" placeholder="••••••••" required autocomplete="current-password" style="padding-right:46px">
-      <button type="button" onclick="const s=document.getElementById('senha');s.type=s.type==='password'?'text':'password';this.textContent=s.type==='password'?'👁':'🙈'" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);width:auto;margin:0;padding:6px 8px;background:transparent;border:none;font-size:16px;cursor:pointer">👁</button>
+      <button type="button" onclick="const s=document.getElementById('senha');s.type=s.type==='password'?'text':'password';this.textContent=s.type==='password'?'👁':'🙈'" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);width:auto;margin:0;padding:6px 8px;background:transparent;border:none;font-size:16px;cursor:pointer;box-shadow:none">👁</button>
     </div>
     <div class="erro" id="erro"></div>
     <button type="submit">Entrar</button>

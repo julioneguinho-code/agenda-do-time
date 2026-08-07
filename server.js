@@ -124,8 +124,8 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, auth.redefinirSenha(email, senha));
       }
       if (p === '/api/gestor/usuarios/editar' && req.method === 'POST') {
-        const { email, nome, papel, time, calendarId, cargo, cor } = await readBody(req);
-        return send(res, 200, auth.atualizarUsuario(email, { nome, papel, time, calendarId, cargo, cor }));
+        const { email, novoEmail, nome, papel, time, calendarId, cargo, cor } = await readBody(req);
+        return send(res, 200, auth.atualizarUsuario(email, { novoEmail, nome, papel, time, calendarId, cargo, cor }));
       }
       if (p === '/api/gestor/usuarios/ativo' && req.method === 'POST') {
         const { email, ativo } = await readBody(req);

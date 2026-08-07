@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Painel do Gestor</title>
 <style>
-:root{--bg:#f6f5f2;--card:#fff;--txt:#1a1a18;--mut:#8a887f;--acc:#185FA5;--accbg:#E6F1FB;--ok:#0F6E56;--okbg:#E1F5EE;--warnbg:#FAEEDA;--warn:#854F0B;--no:#A32D2D;--nobg:#FCEBEB;--ia:#3C3489;--iabg:#EEEDFE;--bord:#e4e2db}
+:root{--bg:#0F1115;--card:#191C22;--card2:#20242C;--txt:#F2F3F5;--mut:#9096A1;--acc:#E4002B;--acc2:#FF2E4D;--accbg:rgba(228,0,43,.14);--ok:#4ADE80;--okbg:rgba(34,197,94,.15);--warnbg:rgba(245,158,11,.16);--warn:#FBBF24;--no:#FF7A85;--nobg:rgba(239,68,68,.16);--ia:#C9CDD6;--iabg:rgba(228,0,43,.1);--bord:rgba(255,255,255,.09);color-scheme:dark}
 *{box-sizing:border-box;margin:0}
-body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:76px}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:radial-gradient(900px 420px at 50% -60px,rgba(228,0,43,.12),transparent 55%),var(--bg);color:var(--txt);padding-bottom:76px}
+input,select,textarea{color:var(--txt)}
 .top{padding:18px 18px 10px;display:flex;justify-content:space-between;align-items:center}
 .top .sub{font-size:12px;color:var(--mut)}.top .nome{font-size:18px;font-weight:600}
 .avatar{width:38px;height:38px;border-radius:50%;background:var(--accbg);color:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
@@ -21,14 +22,14 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .badge{font-size:11px;padding:3px 10px;border-radius:999px;white-space:nowrap}
 .b-ok{background:var(--okbg);color:var(--ok)}.b-warn{background:var(--warnbg);color:var(--warn)}.b-no{background:var(--nobg);color:var(--no)}
-.btn{border:none;border-radius:12px;padding:9px 13px;font-size:13px;font-weight:600;cursor:pointer;background:var(--acc);color:#fff}
-.btn.sec2{background:transparent;border:1px solid var(--bord);color:var(--txt)}
-.btn.no{background:transparent;border:1px solid #F09595;color:var(--no)}
+.btn{border:none;border-radius:12px;padding:9px 13px;font-size:13px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.btn.sec2{background:rgba(255,255,255,.04);border:1px solid var(--bord);color:var(--txt)}
+.btn.no{background:transparent;border:1px solid rgba(239,68,68,.5);color:var(--no)}
 .mut{color:var(--mut);font-size:12px}
 .titulo{font-size:14px;font-weight:600}
 .exe{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .exe .n{font-size:12px;width:64px}
-.exe .bar{flex:1;height:8px;background:#eee;border-radius:99px;overflow:hidden}
+.exe .bar{flex:1;height:8px;background:rgba(255,255,255,.09);border-radius:99px;overflow:hidden}
 .exe .pct{font-size:11px;color:var(--mut);width:34px;text-align:right}
 .nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bord);display:flex;justify-content:space-around;padding:8px 0 14px}
 .nav a{text-decoration:none;color:var(--mut);font-size:10px;text-align:center;flex:1}
@@ -39,8 +40,9 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 .dia .d{font-size:11px;color:var(--mut)}.dia .num{font-size:15px;font-weight:600;margin-bottom:4px}
 .ev{font-size:10px;border-radius:6px;padding:2px 4px;margin-bottom:3px;background:var(--accbg);color:var(--acc)}
 .ev.p{background:var(--warnbg);color:var(--warn)}
-textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#fbfaf8;resize:none}
-.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--txt);color:#fff;font-size:13px;padding:10px 18px;border-radius:99px;display:none;z-index:9}
+textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#12151B;color:var(--txt);resize:none}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#2A2E37;color:#fff;font-size:13px;padding:10px 18px;border-radius:99px;display:none;z-index:9;border:1px solid var(--bord)}
 .resp-ia{white-space:pre-wrap;font-size:13px;line-height:1.6;color:var(--ia)}
 </style>
 </head>
@@ -67,9 +69,9 @@ textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px
 <div class="aba on" id="aba-painel">
   <div class="sec">
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
-      <div onclick="irControleFiltro('atrasadas')" style="cursor:pointer;background:#FCEBEB;border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:600;color:#A32D2D" id="t-atr">0</div><div style="font-size:12px;color:#A32D2D">Atrasadas</div></div>
-      <div onclick="irControleFiltro('abertas')" style="cursor:pointer;background:#FAEEDA;border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:600;color:#854F0B" id="t-pen">0</div><div style="font-size:12px;color:#854F0B">Pendentes</div></div>
-      <div onclick="irControleFiltro('feitas')" style="cursor:pointer;background:#E1F5EE;border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:600;color:#0F6E56" id="t-fin">0</div><div style="font-size:12px;color:#0F6E56">Finalizadas</div></div>
+      <div onclick="irControleFiltro('atrasadas')" style="cursor:pointer;background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#FF7A85" id="t-atr">0</div><div style="font-size:12px;color:#FF7A85">Atrasadas</div></div>
+      <div onclick="irControleFiltro('abertas')" style="cursor:pointer;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#FBBF24" id="t-pen">0</div><div style="font-size:12px;color:#FBBF24">Pendentes</div></div>
+      <div onclick="irControleFiltro('feitas')" style="cursor:pointer;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#4ADE80" id="t-fin">0</div><div style="font-size:12px;color:#4ADE80">Finalizadas</div></div>
     </div>
     <div class="h" id="h-minhas-tarefas" style="display:none">📥 Tarefas enviadas para mim</div>
     <div id="minhas-tarefas"></div>
@@ -79,11 +81,11 @@ textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px
     <div id="atrasadas"></div>
     <div class="h">＋ Nova atividade</div>
     <div class="card">
-      <select id="na-consultor" style="width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#fbfaf8"></select>
-      <input type="text" id="na-titulo" placeholder="O que precisa ser feito" style="width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#fbfaf8;margin-top:8px">
+      <select id="na-consultor" style="width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#12151B"></select>
+      <input type="text" id="na-titulo" placeholder="O que precisa ser feito" style="width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#12151B;margin-top:8px">
       <div style="display:flex;gap:8px;margin-top:8px">
-        <select id="na-tipo" style="flex:1;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#fbfaf8"><option>Prospecção</option><option>Conteúdo</option><option>Treinamento</option><option>Cobrança</option><option>Reunião</option><option>Outro</option></select>
-        <input type="date" id="na-prazo" style="flex:1;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#fbfaf8">
+        <select id="na-tipo" style="flex:1;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#12151B"><option>Prospecção</option><option>Conteúdo</option><option>Treinamento</option><option>Cobrança</option><option>Reunião</option><option>Outro</option></select>
+        <input type="date" id="na-prazo" style="flex:1;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#12151B">
       </div>
       <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--txt);cursor:pointer"><input type="checkbox" id="na-recorrente" style="width:18px;height:18px;accent-color:var(--acc)"> 🔁 Repetir toda semana (recria ao concluir)</label>
       <button class="btn" style="width:100%;margin-top:10px" onclick="novaAtividade()">Criar atividade</button>
@@ -122,9 +124,9 @@ textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px
     </div>
     <div class="h">Tarefas por consultor</div>
     <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-      <input type="text" id="ctrl-busca" placeholder="🔎 Buscar tarefa…" oninput="renderTarefas()" style="flex:1;min-width:120px;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#fbfaf8">
-      <select id="ctrl-consultor" onchange="renderTarefas()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#fbfaf8"><option value="">Todos</option></select>
-      <select id="ctrl-status" onchange="renderTarefas()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#fbfaf8"><option value="">Status: todos</option><option value="atrasadas">Atrasadas</option><option value="abertas">Pendentes</option><option value="feitas">Finalizadas</option></select>
+      <input type="text" id="ctrl-busca" placeholder="🔎 Buscar tarefa…" oninput="renderTarefas()" style="flex:1;min-width:120px;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#12151B">
+      <select id="ctrl-consultor" onchange="renderTarefas()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#12151B"><option value="">Todos</option></select>
+      <select id="ctrl-status" onchange="renderTarefas()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#12151B"><option value="">Status: todos</option><option value="atrasadas">Atrasadas</option><option value="abertas">Pendentes</option><option value="feitas">Finalizadas</option></select>
     </div>
     <div id="ctrl-tarefas"></div>
   </div>
@@ -137,7 +139,7 @@ textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px
     <div class="card" style="margin-bottom:10px">
       <div class="row"><span class="mut">Meta semanal (rotinas por consultor)</span><span></span></div>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <input type="number" id="meta-input" min="1" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8">
+        <input type="number" id="meta-input" min="1" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B">
         <button class="btn" onclick="salvarMeta()">Salvar meta</button>
       </div>
     </div>
@@ -177,7 +179,7 @@ textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px
 <div class="aba" id="aba-consultores">
   <div class="sec">
     <div class="h">👥 Consultores do time</div>
-    <input type="text" id="cons-busca" placeholder="🔎 Buscar consultor…" oninput="renderConsultores()" style="width:100%;padding:10px 12px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8;margin-bottom:8px">
+    <input type="text" id="cons-busca" placeholder="🔎 Buscar consultor…" oninput="renderConsultores()" style="width:100%;padding:10px 12px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B;margin-bottom:8px">
     <div id="lista-consultores"></div>
   </div>
 </div>
@@ -188,14 +190,14 @@ textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px
     <button class="btn sec2" style="margin-bottom:10px" onclick="irAba('painel')">← Voltar</button>
     <div class="h">⚙️ Criar novo acesso</div>
     <div class="card">
-      <input type="text" id="u-nome" placeholder="Nome" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8">
-      <input type="text" id="u-email" placeholder="Usuário (login)" autocapitalize="none" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8;margin-top:8px">
-      <input type="text" id="u-senha" placeholder="Senha inicial" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8;margin-top:8px">
+      <input type="text" id="u-nome" placeholder="Nome" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B">
+      <input type="text" id="u-email" placeholder="Usuário (login)" autocapitalize="none" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B;margin-top:8px">
+      <input type="text" id="u-senha" placeholder="Senha inicial" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B;margin-top:8px">
       <div style="display:flex;gap:8px;margin-top:8px">
-        <select id="u-papel" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8" onchange="document.getElementById('u-cal').style.display=this.value==='gestor'?'block':'none'"><option value="consultor">Consultor</option><option value="gestor">Gestor</option></select>
-        <select id="u-time" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8"><option value="">Time…</option></select>
+        <select id="u-papel" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B" onchange="document.getElementById('u-cal').style.display=this.value==='gestor'?'block':'none'"><option value="consultor">Consultor</option><option value="gestor">Gestor</option></select>
+        <select id="u-time" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B"><option value="">Time…</option></select>
       </div>
-      <input type="email" id="u-cal" placeholder="E-mail da agenda Google (só gestor)" autocapitalize="none" style="display:none;width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8;margin-top:8px">
+      <input type="email" id="u-cal" placeholder="E-mail da agenda Google (só gestor)" autocapitalize="none" style="display:none;width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B;margin-top:8px">
       <button class="btn" style="width:100%;margin-top:10px" onclick="criarUsuario()">Criar acesso</button>
     </div>
     <div class="h">✅ Tarefas do check-in diário</div>
@@ -203,15 +205,15 @@ textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px
       <div class="mut" style="font-size:12px;margin-bottom:8px">Estas são as rotinas que os consultores marcam todo dia. Edite, adicione ou remova.</div>
       <div id="lista-rotinas-edit"></div>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <input type="text" id="nova-rotina" placeholder="Nova rotina…" onkeydown="if(event.key==='Enter')addRotina()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8">
+        <input type="text" id="nova-rotina" placeholder="Nova rotina…" onkeydown="if(event.key==='Enter')addRotina()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B">
         <button class="btn sec2" onclick="addRotina()">+ Adicionar</button>
       </div>
       <button class="btn" style="width:100%;margin-top:10px" onclick="salvarRotinas()">Salvar check-in</button>
     </div>
     <div class="h">Acessos existentes</div>
     <div style="display:flex;gap:6px;margin-bottom:8px">
-      <input type="text" id="us-busca" placeholder="🔎 Buscar…" oninput="renderUsuarios()" style="flex:1;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#fbfaf8">
-      <select id="us-filtro" onchange="renderUsuarios()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#fbfaf8"><option value="">Todos</option><option value="ativo">Só ativos</option><option value="inativo">Só inativos</option></select>
+      <input type="text" id="us-busca" placeholder="🔎 Buscar…" oninput="renderUsuarios()" style="flex:1;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#12151B">
+      <select id="us-filtro" onchange="renderUsuarios()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#12151B"><option value="">Todos</option><option value="ativo">Só ativos</option><option value="inativo">Só inativos</option></select>
     </div>
     <div id="lista-usuarios"></div>
   </div>
@@ -257,10 +259,10 @@ function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remov
 function fmtData(iso){const d=new Date(iso);const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];return `${dias[d.getDay()]} ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
 function corPct(p){return p>=70?'#1D9E75':p>=40?'#EF9F27':'#E24B4A'}
 function estiloCor(cor){
-  if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#1a1a18 50%,#1a1a18 100%);color:#fff';
+  if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%);color:#fff';
   if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';
-  if(cor)return `background:${cor}40;color:#1a1a18`;
-  return 'background:transparent;color:#1a1a18';
+  if(cor)return `background:${cor}59;color:#fff;border:1px solid ${cor}`;
+  return 'background:transparent;color:var(--txt)';
 }
 function balaoNome(nome,cor){return `<span style="${estiloCor(cor)};padding:3px 10px;border-radius:12px;font-weight:500;display:inline-block">${nome}</span>`}
 const PALETA=[{n:'— sem cor —',c:''},{n:'Branca',c:'#FFFFFF'},{n:'Vermelha',c:'#E23B3B'},{n:'Vermelha e Preta',c:'grad'},{n:'Laranja',c:'#FB923C'},{n:'Roxo',c:'#A78BFA'},{n:'Cinza',c:'#9CA3AF'}];
@@ -378,8 +380,8 @@ function renderConsultores(){
     return `<div class="card row" style="cursor:pointer" onclick="abrirPerfil('${c.nome}')"><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:34px;height:34px;font-size:12px;${estiloCorSolidaG(c.cor)}">${c.nome.slice(0,2).toUpperCase()}</div><div>${balaoNome(c.nome,c.cor)}<div class="mut" style="font-size:11px;margin-top:2px">${c.totalEnvios}/7 check-ins · ${ab} tarefas abertas · ${ft} feitas</div></div></div><span class="mut">›</span></div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nenhum consultor</div>';
 }
-function estiloCorSolidaG(cor){if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#1a1a18 50%,#1a1a18 100%);color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#1a1a18`;return ''}
-function aplicarCorAvatar(el,cor){if(!cor)return;el.style.border='none';if(cor==='grad'){el.style.background='linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#1a1a18 50%,#1a1a18 100%)';el.style.color='#fff'}else if((cor||'').toLowerCase()==='#ffffff'){el.style.background='#fff';el.style.color='#1a1a18';el.style.border='1px solid #d4d2cb'}else{el.style.background=cor;el.style.color='#1a1a18'}}
+function estiloCorSolidaG(cor){if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%);color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#fff`;return ''}
+function aplicarCorAvatar(el,cor){if(!cor)return;el.style.border='none';if(cor==='grad'){el.style.background='linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%)';el.style.color='#fff'}else if((cor||'').toLowerCase()==='#ffffff'){el.style.background='#fff';el.style.color='#1a1a18';el.style.border='1px solid #d4d2cb'}else{el.style.background=cor;el.style.color='#fff'}}
 let perfilAtual=null;
 async function abrirPerfil(nome){
   perfilAtual=nome;
@@ -463,7 +465,7 @@ async function transferir(id){
   const meuEmail=(painel&&painel.email)||'';
   const gestores=(j.usuarios||[]).filter(u=>u.papel==='gestor'&&u.email!==meuEmail);
   if(!gestores.length){toast('Cadastre outro gestor em ⚙️ Acessos para transferir');return}
-  abrirPop('Transferir para outro gestor',`<div class="mut" style="margin-bottom:8px">Escolha o gestor que vai aprovar na agenda dele:</div><select id="tr-gestor" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8">${gestores.map((g,i)=>`<option value="${i}">${g.nome}${g.time?' · '+g.time:''}</option>`).join('')}</select><textarea id="tr-obs" rows="2" placeholder="Observação (opcional)" style="width:100%;margin-top:8px;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8"></textarea><button class="btn" style="width:100%;margin-top:10px" onclick="confirmarTransfer('${id}')">Transferir</button>`);
+  abrirPop('Transferir para outro gestor',`<div class="mut" style="margin-bottom:8px">Escolha o gestor que vai aprovar na agenda dele:</div><select id="tr-gestor" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B">${gestores.map((g,i)=>`<option value="${i}">${g.nome}${g.time?' · '+g.time:''}</option>`).join('')}</select><textarea id="tr-obs" rows="2" placeholder="Observação (opcional)" style="width:100%;margin-top:8px;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B"></textarea><button class="btn" style="width:100%;margin-top:10px" onclick="confirmarTransfer('${id}')">Transferir</button>`);
   window._gestoresTransf=gestores;
 }
 async function confirmarTransfer(id){
@@ -517,7 +519,7 @@ async function carregarRotinasEdit(){
   const res=await fetch('/api/gestor/rotinas');const j=await res.json();_rotinas=j.rotinas||[];renderRotinasEdit();
 }
 function renderRotinasEdit(){
-  document.getElementById('lista-rotinas-edit').innerHTML=_rotinas.map((r,i)=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="text" value="${(r||'').replace(/"/g,'&quot;')}" onchange="_rotinas[${i}]=this.value" style="flex:1;padding:9px 11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fbfaf8"><button onclick="removerRotina(${i})" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--no)">🗑</button></div>`).join('')||'<div class="mut">Nenhuma rotina</div>';
+  document.getElementById('lista-rotinas-edit').innerHTML=_rotinas.map((r,i)=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="text" value="${(r||'').replace(/"/g,'&quot;')}" onchange="_rotinas[${i}]=this.value" style="flex:1;padding:9px 11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B"><button onclick="removerRotina(${i})" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--no)">🗑</button></div>`).join('')||'<div class="mut">Nenhuma rotina</div>';
 }
 function addRotina(){const v=document.getElementById('nova-rotina').value.trim();if(!v)return;_rotinas.push(v);document.getElementById('nova-rotina').value='';renderRotinasEdit()}
 function removerRotina(i){_rotinas.splice(i,1);renderRotinasEdit()}
@@ -552,6 +554,8 @@ async function resetSenha(email){const senha=prompt('Nova senha para '+email+':'
 function editarUsuario(i){
   const u=window._usuarios[i];
   abrirPop('Editar acesso — '+u.email,`
+    <label style="font-size:12px;color:var(--mut)">Usuário (login)</label>
+    <input type="text" id="ed-email" value="${(u.email||'').replace(/"/g,'&quot;')}" autocapitalize="none" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
     <label style="font-size:12px;color:var(--mut)">Nome</label>
     <input type="text" id="ed-nome" value="${(u.nome||'').replace(/"/g,'&quot;')}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
     <label style="font-size:12px;color:var(--mut)">Papel</label>
@@ -569,7 +573,7 @@ function editarUsuario(i){
     <button class="btn sec2" style="width:100%;margin-top:8px" onclick="resetSenha('${u.email}')">🔑 Redefinir senha</button>`);
 }
 async function salvarEdicaoUsuario(email){
-  const b={email,nome:document.getElementById('ed-nome').value,papel:document.getElementById('ed-papel').value,time:document.getElementById('ed-time').value,calendarId:document.getElementById('ed-cal').value,cargo:document.getElementById('ed-cargo').value,cor:document.getElementById('ed-cor').value};
+  const b={email,novoEmail:document.getElementById('ed-email').value,nome:document.getElementById('ed-nome').value,papel:document.getElementById('ed-papel').value,time:document.getElementById('ed-time').value,calendarId:document.getElementById('ed-cal').value,cargo:document.getElementById('ed-cargo').value,cor:document.getElementById('ed-cor').value};
   const res=await fetch('/api/gestor/usuarios/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
   const j=await res.json();fecharPop();toast(j.ok?'Acesso atualizado ✓':(j.erro||'Erro'));carregarUsuarios();
 }
