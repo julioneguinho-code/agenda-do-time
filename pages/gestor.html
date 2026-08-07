@@ -210,6 +210,16 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       </div>
       <button class="btn" style="width:100%;margin-top:10px" onclick="salvarRotinas()">Salvar check-in</button>
     </div>
+    <div class="h">📎 Arquivos / Leads para o time</div>
+    <div class="card">
+      <div class="mut" style="font-size:12px;margin-bottom:8px">Envie uma planilha, PDF ou lista de leads. Os consultores baixam pela plataforma (em Início › Arquivos do gestor).</div>
+      <input type="text" id="arq-titulo" placeholder="Título (ex: Leads frios — Agosto)" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B;margin-bottom:8px">
+      <label style="font-size:12px;color:var(--mut)">Enviar para</label>
+      <select id="arq-destino" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#12151B;margin-bottom:8px"><option value="Todos">Todos os consultores</option></select>
+      <input type="file" id="arq-file" style="width:100%;font-size:13px;margin-bottom:10px">
+      <button class="btn" style="width:100%" onclick="enviarArquivo()" id="btn-arq">Enviar arquivo</button>
+      <div id="lista-arquivos" style="margin-top:12px"></div>
+    </div>
     <div class="h">Acessos existentes</div>
     <div style="display:flex;gap:6px;margin-bottom:8px">
       <input type="text" id="us-busca" placeholder="🔎 Buscar…" oninput="renderUsuarios()" style="flex:1;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#12151B">
@@ -504,11 +514,43 @@ async function carregarUsuarios(){
   window._usuarios=j.usuarios||[];
   renderUsuarios();
   preencherTimes();
+  preencherDestinoArq();
   carregarRotinasEdit();
+  carregarArquivosG();
 }
 function timesExistentes(){
   return [...new Set((window._usuarios||[]).map(u=>(u.time||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
 }
+function fmtTam(b){if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(0)+' KB';return (b/1048576).toFixed(1)+' MB'}
+function diasAte(iso){return Math.max(0,Math.ceil((new Date(iso).getTime()-Date.now())/86400000))}
+function preencherDestinoArq(){
+  const sel=document.getElementById('arq-destino');if(!sel)return;const atual=sel.value;
+  sel.innerHTML='<option value="Todos">Todos os consultores</option>'+timesExistentes().map(t=>`<option value="${t}">Só time ${t}</option>`).join('');
+  if(atual)sel.value=atual;
+}
+async function carregarArquivosG(){
+  const el=document.getElementById('lista-arquivos');if(!el)return;
+  try{
+    const r=await fetch('/api/arquivos');const d=await r.json();
+    el.innerHTML=(d.arquivos||[]).map(a=>{const dr=diasAte(a.expiraEm);return `<div class="card row" style="margin-bottom:6px"><div style="min-width:0"><div class="titulo" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.titulo}</div><div class="mut" style="font-size:11px">${a.nome} · ${fmtTam(a.tamanho)} · ${a.destino} · expira em ${dr}d</div></div><div style="display:flex;gap:6px"><a class="btn sec2" style="padding:6px 10px;font-size:12px;text-decoration:none" href="/api/arquivo?id=${a.id}">⬇️</a><button class="btn sec2" style="padding:6px 9px;font-size:12px;color:#FF7A85" onclick="excluirArquivo('${a.id}')">🗑</button></div></div>`}).join('')||'<div class="mut" style="font-size:12px">Nenhum arquivo enviado ainda</div>';
+  }catch(e){}
+}
+async function enviarArquivo(){
+  const f=document.getElementById('arq-file').files[0];
+  if(!f){toast('Escolha um arquivo');return}
+  if(f.size>15*1024*1024){toast('Arquivo muito grande (máx. 15 MB)');return}
+  const titulo=document.getElementById('arq-titulo').value.trim()||f.name;
+  const destino=document.getElementById('arq-destino').value;
+  const btn=document.getElementById('btn-arq');btn.disabled=true;btn.textContent='Enviando…';
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    const res=await fetch('/api/arquivos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({titulo,nome:f.name,tipo:f.type,destino,dadosBase64:reader.result})});
+    const j=await res.json();btn.disabled=false;btn.textContent='Enviar arquivo';
+    if(j.ok){toast('Arquivo enviado ✓');document.getElementById('arq-titulo').value='';document.getElementById('arq-file').value='';carregarArquivosG()}else toast(j.erro||'Erro');
+  };
+  reader.readAsDataURL(f);
+}
+async function excluirArquivo(id){if(!confirm('Excluir este arquivo? Os consultores deixarão de ver.'))return;const res=await fetch('/api/arquivos/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Excluído ✓':(j.erro||'Erro'));carregarArquivosG()}
 function preencherTimes(){
   const times=timesExistentes();
   const sel=document.getElementById('u-time');

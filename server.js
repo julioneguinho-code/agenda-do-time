@@ -64,6 +64,17 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/avisos/ler' && req.method === 'POST') return send(res, 200, await notion.marcarAvisoLido(session, await readBody(req)));
       if (p === '/api/avisos/apagar' && req.method === 'POST') return send(res, 200, await notion.excluirAviso(session, await readBody(req)));
       if (p === '/api/home' && session.papel === 'consultor') return send(res, 200, await notion.homeConsultor(session));
+      if (p === '/api/disponibilidade') return send(res, 200, await notion.disponibilidade(session));
+      if (p === '/api/gestores') return send(res, 200, { gestores: notion.listarGestores() });
+      if (p === '/api/arquivos' && req.method === 'GET') return send(res, 200, await notion.listarArquivos(session));
+      if (p === '/api/arquivos' && req.method === 'POST') return send(res, 200, await notion.salvarArquivo(session, await readBody(req)));
+      if (p === '/api/arquivos/excluir' && req.method === 'POST') return send(res, 200, await notion.excluirArquivo(session, await readBody(req)));
+      if (p === '/api/arquivo' && req.method === 'GET') {
+        const d = notion.arquivoParaDownload(session, url.searchParams.get('id'));
+        if (!d || !fs.existsSync(d.path)) return send(res, 404, { erro: 'Arquivo não encontrado' });
+        res.writeHead(200, { 'Content-Type': d.tipo || 'application/octet-stream', 'Content-Disposition': `attachment; filename="${encodeURIComponent(d.nome)}"` });
+        return res.end(fs.readFileSync(d.path));
+      }
       if (p === '/api/solicitar' && req.method === 'POST' && session.papel === 'consultor') {
         return send(res, 200, await notion.criarSolicitacao(session, await readBody(req)));
       }
@@ -78,6 +89,9 @@ const server = http.createServer(async (req, res) => {
       }
       if (p === '/api/cancelar' && req.method === 'POST' && session.papel === 'consultor') {
         return send(res, 200, await notion.cancelarSolicitacao(session, await readBody(req)));
+      }
+      if (p === '/api/solicitacao/excluir' && req.method === 'POST' && session.papel === 'consultor') {
+        return send(res, 200, await notion.excluirSolicitacao(session, await readBody(req)));
       }
       if (p === '/api/atividade/cancelar' && req.method === 'POST') {
         return send(res, 200, await notion.cancelarAtividade(session, await readBody(req)));

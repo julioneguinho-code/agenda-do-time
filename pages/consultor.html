@@ -91,6 +91,8 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <div onclick="irFiltroAtv('finalizadas')" style="cursor:pointer;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#4ADE80" id="cnt-fin">0</div><div style="font-size:12px;color:#4ADE80">Finalizadas</div></div>
     </div>
     <div id="lista-atividades-mini"></div>
+    <div class="h">📎 Arquivos do gestor</div>
+    <div id="lista-arquivos-consultor"></div>
   </div>
 </div>
 
@@ -99,8 +101,8 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   <div class="sec">
     <div class="h">Solicitar reunião</div>
     <div class="card">
-      <div class="mut">Confira os horários livres do seu gestor antes:</div>
-      <a id="link-agenda" href="https://calendar.google.com/calendar/embed?src=ademiconjulio%40gmail.com&ctz=America%2FSao_Paulo" target="_blank" style="font-size:13px;color:var(--acc)">Ver disponibilidade ↗</a>
+      <div class="row" style="margin-bottom:6px"><div class="mut" id="dispo-titulo">Disponibilidade da semana do gestor</div><a id="link-agenda" href="https://calendar.google.com/calendar/embed?src=ademiconjulio%40gmail.com&ctz=America%2FSao_Paulo" target="_blank" style="font-size:11px;color:var(--mut)">abrir no Google ↗</a></div>
+      <div id="dispo-semana" style="margin-bottom:12px"><div class="mut" style="font-size:12px">Carregando…</div></div>
       <label>Assunto</label>
       <input type="text" id="s-assunto" placeholder="Ex: dúvidas sobre proposta, alinhamento…">
       <label>Data e horário</label>
@@ -109,7 +111,9 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <select id="s-dur"><option value="60">1 hora</option><option value="45">45 min</option><option value="30">30 min</option><option value="15">15 min</option></select>
       <label>Local</label>
       <input type="text" id="s-local" placeholder="Google Meet, escritório…">
-      <button class="btn full" onclick="solicitar()" style="background:var(--ok)">Enviar solicitação</button>
+      <label>Enviar para</label>
+      <select id="s-para"><option value="">Meu gestor (padrão)</option><option value="__none__">Só registrar (não enviar p/ ninguém)</option></select>
+      <button class="btn full" onclick="solicitar()" style="background:var(--ok)" id="btn-solicitar">Enviar solicitação</button>
     </div>
     <div class="h">Minhas solicitações</div>
     <div id="lista-solicitacoes"></div>
@@ -171,17 +175,60 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <script>
 let dados = null;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
-function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n))}
+function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n));if(n==='agenda'){carregarDispo();carregarGestores()}}
+async function carregarDispo(){
+  const el=document.getElementById('dispo-semana');if(!el)return;
+  try{
+    const r=await fetch('/api/disponibilidade');const d=await r.json();
+    document.getElementById('dispo-titulo').textContent='Disponibilidade da semana'+(d.gestor?(' · '+d.gestor):'');
+    if(!d.ativo){
+      const msg=d.motivo==='sem-calendario'?'Agenda do gestor ainda não conectada.':d.motivo==='google-off'?'A disponibilidade em tempo real aparece aqui quando a agenda do gestor está conectada.':'Não foi possível carregar a disponibilidade agora.';
+      el.innerHTML=`<div class="mut" style="font-size:12px">${msg}</div>`;return;
+    }
+    const H0=8,H1=19,span=(H1-H0)*60;
+    const base=new Date(d.inicio);const nomesDia=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const ocup=(d.ocupados||[]).map(o=>({s:new Date(o.inicio),e:new Date(o.fim)}));
+    let html='';
+    for(let i=0;i<7;i++){
+      const dia=new Date(base);dia.setDate(base.getDate()+i);
+      const y=dia.getFullYear(),m=dia.getMonth(),da=dia.getDate();
+      const ini=new Date(y,m,da,H0,0),fimD=new Date(y,m,da,H1,0);
+      const segs=ocup.filter(o=>o.e>ini&&o.s<fimD).map(o=>{const s=Math.max(o.s,ini),e=Math.min(o.e,fimD);return{left:(s-ini)/60000/span*100,w:(e-s)/60000/span*100};});
+      const barras=segs.map(g=>`<div style="position:absolute;left:${g.left}%;width:${g.w}%;top:0;bottom:0;background:var(--acc);opacity:.9;border-radius:3px"></div>`).join('');
+      const fds=dia.getDay()===0||dia.getDay()===6;
+      html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;opacity:${fds?.55:1}"><div style="width:58px;font-size:11px;color:var(--mut)">${nomesDia[dia.getDay()]} ${String(da).padStart(2,'0')}/${String(m+1).padStart(2,'0')}</div><div style="position:relative;flex:1;height:22px;background:rgba(34,197,94,.15);border:1px solid var(--bord);border-radius:5px;overflow:hidden;cursor:pointer" onclick="escolherHorario(event,this,${y},${m},${da})">${barras}</div></div>`;
+    }
+    html+='<div style="display:flex;gap:14px;margin-top:6px;font-size:10px;color:var(--mut)"><span>🟩 livre</span><span>🟥 ocupado</span><span>8h–19h · toque para escolher</span></div>';
+    el.innerHTML=html;
+  }catch(e){el.innerHTML='<div class="mut" style="font-size:12px">Não foi possível carregar a disponibilidade.</div>';}
+}
+function escolherHorario(ev,bar,y,m,da){
+  const rect=bar.getBoundingClientRect();const frac=Math.min(1,Math.max(0,(ev.clientX-rect.left)/rect.width));
+  const H0=8,H1=19;let mins=Math.round((H0*60+frac*(H1-H0)*60)/15)*15;const hh=Math.floor(mins/60),mm=mins%60;
+  const p=n=>String(n).padStart(2,'0');
+  document.getElementById('s-inicio').value=`${y}-${p(m+1)}-${p(da)}T${p(hh)}:${p(mm)}`;
+  toast('Horário escolhido: '+p(da)+'/'+p(m+1)+' '+p(hh)+':'+p(mm));
+}
 function fmtData(iso){const d=new Date(iso);const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];return `${dias[d.getDay()]} ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
 function badge(s){return s==='Aprovada'?'b-ok':s==='Pendente'?'b-warn':s==='Recusada'?'b-no':'b-blue'}
 function estiloCor(cor){if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%);color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor}59;color:#fff;border:1px solid ${cor}`;return 'background:transparent;color:var(--txt)'}
 function estiloCorSolida(cor){if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%);color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#fff`;return ''}
 function aplicarCorAvatar(el,cor){if(!cor)return;el.style.border='none';if(cor==='grad'){el.style.background='linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%)';el.style.color='#fff'}else if((cor||'').toLowerCase()==='#ffffff'){el.style.background='#fff';el.style.color='#1a1a18';el.style.border='1px solid #d4d2cb'}else{el.style.background=cor;el.style.color='#fff'}}
 
+function fmtTam(b){if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(0)+' KB';return (b/1048576).toFixed(1)+' MB'}
+function diasAte(iso){return Math.max(0,Math.ceil((new Date(iso).getTime()-Date.now())/86400000))}
+async function carregarArquivosCons(){
+  const el=document.getElementById('lista-arquivos-consultor');if(!el)return;
+  try{
+    const r=await fetch('/api/arquivos');const d=await r.json();
+    el.innerHTML=(d.arquivos||[]).map(a=>`<a class="card row" href="/api/arquivo?id=${a.id}" style="text-decoration:none;color:inherit;margin-bottom:8px"><div style="min-width:0"><div class="titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.titulo}</div><div class="mut" style="font-size:11px">${a.nome} · ${fmtTam(a.tamanho)} · expira em ${diasAte(a.expiraEm)}d</div></div><span class="btn sec2" style="padding:6px 12px;font-size:12px">⬇️ Baixar</span></a>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum arquivo por enquanto</div>';
+  }catch(e){}
+}
 async function carregar(){
   const res = await fetch('/api/home');
   if(res.status===401){location.href='/login';return}
   dados = await res.json();
+  carregarArquivosCons();
   const h = new Date().getHours();
   document.getElementById('saud').textContent = h<12?'Bom dia,':h<18?'Boa tarde,':'Boa noite,';
   document.getElementById('nome').textContent = dados.nome;
@@ -202,7 +249,12 @@ async function carregar(){
   if(dados.ranking){document.getElementById('rank-txt').textContent=`Sua posição: ${dados.ranking.posicao}º de ${dados.ranking.total}`;document.getElementById('rank-pts').textContent=`${dados.ranking.pontos} pts`;}
   window._reunioes = dados.proximasReunioes||[];
   document.getElementById('prox-reunioes').innerHTML = window._reunioes.length ? window._reunioes.map((r,i)=>`<div class="card" style="padding:10px 12px;cursor:pointer" onclick="verReuniao(${i})"><div style="font-size:13px;font-weight:600">${(r.assunto||'Reunião')}</div><div class="mut" style="font-size:11px;margin-top:3px">${fmtData(r.inicio)}</div><span class="badge b-ok" style="margin-top:6px;display:inline-block">Aprovada</span></div>`).join('') : '<div class="mut" style="grid-column:1/-1">Nenhuma reunião marcada</div>';
-  document.getElementById('lista-solicitacoes').innerHTML = (dados.solicitacoes||[]).map(s=>`<div class="card row"><div><div class="titulo">${s.assunto||'Reunião'}</div><div class="mut">${fmtData(s.inicio)} · ${s.local||''} · ${s.duracao} min${s.resposta?' · '+s.resposta:''}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="badge ${badge(s.status)}">${s.status}</span>${s.status==='Pendente'?`<button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="cancelar('${s.id}')">✕</button>`:''}</div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma ainda</div>';
+  document.getElementById('lista-solicitacoes').innerHTML = (dados.solicitacoes||[]).map(s=>{
+    let acao='';
+    if(s.status==='Pendente')acao=`<button class="btn sec2" style="padding:6px 11px;font-size:12px;color:var(--warn)" onclick="cancelar('${s.id}')">Cancelar</button>`;
+    else if(s.status==='Recusada'||s.status==='Cancelada')acao=`<button class="btn sec2" style="padding:6px 11px;font-size:12px;color:#FF7A85" onclick="excluirSolic('${s.id}')">🗑 Excluir</button>`;
+    return `<div class="card row"><div><div class="titulo">${s.assunto||'Reunião'}</div><div class="mut">${fmtData(s.inicio)} · ${s.local||''} · ${s.duracao} min${s.resposta?' · '+s.resposta:''}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="badge ${badge(s.status)}">${s.status}</span>${acao}</div></div>`;
+  }).join('')||'<div class="mut" style="padding:0 4px">Nenhuma ainda</div>';
   const rndAtv = a=>{
     if(a.status==='Cancelada')return `<div class="card row" style="opacity:.6"><div><div class="titulo" style="font-weight:500"><s>${a.titulo}</s></div><div class="mut">Cancelada${a.justificativa?' · '+a.justificativa:''}</div></div><span class="badge b-no">Cancelada</span></div>`;
     return `<div class="card row"><div><div class="titulo" style="font-weight:500">${a.titulo}</div><div class="mut">${a.tipo} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><div style="display:flex;gap:6px;align-items:center">${a.status!=='Feito'?`<button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="mudarAtv('${a.id}','${a.status==='A fazer'?'Fazendo':'Feito'}')">${a.status==='A fazer'?'Iniciar':'Concluir'}</button><button class="btn sec2" style="padding:6px 9px;font-size:12px;color:var(--warn)" onclick="cancelarAtv('${a.id}')" title="Cancelar">✕</button>`:`<span class="badge b-ok">Feito</span>`}</div></div>`;
@@ -230,13 +282,28 @@ function renderAtividades(){
 }
 function setFiltroAtv(f){_filtroAtv=f;renderAtividades()}
 function irFiltroAtv(f){_filtroAtv=f;irAba('atividades');renderAtividades()}
+let _gestoresCarregados=false;
+async function carregarGestores(){
+  if(_gestoresCarregados)return;
+  try{
+    const r=await fetch('/api/gestores');const d=await r.json();
+    const sel=document.getElementById('s-para');if(!sel)return;
+    const opts=(d.gestores||[]).map(g=>`<option value="${g.email}">Enviar para: ${g.nome}${g.time?' ('+g.time+')':''}</option>`).join('');
+    sel.innerHTML='<option value="">Meu gestor (padrão)</option>'+opts+'<option value="__none__">Só registrar (não enviar p/ ninguém)</option>';
+    _gestoresCarregados=true;
+  }catch(e){}
+}
 async function solicitar(){
   const inicio = document.getElementById('s-inicio').value;
   const assunto = document.getElementById('s-assunto').value.trim();
   if(!assunto){toast('Escreva o assunto');return}
   if(!inicio){toast('Escolha data e horário');return}
-  const res = await fetch('/api/solicitar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assunto,inicio:new Date(inicio).toISOString(),duracao:+document.getElementById('s-dur').value,local:document.getElementById('s-local').value})});
-  if(res.ok){toast('Solicitação enviada ✓');document.getElementById('s-assunto').value='';document.getElementById('s-local').value='';carregar()}else toast('Erro ao enviar');
+  const para=document.getElementById('s-para').value;
+  const body={assunto,inicio:new Date(inicio).toISOString(),duracao:+document.getElementById('s-dur').value,local:document.getElementById('s-local').value};
+  if(para==='__none__')body.semEnvio=true; else if(para)body.gestorEmail=para;
+  const res = await fetch('/api/solicitar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await res.json().catch(()=>({}));
+  if(res.ok){toast(j.apontamento?'Compromisso registrado ✓':(j.paraNome?('Enviado para '+j.paraNome+' ✓'):'Solicitação enviada ✓'));document.getElementById('s-assunto').value='';document.getElementById('s-local').value='';document.getElementById('s-para').value='';carregar()}else toast('Erro ao enviar');
 }
 async function checkin(rotina,valor){const res=await fetch('/api/checkin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rotina,valor})});const j=await res.json();if(j.erro)toast(j.erro);carregar()}
 async function finalizarDia(){if(!confirm('Finalizar o check-in de hoje? Depois disso não será possível alterar.'))return;await fetch('/api/checkin/finalizar',{method:'POST'});toast('Dia finalizado 🔒');carregar()}
@@ -318,6 +385,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){carregar(
 // atualização automática (reflete atividades criadas pelo gestor, etc) — não atrapalha o que você digita
 setInterval(()=>{if(!document.hidden)carregar()},10000);
 async function cancelar(id){if(!confirm('Cancelar esta solicitação?'))return;const res=await fetch('/api/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Cancelada ✓':(j.erro||'Erro'));carregar()}
+async function excluirSolic(id){if(!confirm('Excluir esta solicitação da lista?'))return;const res=await fetch('/api/solicitacao/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Excluída ✓':(j.erro||'Erro'));carregar()}
 async function cancelarAtv(id){const justificativa=prompt('Por que você está cancelando esta atividade? (obrigatório — o gestor será avisado)');if(justificativa===null)return;if(!justificativa.trim()){toast('Justificativa obrigatória');return}const res=await fetch('/api/atividade/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,justificativa})});const j=await res.json();toast(j.ok?'Atividade cancelada ✓':(j.erro||'Erro'));carregar()}
 carregar();
 </script>
