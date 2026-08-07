@@ -101,7 +101,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   <div class="sec">
     <div class="h">Solicitar reunião</div>
     <div class="card">
-      <div class="row" style="margin-bottom:6px"><div class="mut" id="dispo-titulo">Disponibilidade da semana do gestor</div><a id="link-agenda" href="https://calendar.google.com/calendar/embed?src=ademiconjulio%40gmail.com&ctz=America%2FSao_Paulo" target="_blank" style="font-size:11px;color:var(--mut)">abrir no Google ↗</a></div>
+      <div class="row" style="margin-bottom:6px"><div class="mut" id="dispo-titulo">Disponibilidade da semana do gestor</div></div>
       <div id="dispo-semana" style="margin-bottom:12px"><div class="mut" style="font-size:12px">Carregando…</div></div>
       <label>Assunto</label>
       <input type="text" id="s-assunto" placeholder="Ex: dúvidas sobre proposta, alinhamento…">
@@ -190,20 +190,25 @@ async function carregarDispo(){
       else msg='Não foi possível carregar a disponibilidade agora.'+(d.erro?('<br><span style="font-size:10px;opacity:.8">detalhe: '+String(d.erro).slice(0,180)+'</span>'):'');
       el.innerHTML=`<div class="mut" style="font-size:12px">${msg}</div>`;return;
     }
-    const H0=8,H1=19,span=(H1-H0)*60;
+    const H0=8,H1=19,span=(H1-H0)*60,nh=H1-H0;
     const base=new Date(d.inicio);const nomesDia=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
     const ocup=(d.ocupados||[]).map(o=>({s:new Date(o.inicio),e:new Date(o.fim)}));
-    let html='';
+    const p2=n=>String(n).padStart(2,'0');
+    // régua de horas alinhada com as barras
+    let ruler='<div style="position:relative;flex:1;height:12px">';
+    for(let hh=H0;hh<=H1;hh+=2){const l=(hh-H0)/nh*100;ruler+=`<span style="position:absolute;left:${l}%;transform:translateX(-50%);font-size:9px;color:var(--mut)">${hh}h</span>`;}
+    ruler+='</div>';
+    let html='<div style="display:flex;gap:8px;margin-bottom:2px"><div style="width:58px"></div>'+ruler+'</div>';
     for(let i=0;i<7;i++){
       const dia=new Date(base);dia.setDate(base.getDate()+i);
       const y=dia.getFullYear(),m=dia.getMonth(),da=dia.getDate();
       const ini=new Date(y,m,da,H0,0),fimD=new Date(y,m,da,H1,0);
-      const segs=ocup.filter(o=>o.e>ini&&o.s<fimD).map(o=>{const s=Math.max(o.s,ini),e=Math.min(o.e,fimD);return{left:(s-ini)/60000/span*100,w:(e-s)/60000/span*100};});
-      const barras=segs.map(g=>`<div style="position:absolute;left:${g.left}%;width:${g.w}%;top:0;bottom:0;background:var(--acc);opacity:.9;border-radius:3px"></div>`).join('');
-      const fds=dia.getDay()===0||dia.getDay()===6;
-      html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;opacity:${fds?.55:1}"><div style="width:58px;font-size:11px;color:var(--mut)">${nomesDia[dia.getDay()]} ${String(da).padStart(2,'0')}/${String(m+1).padStart(2,'0')}</div><div style="position:relative;flex:1;height:22px;background:rgba(34,197,94,.15);border:1px solid var(--bord);border-radius:5px;overflow:hidden;cursor:pointer" onclick="escolherHorario(event,this,${y},${m},${da})">${barras}</div></div>`;
+      let grid='';for(let k=1;k<nh;k++){grid+=`<div style="position:absolute;left:${k/nh*100}%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.06)"></div>`;}
+      const segs=ocup.filter(o=>o.e>ini&&o.s<fimD).map(o=>{const s=new Date(Math.max(o.s,ini)),e=new Date(Math.min(o.e,fimD));return{left:(s-ini)/60000/span*100,w:(e-s)/60000/span*100,t:`${p2(s.getHours())}:${p2(s.getMinutes())}–${p2(e.getHours())}:${p2(e.getMinutes())}`};});
+      const barras=segs.map(g=>`<div title="Ocupado ${g.t}" style="position:absolute;left:${g.left}%;width:${g.w}%;top:0;bottom:0;background:var(--acc);opacity:.92;border-radius:3px"></div>`).join('');
+      html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:58px;font-size:11px;color:var(--mut)">${nomesDia[dia.getDay()]} ${p2(da)}/${p2(m+1)}</div><div style="position:relative;flex:1;height:22px;background:rgba(34,197,94,.15);border:1px solid var(--bord);border-radius:5px;overflow:hidden;cursor:pointer" onclick="escolherHorario(event,this,${y},${m},${da})">${grid}${barras}</div></div>`;
     }
-    html+='<div style="display:flex;gap:14px;margin-top:6px;font-size:10px;color:var(--mut)"><span>🟩 livre</span><span>🟥 ocupado</span><span>8h–19h · toque para escolher</span></div>';
+    html+='<div style="display:flex;gap:14px;margin-top:6px;font-size:10px;color:var(--mut)"><span>🟩 livre</span><span>🟥 ocupado</span><span>toque num horário livre p/ escolher</span></div>';
     el.innerHTML=html;
   }catch(e){el.innerHTML='<div class="mut" style="font-size:12px">Não foi possível carregar a disponibilidade.</div>';}
 }
