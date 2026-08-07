@@ -179,10 +179,15 @@ function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remov
 async function carregarDispo(){
   const el=document.getElementById('dispo-semana');if(!el)return;
   try{
-    const r=await fetch('/api/disponibilidade');const d=await r.json();
+    const r=await fetch('/api/disponibilidade');
+    if(r.status===404){el.innerHTML='<div class="mut" style="font-size:12px">Atualização do app pendente (recurso ainda não publicado). Recarregue em alguns minutos.</div>';return;}
+    const d=await r.json();
     document.getElementById('dispo-titulo').textContent='Disponibilidade da semana'+(d.gestor?(' · '+d.gestor):'');
     if(!d.ativo){
-      const msg=d.motivo==='sem-calendario'?'Agenda do gestor ainda não conectada.':d.motivo==='google-off'?'A disponibilidade em tempo real aparece aqui quando a agenda do gestor está conectada.':'Não foi possível carregar a disponibilidade agora.';
+      let msg;
+      if(d.motivo==='sem-calendario')msg='Agenda do gestor ainda não conectada (falta o e-mail da agenda no acesso do gestor).';
+      else if(d.motivo==='google-off')msg='A disponibilidade em tempo real aparece aqui quando a agenda do gestor está conectada.';
+      else msg='Não foi possível carregar a disponibilidade agora.'+(d.erro?('<br><span style="font-size:10px;opacity:.8">detalhe: '+String(d.erro).slice(0,180)+'</span>'):'');
       el.innerHTML=`<div class="mut" style="font-size:12px">${msg}</div>`;return;
     }
     const H0=8,H1=19,span=(H1-H0)*60;
