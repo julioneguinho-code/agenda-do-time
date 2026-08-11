@@ -7,10 +7,10 @@
 <style>
 :root{--bg:#0F1115;--card:#191C22;--card2:#20242C;--txt:#F2F3F5;--mut:#9096A1;--acc:#E4002B;--acc2:#FF2E4D;--accbg:rgba(228,0,43,.14);--ok:#4ADE80;--okbg:rgba(34,197,94,.15);--warnbg:rgba(245,158,11,.16);--warn:#FBBF24;--no:#FF7A85;--nobg:rgba(239,68,68,.16);--ia:#C9CDD6;--iabg:rgba(228,0,43,.1);--bord:rgba(255,255,255,.09);color-scheme:dark}
 *{box-sizing:border-box;margin:0}
-body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:radial-gradient(900px 420px at 50% -60px,rgba(228,0,43,.12),transparent 55%),var(--bg);color:var(--txt);padding-bottom:76px}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:#ffffff;color:var(--txt);padding-bottom:76px}
 input,select,textarea{color:var(--txt)}
 .top{padding:18px 18px 10px;display:flex;justify-content:space-between;align-items:center}
-.top .sub{font-size:12px;color:var(--mut)}.top .nome{font-size:18px;font-weight:600}
+.top .sub{font-size:12px;color:var(--mut)}.top .nome{font-size:18px;font-weight:600;color:#14161C}
 .avatar{width:38px;height:38px;border-radius:50%;background:var(--accbg);color:var(--acc);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
 .sec{padding:6px 18px 4px}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
@@ -69,9 +69,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="aba on" id="aba-painel">
   <div class="sec">
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
-      <div onclick="irControleFiltro('atrasadas')" style="cursor:pointer;background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#FF7A85" id="t-atr">0</div><div style="font-size:12px;color:#FF7A85">Atrasadas</div></div>
-      <div onclick="irControleFiltro('abertas')" style="cursor:pointer;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#FBBF24" id="t-pen">0</div><div style="font-size:12px;color:#FBBF24">Pendentes</div></div>
-      <div onclick="irControleFiltro('feitas')" style="cursor:pointer;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#4ADE80" id="t-fin">0</div><div style="font-size:12px;color:#4ADE80">Finalizadas</div></div>
+      <div onclick="irControleFiltro('atrasadas')" style="cursor:pointer;background:var(--card);border:1px solid rgba(239,68,68,.4);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#FF7A85" id="t-atr">0</div><div style="font-size:12px;color:#FF7A85">Atrasadas</div></div>
+      <div onclick="irControleFiltro('abertas')" style="cursor:pointer;background:var(--card);border:1px solid rgba(245,158,11,.4);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#FBBF24" id="t-pen">0</div><div style="font-size:12px;color:#FBBF24">Pendentes</div></div>
+      <div onclick="irControleFiltro('feitas')" style="cursor:pointer;background:var(--card);border:1px solid rgba(34,197,94,.4);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#4ADE80" id="t-fin">0</div><div style="font-size:12px;color:#4ADE80">Finalizadas</div></div>
     </div>
     <div class="h" id="h-minhas-tarefas" style="display:none">📥 Tarefas enviadas para mim</div>
     <div id="minhas-tarefas"></div>

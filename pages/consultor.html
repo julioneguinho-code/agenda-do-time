@@ -7,9 +7,9 @@
 <style>
 :root{--bg:#0F1115;--card:#191C22;--card2:#20242C;--txt:#F2F3F5;--mut:#9096A1;--acc:#E4002B;--acc2:#FF2E4D;--accbg:rgba(228,0,43,.14);--ok:#22C55E;--okbg:rgba(34,197,94,.15);--warn:#F59E0B;--bord:rgba(255,255,255,.09);--r:14px;color-scheme:dark}
 *{box-sizing:border-box;margin:0}
-body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:radial-gradient(900px 420px at 50% -60px,rgba(228,0,43,.12),transparent 55%),var(--bg);color:var(--txt);padding-bottom:76px}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:#ffffff;color:var(--txt);padding-bottom:76px}
 .top{padding:18px 18px 10px;display:flex;justify-content:space-between;align-items:center}
-.top .ola{font-size:12px;color:var(--mut)}.top .nome{font-size:18px;font-weight:600}
+.top .ola{font-size:12px;color:var(--mut)}.top .nome{font-size:18px;font-weight:600;color:#14161C}
 .avatar{width:38px;height:38px;border-radius:50%;background:var(--okbg);color:var(--ok);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
 .sec{padding:6px 18px 4px}
 .card{background:var(--card);border:1px solid var(--bord);border-radius:16px;padding:14px 16px;margin-bottom:10px}
@@ -70,7 +70,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       </div>
       <button class="btn" onclick="irAba('checkin')">Continuar</button>
     </div>
-    <div class="card" style="background:linear-gradient(135deg,rgba(228,0,43,.16),rgba(255,46,77,.06));border-color:rgba(228,0,43,.3)">
+    <div class="card" style="background:var(--card2);border-color:rgba(228,0,43,.35)">
       <div class="row">
         <div class="titulo" style="color:#FF8A96">🏆 Meta da semana</div>
         <div style="font-size:12px;color:#FF8A96" id="meta-num">–</div>
@@ -86,9 +86,9 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
     <button class="btn full" onclick="irAba('agenda')" style="background:var(--ok);color:#fff;border:none">＋ Enviar nova reunião</button>
     <div class="h">Minhas tarefas</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
-      <div onclick="irFiltroAtv('atrasadas')" style="cursor:pointer;background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#FF7A85" id="cnt-atr">0</div><div style="font-size:12px;color:#FF7A85">Atrasadas</div></div>
-      <div onclick="irFiltroAtv('pendentes')" style="cursor:pointer;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#FBBF24" id="cnt-pen">0</div><div style="font-size:12px;color:#FBBF24">Pendentes</div></div>
-      <div onclick="irFiltroAtv('finalizadas')" style="cursor:pointer;background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#4ADE80" id="cnt-fin">0</div><div style="font-size:12px;color:#4ADE80">Finalizadas</div></div>
+      <div onclick="irFiltroAtv('atrasadas')" style="cursor:pointer;background:var(--card);border:1px solid rgba(239,68,68,.4);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#FF7A85" id="cnt-atr">0</div><div style="font-size:12px;color:#FF7A85">Atrasadas</div></div>
+      <div onclick="irFiltroAtv('pendentes')" style="cursor:pointer;background:var(--card);border:1px solid rgba(245,158,11,.4);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#FBBF24" id="cnt-pen">0</div><div style="font-size:12px;color:#FBBF24">Pendentes</div></div>
+      <div onclick="irFiltroAtv('finalizadas')" style="cursor:pointer;background:var(--card);border:1px solid rgba(34,197,94,.4);border-radius:12px;padding:12px 8px;text-align:center"><div style="font-size:22px;font-weight:700;color:#4ADE80" id="cnt-fin">0</div><div style="font-size:12px;color:#4ADE80">Finalizadas</div></div>
     </div>
     <div id="lista-atividades-mini"></div>
     <div class="h">📎 Arquivos do gestor</div>
