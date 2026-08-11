@@ -93,18 +93,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
-<!-- APROVAÇÕES -->
-<div class="aba" id="aba-aprov">
-  <div class="sec">
-    <div class="h">Solicitações pendentes</div><div id="pendentes"></div>
-    <div class="h">Últimas decididas</div><div id="decididas"></div>
-  </div>
-</div>
-
-<!-- AGENDA -->
+<!-- AGENDA (unificada com Aprovações) -->
 <div class="aba" id="aba-agenda">
   <div class="sec">
-    <div class="h" style="display:flex;justify-content:space-between;align-items:center">
+    <div class="h">✅ Solicitações pendentes</div><div id="pendentes"></div>
+    <div class="h" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
       <button class="btn sec2" style="padding:5px 12px" onclick="mudarMes(-1)">◀</button>
       <span id="mes-label">Agenda</span>
       <button class="btn sec2" style="padding:5px 12px" onclick="mudarMes(1)">▶</button>
@@ -114,6 +107,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
     <div style="display:flex;gap:12px;margin:8px 2px;font-size:10px;color:var(--mut)"><span>🟩 aprovada</span><span>🟨 pendente</span><span>🟦 Google</span></div>
     <div class="h" id="dia-label">Compromissos do dia</div>
     <div id="eventos"></div>
+    <div class="h" style="margin-top:16px">Últimas decididas</div><div id="decididas"></div>
   </div>
 </div>
 
@@ -235,7 +229,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="nav">
   <a href="#" class="on" data-aba="painel" onclick="irAba('painel');return false"><span class="ic">📊</span>Painel</a>
   <a href="#" data-aba="controle" onclick="irAba('controle');carregarControle();return false"><span class="ic">📋</span>Controle</a>
-  <a href="#" data-aba="aprov" onclick="irAba('aprov');return false"><span class="ic">✅</span>Aprovações</a>
   <a href="#" data-aba="consultores" onclick="irAba('consultores');carregarConsultores();return false"><span class="ic">👥</span>Consultores</a>
   <a href="#" data-aba="agenda" onclick="irAba('agenda');return false"><span class="ic">📅</span>Agenda</a>
   <a href="#" data-aba="ranking" onclick="irAba('ranking');carregarRanking();return false"><span class="ic">🏆</span>Ranking</a>
