@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Painel do Gestor</title>
 <style>
-:root{--bg:#F6F7F9;--card:#FFFFFF;--card2:#F3F4F6;--txt:#14161C;--mut:#6B7280;--acc:#E4002B;--acc2:#FF2E4D;--accbg:rgba(228,0,43,.10);--ok:#15803D;--okbg:rgba(22,163,74,.12);--warnbg:rgba(245,158,11,.15);--warn:#B45309;--no:#B91C1C;--nobg:rgba(220,38,38,.12);--ia:#6B7280;--iabg:rgba(228,0,43,.08);--bord:#E5E7EB;color-scheme:light}
+:root{--bg:#E8E9EC;--card:#FFFFFF;--card2:#F2F3F5;--txt:#23272F;--mut:#7B828C;--acc:#D62839;--acc2:#B71F2E;--accbg:rgba(214,40,57,.10);--ok:#3E8E6E;--okbg:rgba(62,142,110,.13);--warnbg:rgba(169,119,47,.14);--warn:#A9772F;--no:#C0484E;--nobg:rgba(192,72,78,.12);--ia:#7B828C;--iabg:rgba(214,40,57,.07);--bord:#E1E3E7;color-scheme:light}
 *{box-sizing:border-box;margin:0}
-body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:#ffffff;color:var(--txt);padding-bottom:76px}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:76px}
 input,select,textarea{color:var(--txt)}
 .top{padding:18px 18px 10px;display:flex;justify-content:space-between;align-items:center}
 .top .sub{font-size:12px;color:var(--mut)}.top .nome{font-size:18px;font-weight:600;color:#14161C}
@@ -69,9 +69,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="aba on" id="aba-painel">
   <div class="sec">
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
-      <div onclick="irControleFiltro('atrasadas')" style="cursor:pointer;background:var(--card);border:1px solid rgba(220,38,38,.35);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:#DC2626" id="t-atr">0</div><div style="font-size:12px;color:#DC2626">Atrasadas</div></div>
-      <div onclick="irControleFiltro('abertas')" style="cursor:pointer;background:var(--card);border:1px solid rgba(180,83,9,.35);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:#B45309" id="t-pen">0</div><div style="font-size:12px;color:#B45309">Pendentes</div></div>
-      <div onclick="irControleFiltro('feitas')" style="cursor:pointer;background:var(--card);border:1px solid rgba(22,163,74,.35);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:#16A34A" id="t-fin">0</div><div style="font-size:12px;color:#16A34A">Finalizadas</div></div>
+      <div onclick="irControleFiltro('atrasadas')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--no)" id="t-atr">0</div><div style="font-size:12px;color:var(--no)">Atrasadas</div></div>
+      <div onclick="irControleFiltro('abertas')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--warn)" id="t-pen">0</div><div style="font-size:12px;color:var(--warn)">Pendentes</div></div>
+      <div onclick="irControleFiltro('feitas')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--ok)" id="t-fin">0</div><div style="font-size:12px;color:var(--ok)">Finalizadas</div></div>
     </div>
     <div class="h" id="h-minhas-tarefas" style="display:none">📥 Tarefas enviadas para mim</div>
     <div id="minhas-tarefas"></div>
@@ -452,7 +452,7 @@ async function novaAtividade(){
 let mesRef=null, diaSel=null, _agenda={eventos:[],googleEventos:[]};
 function isoLocal(dt){const d=new Date(dt);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function appsDoDia(iso){return [...(_agenda.eventos||[]),...(_agenda.googleEventos||[])].filter(e=>isoLocal(e.inicio)===iso).sort((a,b)=>a.inicio<b.inicio?-1:1)}
-function corStatusEv(e){return (e.google||e.status==='Google')?'#2563EB':e.status==='Aprovada'?'#16A34A':e.status==='Pendente'?'#D97706':'#9CA3AF'}
+function corStatusEv(e){return (e.google||e.status==='Google')?'#3E6FA0':e.status==='Aprovada'?'#3E8E6E':e.status==='Pendente'?'#A9772F':'#9CA3AF'}
 async function carregarAgenda(){
   const res = await fetch('/api/gestor/agenda');_agenda = await res.json();
   if(!mesRef){const h=new Date();mesRef=new Date(h.getFullYear(),h.getMonth(),1);}
@@ -553,7 +553,7 @@ async function carregarArquivosG(){
   const el=document.getElementById('lista-arquivos');if(!el)return;
   try{
     const r=await fetch('/api/arquivos');const d=await r.json();
-    el.innerHTML=(d.arquivos||[]).map(a=>{const dr=diasAte(a.expiraEm);const bx=(a.baixadoPor||[]);const bxTxt=bx.length?`✅ baixado por ${bx.join(', ')}`:'⏳ ninguém baixou ainda';return `<div class="card" style="margin-bottom:6px"><div class="row"><div style="min-width:0"><div class="titulo" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.titulo}</div><div class="mut" style="font-size:11px">${a.nome} · ${fmtTam(a.tamanho)} · ${a.destino} · expira em ${dr}d</div></div><div style="display:flex;gap:6px"><a class="btn sec2" style="padding:6px 10px;font-size:12px;text-decoration:none" href="/api/arquivo?id=${a.id}">⬇️</a><button class="btn sec2" style="padding:6px 9px;font-size:12px;color:#B91C1C" onclick="excluirArquivo('${a.id}')">🗑</button></div></div><div class="mut" style="font-size:11px;margin-top:6px">${bxTxt}</div></div>`}).join('')||'<div class="mut" style="font-size:12px">Nenhum arquivo enviado ainda</div>';
+    el.innerHTML=(d.arquivos||[]).map(a=>{const dr=diasAte(a.expiraEm);const bx=(a.baixadoPor||[]);const bxTxt=bx.length?`✅ baixado por ${bx.join(', ')}`:'⏳ ninguém baixou ainda';return `<div class="card" style="margin-bottom:6px"><div class="row"><div style="min-width:0"><div class="titulo" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.titulo}</div><div class="mut" style="font-size:11px">${a.nome} · ${fmtTam(a.tamanho)} · ${a.destino} · expira em ${dr}d</div></div><div style="display:flex;gap:6px"><a class="btn sec2" style="padding:6px 10px;font-size:12px;text-decoration:none" href="/api/arquivo?id=${a.id}">⬇️</a><button class="btn sec2" style="padding:6px 9px;font-size:12px;color:var(--no)" onclick="excluirArquivo('${a.id}')">🗑</button></div></div><div class="mut" style="font-size:11px;margin-top:6px">${bxTxt}</div></div>`}).join('')||'<div class="mut" style="font-size:12px">Nenhum arquivo enviado ainda</div>';
   }catch(e){}
 }
 async function enviarArquivo(){
