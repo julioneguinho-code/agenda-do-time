@@ -113,6 +113,15 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/destinatarios') {
         return send(res, 200, await notion.destinatarios(session));
       }
+      if (p === '/api/gestor/times' && req.method === 'GET') {
+        return send(res, 200, { times: notion.listarTimes() });
+      }
+      if (p === '/api/gestor/times' && req.method === 'POST') {
+        return send(res, 200, notion.criarTime(session, await readBody(req)));
+      }
+      if (p === '/api/gestor/times/excluir' && req.method === 'POST') {
+        return send(res, 200, notion.excluirTime(session, await readBody(req)));
+      }
       if (p === '/api/gestor/rotinas' && req.method === 'GET') {
         return send(res, 200, await notion.listarRotinas());
       }

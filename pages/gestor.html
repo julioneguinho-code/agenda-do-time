@@ -131,7 +131,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- RANKING -->
 <div class="aba" id="aba-ranking">
   <div class="sec">
-    <div class="h">🏆 Ranking da semana</div>
+    <div class="h">🏆 Ranking geral da semana (todos os times)</div>
     <div class="card" style="margin-bottom:10px">
       <div class="row"><span class="mut">Meta semanal (rotinas por consultor)</span><span></span></div>
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -184,6 +184,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-acessos">
   <div class="sec">
     <button class="btn sec2" style="margin-bottom:10px" onclick="irAba('painel')">← Voltar</button>
+    <div class="h">🏷️ Times</div>
+    <div class="card">
+      <div class="mut" style="font-size:12px;margin-bottom:8px">Crie ou remova times. Um time só pode ser excluído quando não tiver ninguém nele.</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="novo-time" placeholder="Nome do time (ex: Chama)" onkeydown="if(event.key==='Enter')criarTime()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
+        <button class="btn" onclick="criarTime()">+ Criar</button>
+      </div>
+      <div id="lista-times" style="margin-top:10px"></div>
+    </div>
     <div class="h">⚙️ Criar novo acesso</div>
     <div class="card">
       <input type="text" id="u-nome" placeholder="Nome" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
@@ -348,7 +357,7 @@ function renderTarefas(){
 async function carregarRanking(){
   const res=await fetch('/api/gestor/ranking');const r=await res.json();
   document.getElementById('meta-input').value=r.metaSemanal;
-  document.getElementById('ranking-lista').innerHTML=r.ranking.map(x=>`<div class="card"><div class="row"><div class="titulo" style="cursor:pointer;color:var(--acc)" onclick="abrirPerfil('${x.nome}')">${x.medalha||x.pos+'º'} ${x.nome}</div><div style="font-weight:600">${x.pontos} pts</div></div><div class="prog" style="margin-top:8px"><div style="width:${x.meta.pct}%;height:100%;background:${corPct(x.meta.pct)}"></div></div><div class="mut" style="margin-top:4px">meta: ${x.meta.atual}/${x.meta.alvo} rotinas (${x.meta.pct}%)</div></div>`).join('');
+  document.getElementById('ranking-lista').innerHTML=r.ranking.map(x=>`<div class="card"><div class="row"><div class="titulo" style="cursor:pointer;color:var(--acc)" onclick="abrirPerfil('${x.nome}')">${x.medalha||x.pos+'º'} ${x.nome}${x.time?` <span class="mut" style="font-weight:400">· ${x.time}</span>`:''}</div><div style="font-weight:600">${x.pontos} pts</div></div><div class="prog" style="margin-top:8px"><div style="width:${x.meta.pct}%;height:100%;background:${corPct(x.meta.pct)}"></div></div><div class="mut" style="margin-top:4px">meta: ${x.meta.atual}/${x.meta.alvo} rotinas (${x.meta.pct}%)</div></div>`).join('');
 }
 let chatConsultor=null;
 async function abrirChatLista(){
@@ -527,13 +536,36 @@ async function carregarUsuarios(){
   const res=await fetch('/api/gestor/usuarios');const j=await res.json();
   window._usuarios=j.usuarios||[];
   renderUsuarios();
-  preencherTimes();
+  await carregarTimes();
   preencherDestinoArq();
   carregarRotinasEdit();
   carregarArquivosG();
 }
 function timesExistentes(){
+  if(window._times)return window._times;
   return [...new Set((window._usuarios||[]).map(u=>(u.time||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+}
+async function carregarTimes(){
+  try{const r=await fetch('/api/gestor/times');const d=await r.json();window._times=d.times||[];}catch(e){window._times=null;}
+  renderTimes();preencherTimes();
+}
+function renderTimes(){
+  const el=document.getElementById('lista-times');if(!el)return;
+  const ts=timesExistentes();
+  el.innerHTML=ts.map((t,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border:1px solid var(--bord);border-radius:10px;margin-bottom:6px"><span style="font-size:14px">${t}</span><button class="btn sec2" style="padding:5px 9px;font-size:12px;color:var(--no)" onclick="excluirTimeIdx(${i})">🗑</button></div>`).join('')||'<div class="mut" style="font-size:12px">Nenhum time ainda</div>';
+}
+function excluirTimeIdx(i){const nome=(timesExistentes()||[])[i];if(nome)excluirTime(nome);}
+async function criarTime(){
+  const nome=document.getElementById('novo-time').value.trim();if(!nome){toast('Escreva o nome do time');return}
+  const r=await fetch('/api/gestor/times',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome})});
+  const j=await r.json();
+  if(j.ok){document.getElementById('novo-time').value='';window._times=j.times;renderTimes();preencherTimes();preencherDestinoArq();toast('Time criado ✓')}else toast(j.erro||'Erro');
+}
+async function excluirTime(nome){
+  if(!confirm('Excluir o time "'+nome+'"?'))return;
+  const r=await fetch('/api/gestor/times/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome})});
+  const j=await r.json();
+  if(j.ok){window._times=j.times;renderTimes();preencherTimes();preencherDestinoArq();toast('Time excluído ✓')}else toast(j.erro||'Erro');
 }
 function fmtTam(b){if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(0)+' KB';return (b/1048576).toFixed(1)+' MB'}
 function diasAte(iso){return Math.max(0,Math.ceil((new Date(iso).getTime()-Date.now())/86400000))}
