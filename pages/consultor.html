@@ -262,6 +262,7 @@ async function carregar(){
   document.getElementById('lista-solicitacoes').innerHTML = (dados.solicitacoes||[]).map(s=>{
     let acao='';
     if(s.status==='Pendente')acao=`<button class="btn sec2" style="padding:6px 11px;font-size:12px;color:var(--warn)" onclick="cancelar('${s.id}')">Cancelar</button>`;
+    else if(s.status==='Aprovada')acao=`<button class="btn sec2" style="padding:6px 11px;font-size:12px;color:var(--no)" onclick="cancelar('${s.id}')">Cancelar</button>`;
     else if(s.status==='Recusada'||s.status==='Cancelada')acao=`<button class="btn sec2" style="padding:6px 11px;font-size:12px;color:var(--no)" onclick="excluirSolic('${s.id}')">🗑 Excluir</button>`;
     return `<div class="card row"><div><div class="titulo">${s.assunto||'Reunião'}</div><div class="mut">${fmtData(s.inicio)} · ${s.local||''} · ${s.duracao} min${s.resposta?' · '+s.resposta:''}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="badge ${badge(s.status)}">${s.status}</span>${acao}</div></div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nenhuma ainda</div>';
@@ -394,7 +395,7 @@ setInterval(carregarAvisos,30000);carregarAvisos();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){carregar();carregarAvisos();}});
 // atualização automática (reflete atividades criadas pelo gestor, etc) — não atrapalha o que você digita
 setInterval(()=>{if(!document.hidden)carregar()},10000);
-async function cancelar(id){if(!confirm('Cancelar esta solicitação?'))return;const res=await fetch('/api/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Cancelada ✓':(j.erro||'Erro'));carregar()}
+async function cancelar(id){if(!confirm('Cancelar este compromisso? Ele sai da sua agenda e da agenda do gestor.'))return;const res=await fetch('/api/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Cancelado ✓':(j.erro||'Erro'));carregar()}
 async function excluirSolic(id){if(!confirm('Excluir esta solicitação da lista?'))return;const res=await fetch('/api/solicitacao/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Excluída ✓':(j.erro||'Erro'));carregar()}
 async function cancelarAtv(id){const justificativa=prompt('Por que você está cancelando esta atividade? (obrigatório — o gestor será avisado)');if(justificativa===null)return;if(!justificativa.trim()){toast('Justificativa obrigatória');return}const res=await fetch('/api/atividade/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,justificativa})});const j=await res.json();toast(j.ok?'Atividade cancelada ✓':(j.erro||'Erro'));carregar()}
 carregar();
