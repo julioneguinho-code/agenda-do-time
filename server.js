@@ -107,6 +107,9 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/decidir' && req.method === 'POST') {
         return send(res, 200, await notion.decidirSolicitacao(session, await readBody(req)));
       }
+      if (p === '/api/gestor/solicitacao/cancelar' && req.method === 'POST') {
+        return send(res, 200, await notion.cancelarSolicitacaoGestor(session, await readBody(req)));
+      }
       if (p === '/api/gestor/atividade' && req.method === 'POST') {
         return send(res, 200, await notion.criarAtividade(session, await readBody(req)));
       }

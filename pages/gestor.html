@@ -428,6 +428,7 @@ function verDiaCheckin(i){
   document.getElementById('pf-rotinas').innerHTML=(p.todasRotinas||[]).map(r=>{const ok=feitasSet.has(r);return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bord)"><span style="font-size:15px">${ok?'✅':'⬜'}</span><span style="font-size:13px;${ok?'':'color:var(--mut)'}">${r}</span></div>`}).join('');
 }
 function mudarMes(dir){if(!mesRef)mesRef=new Date();mesRef=new Date(mesRef.getFullYear(),mesRef.getMonth()+dir,1);diaSel=null;renderCalendario()}
+async function cancelarAgendaGestor(id){if(!confirm('Cancelar este compromisso? Sai da agenda e o consultor é avisado.'))return;const r=await fetch('/api/gestor/solicitacao/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await r.json();toast(j.ok?'Cancelado ✓':(j.erro||'Erro'));carregar()}
 async function concluirAtv(id){await fetch('/api/atividade',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:'Feito'})});toast('Concluída ✓');carregar()}
 async function cancelarAtvGestor(id){if(!confirm('Cancelar esta atividade? (o consultor será avisado)'))return;const res=await fetch('/api/atividade/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Atividade cancelada ✓':(j.erro||'Erro'));carregarControle();carregar()}
 async function carregarDestinatarios(force){
@@ -483,7 +484,7 @@ function selDia(iso){diaSel=iso;renderCalendario()}
 function renderDiaAgenda(){
   const apps=appsDoDia(diaSel), dd=diaSel.split('-');
   document.getElementById('dia-label').textContent='Compromissos · '+dd[2]+'/'+dd[1];
-  document.getElementById('eventos').innerHTML=apps.map(e=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${e.assunto||'Reunião'}${e.google?'':' · '+e.consultor}</div><div class="mut">${fmtData(e.inicio)} · ${e.duracao} min · ${e.local||''}</div></div><div style="display:flex;gap:6px;align-items:center">${e.vinculado||e.google?`<a href="${e.link||'#'}" target="_blank" class="badge b-blue" style="text-decoration:none">🔗 Google</a>`:''}<span class="badge ${e.status==='Aprovada'?'b-ok':e.status==='Google'?'b-blue':'b-warn'}">${e.status}</span></div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum compromisso neste dia</div>';
+  document.getElementById('eventos').innerHTML=apps.map(e=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${e.assunto||'Reunião'}${e.google?'':' · '+e.consultor}</div><div class="mut">${fmtData(e.inicio)} · ${e.duracao} min · ${e.local||''}</div></div><div style="display:flex;gap:6px;align-items:center">${e.vinculado||e.google?`<a href="${e.link||'#'}" target="_blank" class="badge b-blue" style="text-decoration:none">🔗 Google</a>`:''}<span class="badge ${e.status==='Aprovada'?'b-ok':e.status==='Google'?'b-blue':'b-warn'}">${e.status}</span>${!e.google?`<button class="btn sec2" style="padding:5px 9px;font-size:11px;color:var(--no)" onclick="cancelarAgendaGestor('${e.id}')" title="Cancelar">✕</button>`:''}</div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum compromisso neste dia</div>';
 }
 async function decidir(id,decisao){
   let resposta='';
