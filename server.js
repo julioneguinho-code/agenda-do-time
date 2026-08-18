@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const PORT = process.env.PORT || 3000;
 const notion = require('./lib/notion');
 const auth = require('./lib/auth');
+const fin = require('./lib/financas');
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json' };
 
@@ -36,6 +37,25 @@ const server = http.createServer(async (req, res) => {
         return res.end(fs.readFileSync(file));
       }
       return send(res, 404, 'não encontrado');
+    }
+
+    // ---- API FINANÇAS (módulo pessoal, cookie próprio)
+    if (p.startsWith('/api/fin/')) {
+      if (p === '/api/fin/login' && req.method === 'POST') {
+        const { senha } = await readBody(req);
+        const r = fin.login(senha);
+        if (!r) return send(res, 401, { erro: 'Senha incorreta' });
+        return send(res, 200, { ok: true }, { 'Set-Cookie': r.cookie });
+      }
+      if (p === '/api/fin/logout' && req.method === 'POST') return send(res, 200, { ok: true }, { 'Set-Cookie': fin.clearCookie() });
+      const fs2 = fin.sessao(req);
+      if (!fs2) return send(res, 401, { erro: 'Não autenticado' });
+      if (p === '/api/fin/mes' && req.method === 'GET') return send(res, 200, fin.getMes(url.searchParams.get('m')));
+      if (p === '/api/fin/mes' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.salvarMes(b.mes, b.renda, b.despesa)); }
+      if (p === '/api/fin/metas' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.salvarMetas(b.metas)); }
+      if (p === '/api/fin/ano' && req.method === 'GET') return send(res, 200, fin.resumoAno(url.searchParams.get('y')));
+      if (p === '/api/fin/senha' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.trocarSenha(b.atual, b.nova)); }
+      return send(res, 404, { erro: 'Rota não encontrada' });
     }
 
     // ---- API
@@ -116,6 +136,15 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/destinatarios') {
         return send(res, 200, await notion.destinatarios(session));
       }
+      if (p === '/api/gestor/contratacao' && req.method === 'GET') {
+        return send(res, 200, await notion.listarContratacao(session));
+      }
+      if (p === '/api/gestor/contratacao/config' && req.method === 'POST') {
+        return send(res, 200, await notion.configContratacao(session, await readBody(req)));
+      }
+      if (p === '/api/gestor/contratacao/marcar' && req.method === 'POST') {
+        return send(res, 200, await notion.marcarContratacao(session, await readBody(req)));
+      }
       if (p === '/api/gestor/times' && req.method === 'GET') {
         return send(res, 200, { times: notion.listarTimes() });
       }
@@ -150,14 +179,19 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, auth.redefinirSenha(email, senha));
       }
       if (p === '/api/gestor/usuarios/editar' && req.method === 'POST') {
-        const { email, novoEmail, nome, papel, time, calendarId, cargo, cor } = await readBody(req);
-        return send(res, 200, auth.atualizarUsuario(email, { novoEmail, nome, papel, time, calendarId, cargo, cor }));
+        const { email, novoEmail, nome, papel, time, calendarId, cargo, cor, master } = await readBody(req);
+        return send(res, 200, auth.atualizarUsuario(email, { novoEmail, nome, papel, time, calendarId, cargo, cor, master }));
       }
       if (p === '/api/gestor/usuarios/ativo' && req.method === 'POST') {
         const { email, ativo } = await readBody(req);
         return send(res, 200, auth.atualizarUsuario(email, { ativo: !!ativo }));
       }
       return send(res, 404, { erro: 'Rota não encontrada' });
+    }
+
+    // ---- página do módulo financeiro (login próprio dentro da página)
+    if (p === '/financas') {
+      return send(res, 200, fs.readFileSync(path.join(__dirname, 'pages/financas.html'), 'utf8'));
     }
 
     // ---- páginas

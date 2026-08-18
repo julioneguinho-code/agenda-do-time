@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orçamento pessoal</title>
+<style>
+:root{--bg:#E8E9EC;--card:#FFFFFF;--card2:#F2F3F5;--txt:#23272F;--mut:#7B828C;--acc:#D62839;--acc2:#B71F2E;--accbg:rgba(214,40,57,.10);--ok:#3E8E6E;--okbg:rgba(62,142,110,.13);--warn:#A9772F;--no:#C0484E;--bord:#E1E3E7;color-scheme:light}
+*{box-sizing:border-box;margin:0}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:40px}
+input,select{color:var(--txt);font-family:inherit}
+.wrap{max-width:820px;margin:0 auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--bord);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.h{font-size:13px;font-weight:600;color:var(--mut);margin:14px 2px 8px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.btn{border:none;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.btn.sec2{background:#F3F4F6;border:1px solid var(--bord);color:var(--txt)}
+.btn.sm{padding:6px 10px;font-size:12px}
+.mut{color:var(--mut);font-size:12px}
+.inp{padding:9px 10px;border:1px solid var(--bord);border-radius:9px;font-size:14px;background:#F7F8FA;width:100%}
+.inp:focus{outline:none;border-color:var(--acc)}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi .b{background:var(--card);border:1px solid var(--bord);border-radius:14px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.kpi .l{font-size:11px;color:var(--mut)}.kpi .v{font-size:17px;font-weight:700;margin-top:2px}
+.lin{display:flex;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--bord)}
+.lin:last-child{border:none}
+.prog{height:8px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden;margin-top:6px}
+.prog>div{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#14161C;color:#fff;font-size:13px;padding:9px 16px;border-radius:99px;display:none;z-index:9}
+.tag{font-size:11px;color:var(--ok);font-weight:600}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- LOGIN -->
+<div id="tela-login" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div class="card" style="max-width:360px;width:100%;text-align:center;padding:30px 24px">
+    <div style="width:54px;height:54px;border-radius:15px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">💰</div>
+    <h1 style="font-size:20px;font-weight:700">Orçamento pessoal</h1>
+    <p class="mut" style="margin:5px 0 20px">Acesso privado</p>
+    <input type="password" id="login-senha" class="inp" placeholder="Senha" onkeydown="if(event.key==='Enter')entrar()" style="text-align:center">
+    <div id="login-erro" class="mut" style="color:var(--no);display:none;margin-top:10px"></div>
+    <button class="btn" style="width:100%;margin-top:16px" onclick="entrar()">Entrar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="tela-app" class="wrap" style="display:none">
+  <div class="top">
+    <div><div class="mut">Orçamento pessoal</div><div style="font-size:20px;font-weight:700">💰 Finanças</div></div>
+    <div style="display:flex;gap:6px">
+      <button class="btn sec2 sm" onclick="abrirSenha()">⚙️</button>
+      <button class="btn sec2 sm" onclick="sair()">Sair</button>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center">
+    <button class="btn sec2 sm" onclick="mudarMes(-1)">◀</button>
+    <div style="font-weight:700" id="mes-label">—</div>
+    <button class="btn sec2 sm" onclick="mudarMes(1)">▶</button>
+  </div>
+
+  <div class="kpi">
+    <div class="b"><div class="l">Renda</div><div class="v" style="color:var(--ok)" id="k-renda">—</div></div>
+    <div class="b"><div class="l">Despesas</div><div class="v" style="color:var(--no)" id="k-desp">—</div></div>
+    <div class="b"><div class="l">Saldo</div><div class="v" id="k-saldo">—</div></div>
+  </div>
+
+  <div class="h">📈 Renda mensal <span id="save-r" class="tag" style="display:none">salvo ✓</span></div>
+  <div class="card"><div id="lista-renda"></div><button class="btn sec2 sm" style="margin-top:10px" onclick="addRenda()">+ Adicionar renda</button></div>
+
+  <div class="h">📉 Despesas mensais</div>
+  <div class="card"><div id="lista-desp"></div><button class="btn sec2 sm" style="margin-top:10px" onclick="addDesp()">+ Adicionar despesa</button></div>
+
+  <div class="h">🎯 Metas</div>
+  <div class="card"><div id="lista-metas"></div><button class="btn sec2 sm" style="margin-top:10px" onclick="addMeta()">+ Adicionar meta</button></div>
+
+  <div class="h">📅 Resumo do ano</div>
+  <div class="card"><div id="resumo-ano"></div></div>
+</div>
+
+<!-- MODAL -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)fecharPop()">
+  <div class="card" style="max-width:380px;width:100%">
+    <div class="row" style="margin-bottom:10px"><div style="font-weight:700" id="modal-titulo"></div><button onclick="fecharPop()" style="border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--mut)">✕</button></div>
+    <div id="modal-corpo"></div>
+  </div>
+</div>
+
+<script>
+const money=v=>'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2200)}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+let _mes=new Date().toISOString().slice(0,7), _dados=null, _salvarTimer=null;
+
+async function entrar(){
+  const senha=document.getElementById('login-senha').value;
+  const res=await fetch('/api/fin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({senha})});
+  if(res.ok){document.getElementById('tela-login').style.display='none';document.getElementById('tela-app').style.display='block';carregar();}
+  else{const e=document.getElementById('login-erro');e.textContent='Senha incorreta';e.style.display='block';}
+}
+async function sair(){await fetch('/api/fin/logout',{method:'POST'});location.reload();}
+function fmtMesLabel(m){const [y,mm]=m.split('-');return MESES[+mm-1]+' '+y;}
+function mudarMes(dir){const [y,mm]=_mes.split('-').map(Number);const d=new Date(y,mm-1+dir,1);_mes=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');carregar();}
+
+async function carregar(){
+  document.getElementById('mes-label').textContent=fmtMesLabel(_mes);
+  const res=await fetch('/api/fin/mes?m='+_mes);
+  if(res.status===401){location.reload();return;}
+  _dados=await res.json();
+  renderResumo();renderRenda();renderDesp();renderMetas();carregarAno();
+}
+function renderResumo(){
+  const r=_dados.resumo||{receitas:0,despesas:0,saldo:0};
+  document.getElementById('k-renda').textContent=money(r.receitas);
+  document.getElementById('k-desp').textContent=money(r.despesas);
+  const el=document.getElementById('k-saldo');el.textContent=money(r.saldo);el.style.color=r.saldo>=0?'var(--ok)':'var(--no)';
+}
+function renderRenda(){
+  document.getElementById('lista-renda').innerHTML=(_dados.renda||[]).map((l,i)=>`<div class="lin"><input class="inp" style="flex:2" value="${esc(l.item)}" placeholder="Item" oninput="_dados.renda[${i}].item=this.value;agendarSalvar()"><input class="inp" style="flex:1;text-align:right" type="number" step="0.01" value="${l.valor||''}" placeholder="0,00" oninput="_dados.renda[${i}].valor=parseFloat(this.value)||0;calc();agendarSalvar()"><button class="btn sec2 sm" style="color:var(--no)" onclick="_dados.renda.splice(${i},1);renderRenda();calc();agendarSalvar()">✕</button></div>`).join('')||'<div class="mut">Nenhuma renda</div>';
+}
+function renderDesp(){
+  document.getElementById('lista-desp').innerHTML=(_dados.despesa||[]).map((l,i)=>`<div class="lin" style="flex-wrap:wrap"><input type="checkbox" ${l.pago?'checked':''} title="Pago" onchange="_dados.despesa[${i}].pago=this.checked;agendarSalvar()" style="width:18px;height:18px;accent-color:var(--ok)"><input class="inp" style="flex:2;min-width:120px;${l.pago?'text-decoration:line-through;opacity:.6':''}" value="${esc(l.item)}" placeholder="Item" oninput="_dados.despesa[${i}].item=this.value;agendarSalvar()"><input class="inp" style="width:66px" value="${esc(l.obs)}" placeholder="parc." title="Ex: 23/56" oninput="_dados.despesa[${i}].obs=this.value;agendarSalvar()"><input class="inp" style="flex:1;min-width:90px;text-align:right" type="number" step="0.01" value="${l.valor||''}" placeholder="0,00" oninput="_dados.despesa[${i}].valor=parseFloat(this.value)||0;calc();agendarSalvar()"><button class="btn sec2 sm" style="color:var(--no)" onclick="_dados.despesa.splice(${i},1);renderDesp();calc();agendarSalvar()">✕</button></div>`).join('')||'<div class="mut">Nenhuma despesa</div>';
+}
+function renderMetas(){
+  document.getElementById('lista-metas').innerHTML=(_dados.metas||[]).map((m,i)=>{const pct=m.alvo?Math.min(100,Math.round(100*(m.guardado||0)/m.alvo)):0;return `<div style="padding:8px 0;border-bottom:1px solid var(--bord)"><div class="lin" style="border:none;padding:0"><input class="inp" style="flex:2" value="${esc(m.nome)}" placeholder="Meta" oninput="_dados.metas[${i}].nome=this.value;agendarSalvarMetas()"><input class="inp" style="flex:1;text-align:right" type="number" step="0.01" value="${m.guardado||''}" placeholder="guardado" oninput="_dados.metas[${i}].guardado=parseFloat(this.value)||0;renderMetas();agendarSalvarMetas()"><span class="mut" style="white-space:nowrap">/ ${money(m.alvo)}</span><button class="btn sec2 sm" style="color:var(--no)" onclick="_dados.metas.splice(${i},1);renderMetas();agendarSalvarMetas()">✕</button></div><div class="prog"><div style="width:${pct}%"></div></div><div class="mut" style="margin-top:3px">${pct}% · faltam ${money((m.alvo||0)-(m.guardado||0))}</div></div>`}).join('')||'<div class="mut">Nenhuma meta</div>';
+}
+function addRenda(){_dados.renda.push({item:'',valor:0});renderRenda();}
+function addDesp(){_dados.despesa.push({item:'',obs:'',valor:0,pago:false});renderDesp();}
+function addMeta(){_dados.metas.push({nome:'',alvo:0,guardado:0});renderMetas();agendarSalvarMetas();}
+function calc(){
+  const r=(_dados.renda||[]).reduce((s,l)=>s+(+l.valor||0),0);
+  const d=(_dados.despesa||[]).reduce((s,l)=>s+(+l.valor||0),0);
+  _dados.resumo={receitas:r,despesas:d,saldo:r-d};renderResumo();
+}
+function agendarSalvar(){clearTimeout(_salvarTimer);_salvarTimer=setTimeout(salvarMes,700);}
+async function salvarMes(){
+  const res=await fetch('/api/fin/mes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mes:_mes,renda:_dados.renda,despesa:_dados.despesa})});
+  const j=await res.json();if(j.resumo){_dados.resumo=j.resumo;renderResumo();}
+  const t=document.getElementById('save-r');t.style.display='inline';setTimeout(()=>t.style.display='none',1200);
+  carregarAno();
+}
+let _metasTimer=null;
+function agendarSalvarMetas(){clearTimeout(_metasTimer);_metasTimer=setTimeout(async()=>{await fetch('/api/fin/metas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({metas:_dados.metas})});},700);}
+async function carregarAno(){
+  const y=_mes.slice(0,4);const res=await fetch('/api/fin/ano?y='+y);const a=await res.json();
+  document.getElementById('resumo-ano').innerHTML=`<div class="mut" style="margin-bottom:8px">${y} · Renda ${money(a.receitas)} · Despesas ${money(a.despesas)} · Saldo <b style="color:${a.saldo>=0?'var(--ok)':'var(--no)'}">${money(a.saldo)}</b></div>`+a.meses.map(m=>{const mm=+m.mes.slice(5)-1;const on=m.mes===_mes;return `<div class="lin" style="cursor:pointer;${on?'background:var(--card2);border-radius:8px;padding:6px 8px':''}" onclick="_mes='${m.mes}';carregar()"><span style="flex:1;font-size:13px">${MESES[mm]}</span><span class="mut" style="font-size:12px">${money(m.receitas)} - ${money(m.despesas)}</span><b style="min-width:96px;text-align:right;color:${m.saldo>=0?'var(--ok)':'var(--no)'}">${money(m.saldo)}</b></div>`}).join('');
+}
+function abrirPop(t,c){document.getElementById('modal-titulo').textContent=t;document.getElementById('modal-corpo').innerHTML=c;document.getElementById('modal').style.display='flex';}
+function fecharPop(){document.getElementById('modal').style.display='none';}
+function abrirSenha(){abrirPop('Trocar senha',`<input id="s-atual" type="password" class="inp" placeholder="Senha atual" style="margin-bottom:8px"><input id="s-nova" type="password" class="inp" placeholder="Nova senha" style="margin-bottom:8px"><button class="btn" style="width:100%" onclick="salvarSenha()">Salvar</button>`);}
+async function salvarSenha(){const atual=document.getElementById('s-atual').value,nova=document.getElementById('s-nova').value;const r=await fetch('/api/fin/senha',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({atual,nova})});const j=await r.json();if(j.ok){fecharPop();toast('Senha alterada ✓')}else toast(j.erro||'Erro');}
+
+// já logado?
+fetch('/api/fin/mes?m='+_mes).then(r=>{if(r.ok){document.getElementById('tela-login').style.display='none';document.getElementById('tela-app').style.display='block';carregar();}});
+</script>
+</body>
+</html>

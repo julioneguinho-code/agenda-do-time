@@ -36,6 +36,7 @@ input,select,textarea{color:var(--txt)}
 .nav a.on{color:var(--acc)}
 .nav .ic{font-size:20px;display:block}
 .aba{display:none}.aba.on{display:block}
+.chip{border:1px solid var(--bord);background:var(--card);color:var(--txt);border-radius:99px;padding:6px 14px;font-size:13px;cursor:pointer}.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .dia{background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:8px;text-align:center;min-height:86px}
 .dia .d{font-size:11px;color:var(--mut)}.dia .num{font-size:15px;font-weight:600;margin-bottom:4px}
 .ev{font-size:10px;border-radius:6px;padding:2px 4px;margin-bottom:3px;background:var(--accbg);color:var(--acc)}
@@ -143,6 +144,20 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
+<!-- CONTRATAÇÃO -->
+<div class="aba" id="aba-contratacao">
+  <div class="sec">
+    <div class="row"><div class="h">🤝 Contratação — candidatos</div><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="abrirConfigPlanilha()">⚙️ Planilha</button></div>
+    <div id="contratacao-resumo" class="mut" style="font-size:12px;margin-bottom:8px"></div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button class="chip on" data-cf="novos" onclick="setFiltroContrat('novos')">A contatar</button>
+      <button class="chip" data-cf="contatados" onclick="setFiltroContrat('contatados')">Contatados</button>
+      <button class="chip" data-cf="todos" onclick="setFiltroContrat('todos')">Todos</button>
+    </div>
+    <div id="contratacao-lista"></div>
+  </div>
+</div>
+
 <!-- PERFIL DO CONSULTOR -->
 <div class="aba" id="aba-perfil">
   <div class="sec">
@@ -240,6 +255,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   <a href="#" data-aba="controle" onclick="irAba('controle');carregarControle();return false"><span class="ic">📋</span>Controle</a>
   <a href="#" data-aba="consultores" onclick="irAba('consultores');carregarConsultores();return false"><span class="ic">👥</span>Consultores</a>
   <a href="#" data-aba="agenda" onclick="irAba('agenda');return false"><span class="ic">📅</span>Agenda</a>
+  <a href="#" data-aba="contratacao" onclick="irAba('contratacao');carregarContratacao();return false"><span class="ic">🤝</span>Contratação</a>
   <a href="#" data-aba="ranking" onclick="irAba('ranking');carregarRanking();return false"><span class="ic">🏆</span>Ranking</a>
 </div>
 
@@ -353,6 +369,41 @@ function renderTarefas(){
       ${!ab.length&&!ft.length?'<div class="mut">Sem tarefas nesse filtro</div>':''}
     </div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nada encontrado</div>';
+}
+let _contratacao=null,_filtroContrat='novos';
+async function carregarContratacao(){
+  const el=document.getElementById('contratacao-lista');if(!el)return;
+  if(!_contratacao)el.innerHTML='<div class="mut" style="font-size:12px">Carregando…</div>';
+  try{
+    const r=await fetch('/api/gestor/contratacao');const d=await r.json();_contratacao=d;
+    if(!d.config){document.getElementById('contratacao-resumo').textContent='';el.innerHTML='<div class="card"><div class="mut" style="font-size:13px;margin-bottom:8px">Nenhuma planilha vinculada. Clique em ⚙️ Planilha e cole o link da sua planilha de candidatos.</div><button class="btn" onclick="abrirConfigPlanilha()">Vincular planilha</button></div>';return;}
+    if(!d.ativo){const msg=d.motivo==='google-off'?'Conexão com o Google inativa (falta a chave no Render).':'Não foi possível ler a planilha.<br><span style=\"font-size:10px;opacity:.8\">detalhe: '+String(d.erro||'').slice(0,180)+'</span>';document.getElementById('contratacao-resumo').textContent='';el.innerHTML='<div class="card"><div class="mut" style="font-size:13px">'+msg+'</div></div>';return;}
+    renderContratacao();
+  }catch(e){el.innerHTML='<div class="mut" style="font-size:12px">Erro ao carregar.</div>';}
+}
+function setFiltroContrat(f){_filtroContrat=f;document.querySelectorAll('[data-cf]').forEach(c=>c.classList.toggle('on',c.dataset.cf===f));renderContratacao();}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function renderContratacao(){
+  const d=_contratacao;if(!d||!d.candidatos)return;
+  const tot=d.candidatos.length,ct=d.candidatos.filter(c=>c.contatado).length;
+  document.getElementById('contratacao-resumo').textContent=`${tot} candidatos · ${ct} contatados · ${tot-ct} a contatar · atualiza sozinho`;
+  let lista=d.candidatos;
+  if(_filtroContrat==='novos')lista=lista.filter(c=>!c.contatado);
+  else if(_filtroContrat==='contatados')lista=lista.filter(c=>c.contatado);
+  document.getElementById('contratacao-lista').innerHTML=lista.map(c=>`<div class="card" style="${c.contatado?'opacity:.65':''}"><div class="row"><div class="titulo">${esc(c.nome)}${c.idade?` <span class="mut" style="font-weight:400">· ${esc(c.idade)}</span>`:''}</div><span class="badge ${c.contatado?'b-ok':'b-warn'}">${c.contatado?'Contatado':'A contatar'}</span></div><div class="mut" style="font-size:12px;margin-top:4px">${c.pj?('PJ: '+esc(c.pj)+' · '):''}${esc(c.email)}</div>${c.experiencia?`<div style="font-size:12px;margin-top:6px;line-height:1.5">${esc(c.experiencia)}</div>`:''}<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${c.wa?`<a class="btn sec2" style="padding:6px 11px;font-size:12px;text-decoration:none;color:#1E7B4F" href="https://wa.me/${c.wa}" target="_blank">💬 WhatsApp</a>`:''}${c.email?`<a class="btn sec2" style="padding:6px 11px;font-size:12px;text-decoration:none" href="mailto:${esc(c.email)}">✉️ Email</a>`:''}<button class="btn ${c.contatado?'sec2':''}" style="padding:6px 11px;font-size:12px" onclick="marcarContatado('${c.chave}',${!c.contatado})">${c.contatado?'Desmarcar':'✓ Marcar contatado'}</button></div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum candidato neste filtro</div>';
+}
+async function marcarContatado(chave,contatado){
+  const r=await fetch('/api/gestor/contratacao/marcar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chave,contatado})});
+  const j=await r.json();
+  if(j.ok){const c=_contratacao.candidatos.find(x=>x.chave===chave);if(c)c.contatado=contatado;renderContratacao();toast(contatado?'Marcado como contatado ✓':'Desmarcado')}else toast(j.erro||'Erro');
+}
+function abrirConfigPlanilha(){
+  abrirPop('Planilha de candidatos',`<div class="mut" style="font-size:12px;margin-bottom:8px">Cole o link da sua planilha do Google. Importante: a <b>conta de serviço</b> precisa ter acesso de leitura a ela, e a <b>Google Sheets API</b> precisa estar ativada.</div><input type="text" id="pl-url" placeholder="https://docs.google.com/spreadsheets/d/..." autocapitalize="none" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px"><button class="btn" style="width:100%" onclick="salvarPlanilhaContratacao()">Salvar</button>`);
+}
+async function salvarPlanilhaContratacao(){
+  const url=document.getElementById('pl-url').value.trim();if(!url){toast('Cole o link da planilha');return}
+  const r=await fetch('/api/gestor/contratacao/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
+  const j=await r.json();if(j.ok){fecharPop();toast('Planilha vinculada ✓');_contratacao=null;carregarContratacao()}else toast(j.erro||'Erro');
 }
 async function carregarRanking(){
   const res=await fetch('/api/gestor/ranking');const r=await res.json();
@@ -658,11 +709,12 @@ function editarUsuario(i){
     <div style="margin-bottom:8px">Prévia: ${balaoNome(u.nome,u.cor)}</div>
     <label style="font-size:12px;color:var(--mut)">E-mail da agenda Google (só gestor)</label>
     <input type="text" id="ed-cal" value="${(u.calendarId||'').replace(/"/g,'&quot;')}" autocapitalize="none" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="ed-master" ${u.master?'checked':''} style="width:18px;height:18px;accent-color:var(--acc)"> Acesso master (vê todos os times)</label>
     <button class="btn" style="width:100%;margin-top:6px" onclick="salvarEdicaoUsuario('${u.email}')">Salvar alterações</button>
     <button class="btn sec2" style="width:100%;margin-top:8px" onclick="resetSenha('${u.email}')">🔑 Redefinir senha</button>`);
 }
 async function salvarEdicaoUsuario(email){
-  const b={email,novoEmail:document.getElementById('ed-email').value,nome:document.getElementById('ed-nome').value,papel:document.getElementById('ed-papel').value,time:document.getElementById('ed-time').value,calendarId:document.getElementById('ed-cal').value,cargo:document.getElementById('ed-cargo').value,cor:document.getElementById('ed-cor').value};
+  const b={email,novoEmail:document.getElementById('ed-email').value,nome:document.getElementById('ed-nome').value,papel:document.getElementById('ed-papel').value,time:document.getElementById('ed-time').value,calendarId:document.getElementById('ed-cal').value,cargo:document.getElementById('ed-cargo').value,cor:document.getElementById('ed-cor').value,master:document.getElementById('ed-master').checked};
   const res=await fetch('/api/gestor/usuarios/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
   const j=await res.json();fecharPop();toast(j.ok?'Acesso atualizado ✓':(j.erro||'Erro'));carregarUsuarios();
 }
@@ -671,7 +723,7 @@ async function checarChatG(){const res=await fetch('/api/chat');const j=await re
 setInterval(()=>{if(!document.hidden){checarChatG();if(document.getElementById('chat-box').style.display==='flex'){if(chatConsultor)abrirChatThread(chatConsultor);else abrirChatLista();}}},10000);checarChatG();
 iniciarNotif();
 // atualização automática do painel (quase tempo real) — pausa fora da aba
-setInterval(()=>{if(!document.hidden){carregar();if(document.getElementById('aba-controle').classList.contains('on'))carregarControle();if(document.getElementById('aba-ranking').classList.contains('on'))carregarRanking();if(document.getElementById('aba-perfil').classList.contains('on')&&perfilAtual)abrirPerfil(perfilAtual);}},8000);
+setInterval(()=>{if(!document.hidden){carregar();if(document.getElementById('aba-controle').classList.contains('on'))carregarControle();if(document.getElementById('aba-ranking').classList.contains('on'))carregarRanking();if(document.getElementById('aba-contratacao').classList.contains('on'))carregarContratacao();if(document.getElementById('aba-perfil').classList.contains('on')&&perfilAtual)abrirPerfil(perfilAtual);}},8000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){carregar();carregarAvisos();if(document.getElementById('aba-controle').classList.contains('on'))carregarControle();}});
 carregar();
 </script>
