@@ -29,6 +29,7 @@ input,select{color:var(--txt);font-family:inherit}
 .prog>div{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2))}
 .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#14161C;color:#fff;font-size:13px;padding:9px 16px;border-radius:99px;display:none;z-index:9}
 .tag{font-size:11px;color:var(--ok);font-weight:600}
+.chip{border:1px solid var(--bord);background:var(--card);color:var(--txt);border-radius:99px;padding:7px 16px;font-size:13px;cursor:pointer;font-weight:600}.chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 </style>
 </head>
 <body>
@@ -56,6 +57,13 @@ input,select{color:var(--txt);font-family:inherit}
     </div>
   </div>
 
+  <div style="display:flex;gap:6px;margin:6px 0 10px">
+    <button class="chip on" id="tab-orc" onclick="verAba('orc')">Orçamento</button>
+    <button class="chip" id="tab-inv" onclick="verAba('inv')">💹 Investimentos</button>
+    <button class="chip" id="tab-son" onclick="verAba('son')">🌟 Sonhos</button>
+  </div>
+
+  <div id="view-orc">
   <div class="card" style="display:flex;justify-content:space-between;align-items:center">
     <button class="btn sec2 sm" onclick="mudarMes(-1)">◀</button>
     <div style="font-weight:700" id="mes-label">—</div>
@@ -77,8 +85,31 @@ input,select{color:var(--txt);font-family:inherit}
   <div class="h">🎯 Metas</div>
   <div class="card"><div id="lista-metas"></div><button class="btn sec2 sm" style="margin-top:10px" onclick="addMeta()">+ Adicionar meta</button></div>
 
+  <div class="h">📊 Economia — saldo por mês</div>
+  <div class="card"><div id="chart-eco"></div><div class="mut" id="chart-eco-leg" style="margin-top:6px;text-align:center"></div></div>
+
   <div class="h">📅 Resumo do ano</div>
   <div class="card"><div id="resumo-ano"></div></div>
+  </div><!-- /view-orc -->
+
+  <div id="view-inv" style="display:none">
+    <div class="kpi" style="grid-template-columns:1fr">
+      <div class="b"><div class="l">Total investido no ano</div><div class="v" style="color:var(--ok)" id="inv-total">—</div></div>
+    </div>
+    <div class="h">💹 Investimento por mês</div>
+    <div class="card"><div id="inv-chart"></div></div>
+    <div class="h">📦 Por tipo de investimento</div>
+    <div class="card"><div id="inv-itens"></div></div>
+    <div class="h">🧾 Lançamentos</div>
+    <div class="card"><div id="inv-lancs"></div></div>
+    <div class="mut" style="text-align:center;margin-top:6px">Marque uma despesa como investimento pelo botão 💹 na aba Orçamento.</div>
+  </div>
+
+  <div id="view-son" style="display:none">
+    <div class="h">🌟 Quadro dos Sonhos</div>
+    <div class="mut" style="margin:0 2px 8px">Cada meta com foto e barra de conclusão. As metas e valores você gerencia na aba Orçamento; aqui você põe a foto do sonho.</div>
+    <div id="lista-sonhos"></div>
+  </div>
 </div>
 
 <!-- MODAL -->
@@ -91,6 +122,16 @@ input,select{color:var(--txt);font-family:inherit}
 
 <script>
 const money=v=>'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtBR=n=>(+n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+function parseBR(s){s=String(s).replace(/[^\d.,-]/g,'');if(s.includes(',')){s=s.replace(/\./g,'').replace(',','.');}return parseFloat(s)||0;}
+function chartEconomia(meses){
+  const W=360,H=150,pad=18,zero=H/2;const bw=(W-pad*2)/12;
+  const maxAbs=Math.max(1,...meses.map(m=>Math.abs(m.saldo)));
+  const ini=['J','F','M','A','M','J','J','A','S','O','N','D'];let bars='';
+  meses.forEach((m,i)=>{const x=pad+i*bw+bw*0.15,w=bw*0.7;const h=Math.abs(m.saldo)/maxAbs*(H/2-16);const y=m.saldo>=0?zero-h:zero;const col=m.saldo>=0?'#3E8E6E':'#C0484E';
+    bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(1,h).toFixed(1)}" rx="2" fill="${col}"/><text x="${(x+w/2).toFixed(1)}" y="${H-4}" font-size="8" fill="#7B828C" text-anchor="middle">${ini[i]}</text>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto"><line x1="${pad}" y1="${zero}" x2="${W-pad}" y2="${zero}" stroke="#E1E3E7"/>${bars}</svg>`;
+}
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2200)}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
@@ -120,13 +161,14 @@ function renderResumo(){
   const el=document.getElementById('k-saldo');el.textContent=money(r.saldo);el.style.color=r.saldo>=0?'var(--ok)':'var(--no)';
 }
 function renderRenda(){
-  document.getElementById('lista-renda').innerHTML=(_dados.renda||[]).map((l,i)=>`<div class="lin"><input class="inp" style="flex:2" value="${esc(l.item)}" placeholder="Item" oninput="_dados.renda[${i}].item=this.value;agendarSalvar()"><input class="inp" style="flex:1;text-align:right" type="number" step="0.01" value="${l.valor||''}" placeholder="0,00" oninput="_dados.renda[${i}].valor=parseFloat(this.value)||0;calc();agendarSalvar()"><button class="btn sec2 sm" style="color:var(--no)" onclick="_dados.renda.splice(${i},1);renderRenda();calc();agendarSalvar()">✕</button></div>`).join('')||'<div class="mut">Nenhuma renda</div>';
+  document.getElementById('lista-renda').innerHTML=(_dados.renda||[]).map((l,i)=>`<div class="lin"><input class="inp" style="flex:2" value="${esc(l.item)}" placeholder="Item" oninput="_dados.renda[${i}].item=this.value;agendarSalvar()"><div style="display:flex;align-items:center;gap:3px;flex:1"><span class="mut" style="font-size:11px">R$</span><input class="inp" style="text-align:right" inputmode="decimal" value="${fmtBR(l.valor)}" oninput="_dados.renda[${i}].valor=parseBR(this.value);calc();agendarSalvar()" onblur="this.value=fmtBR(_dados.renda[${i}].valor)"></div><button class="btn sec2 sm" style="color:var(--no)" onclick="_dados.renda.splice(${i},1);renderRenda();calc();agendarSalvar()">✕</button></div>`).join('')||'<div class="mut">Nenhuma renda</div>';
 }
+function metaOpts(sel){return '<option value="">— meta</option>'+(_dados.metas||[]).map(mt=>`<option value="${esc(mt.nome)}" ${sel===mt.nome?'selected':''}>🎯 ${esc(mt.nome)}</option>`).join('');}
 function renderDesp(){
-  document.getElementById('lista-desp').innerHTML=(_dados.despesa||[]).map((l,i)=>`<div class="lin" style="flex-wrap:wrap"><input type="checkbox" ${l.pago?'checked':''} title="Pago" onchange="_dados.despesa[${i}].pago=this.checked;agendarSalvar()" style="width:18px;height:18px;accent-color:var(--ok)"><input class="inp" style="flex:2;min-width:120px;${l.pago?'text-decoration:line-through;opacity:.6':''}" value="${esc(l.item)}" placeholder="Item" oninput="_dados.despesa[${i}].item=this.value;agendarSalvar()"><input class="inp" style="width:66px" value="${esc(l.obs)}" placeholder="parc." title="Ex: 23/56" oninput="_dados.despesa[${i}].obs=this.value;agendarSalvar()"><input class="inp" style="flex:1;min-width:90px;text-align:right" type="number" step="0.01" value="${l.valor||''}" placeholder="0,00" oninput="_dados.despesa[${i}].valor=parseFloat(this.value)||0;calc();agendarSalvar()"><button class="btn sec2 sm" style="color:var(--no)" onclick="_dados.despesa.splice(${i},1);renderDesp();calc();agendarSalvar()">✕</button></div>`).join('')||'<div class="mut">Nenhuma despesa</div>';
+  document.getElementById('lista-desp').innerHTML=(_dados.despesa||[]).map((l,i)=>`<div class="lin" style="flex-wrap:wrap"><input type="checkbox" ${l.pago?'checked':''} title="Pago" onchange="_dados.despesa[${i}].pago=this.checked;agendarSalvar()" style="width:18px;height:18px;accent-color:var(--ok)"><input class="inp" style="flex:2;min-width:110px;${l.pago?'text-decoration:line-through;opacity:.6':''}" value="${esc(l.item)}" placeholder="Item" oninput="_dados.despesa[${i}].item=this.value;agendarSalvar()"><input class="inp" style="width:58px" value="${esc(l.obs)}" placeholder="parc." title="Ex: 23/56" oninput="_dados.despesa[${i}].obs=this.value;agendarSalvar()"><div style="display:flex;align-items:center;gap:3px;flex:1;min-width:90px"><span class="mut" style="font-size:11px">R$</span><input class="inp" style="text-align:right" inputmode="decimal" value="${fmtBR(l.valor)}" oninput="_dados.despesa[${i}].valor=parseBR(this.value);calc();agendarSalvar()" onblur="this.value=fmtBR(_dados.despesa[${i}].valor)"></div><select class="inp" style="width:120px;${l.meta?'border-color:var(--ok);color:var(--ok)':''}" title="Vincular a uma meta" onchange="_dados.despesa[${i}].meta=this.value;agendarSalvar()">${metaOpts(l.meta)}</select><button class="btn sec2 sm" title="Marcar como investimento" style="${l.investimento?'background:var(--okbg);color:var(--ok);border-color:var(--ok)':''}" onclick="_dados.despesa[${i}].investimento=!_dados.despesa[${i}].investimento;renderDesp();agendarSalvar()">💹</button><button class="btn sec2 sm" style="color:var(--no)" onclick="_dados.despesa.splice(${i},1);renderDesp();calc();agendarSalvar()">✕</button></div>`).join('')||'<div class="mut">Nenhuma despesa</div>';
 }
 function renderMetas(){
-  document.getElementById('lista-metas').innerHTML=(_dados.metas||[]).map((m,i)=>{const pct=m.alvo?Math.min(100,Math.round(100*(m.guardado||0)/m.alvo)):0;return `<div style="padding:8px 0;border-bottom:1px solid var(--bord)"><div class="lin" style="border:none;padding:0"><input class="inp" style="flex:2" value="${esc(m.nome)}" placeholder="Meta" oninput="_dados.metas[${i}].nome=this.value;agendarSalvarMetas()"><input class="inp" style="flex:1;text-align:right" type="number" step="0.01" value="${m.guardado||''}" placeholder="guardado" oninput="_dados.metas[${i}].guardado=parseFloat(this.value)||0;renderMetas();agendarSalvarMetas()"><span class="mut" style="white-space:nowrap">/ ${money(m.alvo)}</span><button class="btn sec2 sm" style="color:var(--no)" onclick="_dados.metas.splice(${i},1);renderMetas();agendarSalvarMetas()">✕</button></div><div class="prog"><div style="width:${pct}%"></div></div><div class="mut" style="margin-top:3px">${pct}% · faltam ${money((m.alvo||0)-(m.guardado||0))}</div></div>`}).join('')||'<div class="mut">Nenhuma meta</div>';
+  document.getElementById('lista-metas').innerHTML=(_dados.metas||[]).map((m,i)=>{const total=(+m.guardado||0)+(+m.vinculado||0);const pct=m.alvo?Math.min(100,Math.round(100*total/m.alvo)):0;return `<div style="padding:8px 0;border-bottom:1px solid var(--bord)"><div class="lin" style="border:none;padding:0;gap:6px"><input class="inp" style="flex:2" value="${esc(m.nome)}" placeholder="Meta" oninput="_dados.metas[${i}].nome=this.value;agendarSalvarMetas()"><button class="btn sec2 sm" style="color:var(--no)" onclick="_dados.metas.splice(${i},1);renderMetas();agendarSalvarMetas()">✕</button></div><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><div style="flex:1;min-width:120px"><div class="mut" style="font-size:10px">Aporte manual (R$)</div><input class="inp" inputmode="decimal" value="${fmtBR(m.guardado)}" oninput="_dados.metas[${i}].guardado=parseBR(this.value);renderMetas();agendarSalvarMetas()" onblur="this.value=fmtBR(_dados.metas[${i}].guardado)"></div><div style="flex:1;min-width:120px"><div class="mut" style="font-size:10px">Alvo (R$)</div><input class="inp" inputmode="decimal" value="${fmtBR(m.alvo)}" oninput="_dados.metas[${i}].alvo=parseBR(this.value);renderMetas();agendarSalvarMetas()" onblur="this.value=fmtBR(_dados.metas[${i}].alvo)"></div></div><div class="prog"><div style="width:${pct}%"></div></div><div class="mut" style="margin-top:3px">${pct}% · guardado ${money(total)} de ${money(m.alvo)}${m.vinculado?` · vinculado ${money(m.vinculado)}`:''} · faltam ${money((m.alvo||0)-total)}</div></div>`}).join('')||'<div class="mut">Nenhuma meta</div>';
 }
 function addRenda(){_dados.renda.push({item:'',valor:0});renderRenda();}
 function addDesp(){_dados.despesa.push({item:'',obs:'',valor:0,pago:false});renderDesp();}
@@ -140,6 +182,7 @@ function agendarSalvar(){clearTimeout(_salvarTimer);_salvarTimer=setTimeout(salv
 async function salvarMes(){
   const res=await fetch('/api/fin/mes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mes:_mes,renda:_dados.renda,despesa:_dados.despesa})});
   const j=await res.json();if(j.resumo){_dados.resumo=j.resumo;renderResumo();}
+  if(j.metas){_dados.metas=j.metas;renderMetas();}
   const t=document.getElementById('save-r');t.style.display='inline';setTimeout(()=>t.style.display='none',1200);
   carregarAno();
 }
@@ -147,7 +190,53 @@ let _metasTimer=null;
 function agendarSalvarMetas(){clearTimeout(_metasTimer);_metasTimer=setTimeout(async()=>{await fetch('/api/fin/metas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({metas:_dados.metas})});},700);}
 async function carregarAno(){
   const y=_mes.slice(0,4);const res=await fetch('/api/fin/ano?y='+y);const a=await res.json();
+  document.getElementById('chart-eco').innerHTML=chartEconomia(a.meses);
+  const positivos=a.meses.filter(m=>m.saldo>0).reduce((s,m)=>s+m.saldo,0);
+  document.getElementById('chart-eco-leg').innerHTML=`🟩 sobrou · 🟥 faltou · economia acumulada no ano: <b style="color:${a.saldo>=0?'var(--ok)':'var(--no)'}">${money(a.saldo)}</b>`;
   document.getElementById('resumo-ano').innerHTML=`<div class="mut" style="margin-bottom:8px">${y} · Renda ${money(a.receitas)} · Despesas ${money(a.despesas)} · Saldo <b style="color:${a.saldo>=0?'var(--ok)':'var(--no)'}">${money(a.saldo)}</b></div>`+a.meses.map(m=>{const mm=+m.mes.slice(5)-1;const on=m.mes===_mes;return `<div class="lin" style="cursor:pointer;${on?'background:var(--card2);border-radius:8px;padding:6px 8px':''}" onclick="_mes='${m.mes}';carregar()"><span style="flex:1;font-size:13px">${MESES[mm]}</span><span class="mut" style="font-size:12px">${money(m.receitas)} - ${money(m.despesas)}</span><b style="min-width:96px;text-align:right;color:${m.saldo>=0?'var(--ok)':'var(--no)'}">${money(m.saldo)}</b></div>`}).join('');
+}
+function chartBarras(meses,color){
+  const W=360,H=140,pad=18,base=H-16;const bw=(W-pad*2)/12;
+  const max=Math.max(1,...meses.map(m=>m.total));const ini=['J','F','M','A','M','J','J','A','S','O','N','D'];let bars='';
+  meses.forEach((m,i)=>{const x=pad+i*bw+bw*0.15,w=bw*0.7;const h=m.total/max*(base-12);const y=base-h;
+    bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" rx="2" fill="${color}"/><text x="${(x+w/2).toFixed(1)}" y="${H-3}" font-size="8" fill="#7B828C" text-anchor="middle">${ini[i]}</text>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto"><line x1="${pad}" y1="${base}" x2="${W-pad}" y2="${base}" stroke="#E1E3E7"/>${bars}</svg>`;
+}
+function verAba(a){
+  document.getElementById('view-orc').style.display=a==='orc'?'block':'none';
+  document.getElementById('view-inv').style.display=a==='inv'?'block':'none';
+  document.getElementById('view-son').style.display=a==='son'?'block':'none';
+  document.getElementById('tab-orc').classList.toggle('on',a==='orc');
+  document.getElementById('tab-inv').classList.toggle('on',a==='inv');
+  document.getElementById('tab-son').classList.toggle('on',a==='son');
+  if(a==='inv')carregarInvest();
+  if(a==='son')renderSonhos();
+}
+function renderSonhos(){
+  const el=document.getElementById('lista-sonhos');if(!el)return;
+  el.innerHTML=(_dados.metas||[]).map((m,i)=>{const total=(+m.guardado||0)+(+m.vinculado||0);const pct=m.alvo?Math.min(100,Math.round(100*total/m.alvo)):0;
+    const foto=m.img?`<div style="position:relative"><img src="${m.img}" style="width:100%;height:170px;object-fit:cover;display:block"><button class="btn sec2 sm" style="position:absolute;top:8px;right:8px" onclick="document.getElementById('foto-${i}').click()">📷 Trocar</button></div>`:`<div onclick="document.getElementById('foto-${i}').click()" style="height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card2);color:var(--mut);cursor:pointer"><div style="font-size:30px">📷</div><div style="font-size:13px;margin-top:4px">Adicionar foto do sonho</div></div>`;
+    return `<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">${foto}<div style="padding:12px 14px"><div class="row"><div style="font-weight:700;font-size:16px">${esc(m.nome)||'(meta)'}</div><div class="mut">${pct}%</div></div><div class="prog" style="margin-top:8px;height:12px"><div style="width:${pct}%"></div></div><div class="mut" style="margin-top:6px">${money(total)} de ${money(m.alvo)} · faltam <b>${money((m.alvo||0)-total)}</b></div></div><input id="foto-${i}" type="file" accept="image/*" style="display:none" onchange="setFoto(${i},this)"></div>`;
+  }).join('')||'<div class="card mut" style="text-align:center;padding:24px">Nenhuma meta ainda. Crie na aba Orçamento (🎯 Metas).</div>';
+}
+function setFoto(i,input){
+  const f=input.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{const img=new Image();img.onload=()=>{
+    const max=900;let w=img.width,h=img.height;if(w>h&&w>max){h=Math.round(h*max/w);w=max;}else if(h>=w&&h>max){w=Math.round(w*max/h);h=max;}
+    const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+    _dados.metas[i].img=c.toDataURL('image/jpeg',0.72);renderSonhos();salvarMetasAgora();
+  };img.src=rd.result;};
+  rd.readAsDataURL(f);
+}
+async function salvarMetasAgora(){await fetch('/api/fin/metas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({metas:_dados.metas})});toast('Foto salva ✓');}
+async function carregarInvest(){
+  const y=_mes.slice(0,4);const res=await fetch('/api/fin/investimentos?y='+y);const d=await res.json();
+  document.getElementById('inv-total').textContent=money(d.total);
+  document.getElementById('inv-chart').innerHTML=chartBarras(d.meses,'#3E8E6E');
+  const maxi=Math.max(1,...d.itens.map(x=>x.valor));
+  document.getElementById('inv-itens').innerHTML=(d.itens||[]).map(x=>`<div style="padding:6px 0;border-bottom:1px solid var(--bord)"><div class="lin" style="border:none;padding:0"><span style="font-size:14px">${esc(x.nome)}</span><b>${money(x.valor)}</b></div><div class="prog"><div style="width:${Math.round(100*x.valor/maxi)}%;background:var(--ok)"></div></div></div>`).join('')||'<div class="mut">Nenhum investimento marcado ainda</div>';
+  document.getElementById('inv-lancs').innerHTML=(d.lancamentos||[]).map(l=>{const mm=+l.mes.slice(5)-1;return `<div class="lin"><span style="flex:1;font-size:13px">${esc(l.item)} <span class="mut">· ${MESES[mm].slice(0,3)}${l.meta?' · 🎯'+esc(l.meta):''}</span></span><b>${money(l.valor)}</b></div>`}).join('')||'<div class="mut">Nenhum lançamento</div>';
 }
 function abrirPop(t,c){document.getElementById('modal-titulo').textContent=t;document.getElementById('modal-corpo').innerHTML=c;document.getElementById('modal').style.display='flex';}
 function fecharPop(){document.getElementById('modal').style.display='none';}
