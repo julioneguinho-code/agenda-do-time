@@ -108,7 +108,7 @@ input,select{color:var(--txt);font-family:inherit}
   <div id="view-son" style="display:none">
     <div class="h">🌟 Quadro dos Sonhos</div>
     <div class="mut" style="margin:0 2px 8px">Cada meta com foto e barra de conclusão. As metas e valores você gerencia na aba Orçamento; aqui você põe a foto do sonho.</div>
-    <div id="lista-sonhos"></div>
+    <div id="lista-sonhos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px"></div>
   </div>
 </div>
 
@@ -165,7 +165,7 @@ function renderRenda(){
 }
 function metaOpts(sel){return '<option value="">— meta</option>'+(_dados.metas||[]).map(mt=>`<option value="${esc(mt.nome)}" ${sel===mt.nome?'selected':''}>🎯 ${esc(mt.nome)}</option>`).join('');}
 function renderDesp(){
-  document.getElementById('lista-desp').innerHTML=(_dados.despesa||[]).map((l,i)=>`<div class="lin" style="flex-wrap:wrap"><input type="checkbox" ${l.pago?'checked':''} title="Pago" onchange="_dados.despesa[${i}].pago=this.checked;agendarSalvar()" style="width:18px;height:18px;accent-color:var(--ok)"><input class="inp" style="flex:2;min-width:110px;${l.pago?'text-decoration:line-through;opacity:.6':''}" value="${esc(l.item)}" placeholder="Item" oninput="_dados.despesa[${i}].item=this.value;agendarSalvar()"><input class="inp" style="width:58px" value="${esc(l.obs)}" placeholder="parc." title="Ex: 23/56" oninput="_dados.despesa[${i}].obs=this.value;agendarSalvar()"><div style="display:flex;align-items:center;gap:3px;flex:1;min-width:90px"><span class="mut" style="font-size:11px">R$</span><input class="inp" style="text-align:right" inputmode="decimal" value="${fmtBR(l.valor)}" oninput="_dados.despesa[${i}].valor=parseBR(this.value);calc();agendarSalvar()" onblur="this.value=fmtBR(_dados.despesa[${i}].valor)"></div><select class="inp" style="width:120px;${l.meta?'border-color:var(--ok);color:var(--ok)':''}" title="Vincular a uma meta" onchange="_dados.despesa[${i}].meta=this.value;agendarSalvar()">${metaOpts(l.meta)}</select><button class="btn sec2 sm" title="Marcar como investimento" style="${l.investimento?'background:var(--okbg);color:var(--ok);border-color:var(--ok)':''}" onclick="_dados.despesa[${i}].investimento=!_dados.despesa[${i}].investimento;renderDesp();agendarSalvar()">💹</button><button class="btn sec2 sm" style="color:var(--no)" onclick="_dados.despesa.splice(${i},1);renderDesp();calc();agendarSalvar()">✕</button></div>`).join('')||'<div class="mut">Nenhuma despesa</div>';
+  document.getElementById('lista-desp').innerHTML=(_dados.despesa||[]).map((l,i)=>`<div class="lin" style="flex-wrap:wrap"><input type="checkbox" ${l.pago?'checked':''} title="Pago" onchange="_dados.despesa[${i}].pago=this.checked;agendarSalvar()" style="width:18px;height:18px;accent-color:var(--ok)"><input class="inp" style="flex:2;min-width:110px;${l.pago?'text-decoration:line-through;opacity:.6':''}" value="${esc(l.item)}" placeholder="Item" oninput="_dados.despesa[${i}].item=this.value;agendarSalvar()"><input class="inp" style="width:52px" value="${esc(l.obs)}" placeholder="parc." title="Ex: 23/56" oninput="_dados.despesa[${i}].obs=this.value;agendarSalvar()"><button class="btn sec2 sm" title="Repetir esta parcela nos próximos meses (ex: 3/10 → 4/10, 5/10...)" onclick="propagarParcela(${i})">🔁</button><div style="display:flex;align-items:center;gap:3px;flex:1;min-width:90px"><span class="mut" style="font-size:11px">R$</span><input class="inp" style="text-align:right" inputmode="decimal" value="${fmtBR(l.valor)}" oninput="_dados.despesa[${i}].valor=parseBR(this.value);calc();agendarSalvar()" onblur="this.value=fmtBR(_dados.despesa[${i}].valor)"></div><select class="inp" style="width:120px;${l.meta?'border-color:var(--ok);color:var(--ok)':''}" title="Vincular a uma meta" onchange="_dados.despesa[${i}].meta=this.value;agendarSalvar()">${metaOpts(l.meta)}</select><button class="btn sec2 sm" title="Marcar como investimento" style="${l.investimento?'background:var(--okbg);color:var(--ok);border-color:var(--ok)':''}" onclick="_dados.despesa[${i}].investimento=!_dados.despesa[${i}].investimento;renderDesp();agendarSalvar()">💹</button><button class="btn sec2 sm" style="color:var(--no)" onclick="_dados.despesa.splice(${i},1);renderDesp();calc();agendarSalvar()">✕</button></div>`).join('')||'<div class="mut">Nenhuma despesa</div>';
 }
 function renderMetas(){
   document.getElementById('lista-metas').innerHTML=(_dados.metas||[]).map((m,i)=>{const total=(+m.guardado||0)+(+m.vinculado||0);const pct=m.alvo?Math.min(100,Math.round(100*total/m.alvo)):0;return `<div style="padding:8px 0;border-bottom:1px solid var(--bord)"><div class="lin" style="border:none;padding:0;gap:6px"><input class="inp" style="flex:2" value="${esc(m.nome)}" placeholder="Meta" oninput="_dados.metas[${i}].nome=this.value;agendarSalvarMetas()"><button class="btn sec2 sm" style="color:var(--no)" onclick="_dados.metas.splice(${i},1);renderMetas();agendarSalvarMetas()">✕</button></div><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><div style="flex:1;min-width:120px"><div class="mut" style="font-size:10px">Aporte manual (R$)</div><input class="inp" inputmode="decimal" value="${fmtBR(m.guardado)}" oninput="_dados.metas[${i}].guardado=parseBR(this.value);renderMetas();agendarSalvarMetas()" onblur="this.value=fmtBR(_dados.metas[${i}].guardado)"></div><div style="flex:1;min-width:120px"><div class="mut" style="font-size:10px">Alvo (R$)</div><input class="inp" inputmode="decimal" value="${fmtBR(m.alvo)}" oninput="_dados.metas[${i}].alvo=parseBR(this.value);renderMetas();agendarSalvarMetas()" onblur="this.value=fmtBR(_dados.metas[${i}].alvo)"></div></div><div class="prog"><div style="width:${pct}%"></div></div><div class="mut" style="margin-top:3px">${pct}% · guardado ${money(total)} de ${money(m.alvo)}${m.vinculado?` · vinculado ${money(m.vinculado)}`:''} · faltam ${money((m.alvo||0)-total)}</div></div>`}).join('')||'<div class="mut">Nenhuma meta</div>';
@@ -214,10 +214,21 @@ function verAba(a){
 }
 function renderSonhos(){
   const el=document.getElementById('lista-sonhos');if(!el)return;
-  el.innerHTML=(_dados.metas||[]).map((m,i)=>{const total=(+m.guardado||0)+(+m.vinculado||0);const pct=m.alvo?Math.min(100,Math.round(100*total/m.alvo)):0;
-    const foto=m.img?`<div style="position:relative"><img src="${m.img}" style="width:100%;height:170px;object-fit:cover;display:block"><button class="btn sec2 sm" style="position:absolute;top:8px;right:8px" onclick="document.getElementById('foto-${i}').click()">📷 Trocar</button></div>`:`<div onclick="document.getElementById('foto-${i}').click()" style="height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card2);color:var(--mut);cursor:pointer"><div style="font-size:30px">📷</div><div style="font-size:13px;margin-top:4px">Adicionar foto do sonho</div></div>`;
-    return `<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">${foto}<div style="padding:12px 14px"><div class="row"><div style="font-weight:700;font-size:16px">${esc(m.nome)||'(meta)'}</div><div class="mut">${pct}%</div></div><div class="prog" style="margin-top:8px;height:12px"><div style="width:${pct}%"></div></div><div class="mut" style="margin-top:6px">${money(total)} de ${money(m.alvo)} · faltam <b>${money((m.alvo||0)-total)}</b></div></div><input id="foto-${i}" type="file" accept="image/*" style="display:none" onchange="setFoto(${i},this)"></div>`;
-  }).join('')||'<div class="card mut" style="text-align:center;padding:24px">Nenhuma meta ainda. Crie na aba Orçamento (🎯 Metas).</div>';
+  const cards=(_dados.metas||[]).map((m,i)=>{const total=(+m.guardado||0)+(+m.vinculado||0);const pct=m.alvo?Math.min(100,Math.round(100*total/m.alvo)):0;const done=pct>=100;
+    const fundo=m.img?`<img src="${m.img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`:`<div onclick="document.getElementById('foto-${i}').click()" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card2);color:var(--mut);cursor:pointer"><div style="font-size:26px">📷</div><div style="font-size:11px;margin-top:3px">Adicionar foto</div></div>`;
+    return `<div class="card" style="padding:0;overflow:hidden;position:relative;aspect-ratio:1">
+      ${fundo}
+      <button class="btn sec2 sm" style="position:absolute;top:6px;right:6px;padding:4px 7px;font-size:11px;opacity:.92" onclick="document.getElementById('foto-${i}').click()">📷</button>
+      ${done?'<div style="position:absolute;top:6px;left:6px;background:var(--ok);color:#fff;font-size:10px;font-weight:700;padding:3px 7px;border-radius:99px">🎉 100%</div>':''}
+      <div style="position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(0,0,0,.72));padding:16px 10px 8px;color:#fff">
+        <div style="font-weight:700;font-size:13px;text-shadow:0 1px 2px rgba(0,0,0,.6);line-height:1.2">${esc(m.nome)||'(meta)'}</div>
+        <div style="height:6px;background:rgba(255,255,255,.35);border-radius:99px;margin-top:5px;overflow:hidden"><div style="width:${pct}%;height:100%;background:#fff"></div></div>
+        <div style="font-size:10px;margin-top:3px;text-shadow:0 1px 2px rgba(0,0,0,.6)">${pct}% · faltam ${money((m.alvo||0)-total)}</div>
+      </div>
+      <input id="foto-${i}" type="file" accept="image/*" style="display:none" onchange="setFoto(${i},this)">
+    </div>`;
+  }).join('');
+  el.innerHTML=cards||'<div class="card mut" style="text-align:center;padding:24px;grid-column:1/-1">Nenhuma meta ainda. Crie na aba Orçamento (🎯 Metas).</div>';
 }
 function setFoto(i,input){
   const f=input.files[0];if(!f)return;
@@ -230,6 +241,15 @@ function setFoto(i,input){
   rd.readAsDataURL(f);
 }
 async function salvarMetasAgora(){await fetch('/api/fin/metas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({metas:_dados.metas})});toast('Foto salva ✓');}
+async function propagarParcela(i){
+  const l=_dados.despesa[i];
+  if(!/^\d+\s*\/\s*\d+$/.test(l.obs||'')){toast('Preencha a parcela no formato N/T (ex: 3/10) antes de repetir');return;}
+  if(!confirm('Repetir "'+(l.item||'esta despesa')+'" ('+l.obs+') nos próximos meses até a última parcela? Você pode alterar cada mês depois.'))return;
+  await salvarMes();
+  const r=await fetch('/api/fin/parcela',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mes:_mes,despesa:l})});
+  const j=await r.json();
+  if(j.ok){toast('Lançado em '+j.meses+' meses seguintes ✓');carregarAno();}else toast(j.erro||'Erro');
+}
 async function carregarInvest(){
   const y=_mes.slice(0,4);const res=await fetch('/api/fin/investimentos?y='+y);const d=await res.json();
   document.getElementById('inv-total').textContent=money(d.total);

@@ -55,6 +55,7 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/fin/metas' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.salvarMetas(b.metas)); }
       if (p === '/api/fin/ano' && req.method === 'GET') return send(res, 200, fin.resumoAno(url.searchParams.get('y')));
       if (p === '/api/fin/investimentos' && req.method === 'GET') return send(res, 200, fin.investimentos(url.searchParams.get('y')));
+      if (p === '/api/fin/parcela' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.propagarParcela(b.mes, b.despesa)); }
       if (p === '/api/fin/senha' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.trocarSenha(b.atual, b.nova)); }
       return send(res, 404, { erro: 'Rota não encontrada' });
     }
