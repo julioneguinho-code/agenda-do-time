@@ -150,6 +150,9 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/destinatarios') {
         return send(res, 200, await notion.destinatarios(session));
       }
+      if (p === '/api/gestor/vendas-dash' && req.method === 'GET') {
+        return send(res, 200, await notion.dashboardVendas(session, { mes: url.searchParams.get('mes') }));
+      }
       if (p === '/api/gestor/contratacao' && req.method === 'GET') {
         return send(res, 200, await notion.listarContratacao(session));
       }

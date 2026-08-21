@@ -160,6 +160,26 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
+<!-- VENDAS DO TIME (CRM gestor) -->
+<div class="aba" id="aba-vendasg">
+  <div class="sec">
+    <div class="row"><div class="h">💰 Vendas do time</div><span class="mut" id="vg-mes-lbl"></span></div>
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px">
+      <button class="btn sec2" style="padding:5px 12px" onclick="vgMes(-1)">◀</button>
+      <select id="vg-consultor" onchange="carregarVendasG()" style="flex:1;margin:0 8px;padding:8px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#F7F8FA"><option value="">Todos os consultores</option></select>
+      <button class="btn sec2" style="padding:5px 12px" onclick="vgMes(1)">▶</button>
+    </div>
+    <div class="kpis"><div class="kpi"><div class="l">Total fechado</div><div class="v" id="vg-total" style="color:var(--ok)">—</div></div><div class="kpi"><div class="l">Meta do time</div><div class="v" id="vg-meta">—</div></div><div class="kpi"><div class="l">Bateram meta</div><div class="v" id="vg-bateram">0</div></div></div>
+    <div class="h">📊 Fechado por consultor</div>
+    <div class="card"><div id="vg-bars"></div></div>
+    <div class="h">Kanban do time</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start">
+      <div><div class="h" id="vg-neg-h" style="margin-top:2px">🤝 Em negociação</div><div id="vg-neg"></div></div>
+      <div><div class="h" id="vg-fec-h" style="margin-top:2px;color:var(--ok)">✅ Fechadas</div><div id="vg-fec"></div></div>
+    </div>
+  </div>
+</div>
+
 <!-- PERFIL DO CONSULTOR -->
 <div class="aba" id="aba-perfil">
   <div class="sec">
@@ -258,6 +278,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   <a href="#" data-aba="controle" onclick="irAba('controle');carregarControle();return false"><span class="ic">📋</span>Controle</a>
   <a href="#" data-aba="consultores" onclick="irAba('consultores');carregarConsultores();return false"><span class="ic">👥</span>Consultores</a>
   <a href="#" data-aba="agenda" onclick="irAba('agenda');return false"><span class="ic">📅</span>Agenda</a>
+  <a href="#" data-aba="vendasg" onclick="irAba('vendasg');carregarVendasG();return false"><span class="ic">💰</span>Vendas</a>
   <a href="#" data-aba="contratacao" onclick="irAba('contratacao');carregarContratacao();return false"><span class="ic">🤝</span>Contratação</a>
   <a href="#" data-aba="ranking" onclick="irAba('ranking');carregarRanking();return false"><span class="ic">🏆</span>Ranking</a>
 </div>
@@ -413,6 +434,31 @@ async function salvarPlanilhaContratacao(){
   const j=await r.json();if(j.ok){fecharPop();toast('Planilha vinculada ✓');_contratacao=null;carregarContratacao()}else toast(j.erro||'Erro');
 }
 function moneyG(v){return 'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+let vgMesRef=new Date().toISOString().slice(0,7);
+function vgMes(d){const [y,m]=vgMesRef.split('-').map(Number);const dt=new Date(y,m-1+d,1);vgMesRef=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');carregarVendasG();}
+async function carregarVendasG(){
+  const dash=await (await fetch('/api/gestor/vendas-dash?mes='+vgMesRef)).json();
+  const M=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  document.getElementById('vg-mes-lbl').textContent=M[+vgMesRef.slice(5)-1]+'/'+vgMesRef.slice(0,4);
+  document.getElementById('vg-total').textContent=moneyG(dash.totalTime);
+  document.getElementById('vg-meta').textContent=moneyG(dash.totalMeta);
+  document.getElementById('vg-bateram').textContent=dash.bateram;
+  const sel=document.getElementById('vg-consultor');if(sel.options.length<=1){sel.innerHTML='<option value="">Todos os consultores</option>'+(dash.consultores||[]).map(c=>`<option>${c.nome}</option>`).join('');}
+  const max=Math.max(1,...(dash.consultores||[]).map(c=>Math.max(c.total,c.meta||0)));
+  document.getElementById('vg-bars').innerHTML=(dash.consultores||[]).map(c=>`<div style="margin-bottom:10px"><div class="row" style="font-size:12px"><span>${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}</span><span style="font-weight:700">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div></div>`).join('')||'<div class="mut">Nenhum consultor</div>';
+  const de=vgMesRef+'-01',ate=vgMesRef+'-31',cons=document.getElementById('vg-consultor').value;
+  const qs=['de='+de,'ate='+ate];if(cons)qs.push('consultor='+encodeURIComponent(cons));
+  const vd=await (await fetch('/api/vendas?'+qs.join('&'))).json();const list=vd.vendas||[];window._vgVendas=list;
+  const neg=list.filter(v=>v.status!=='fechada'),fec=list.filter(v=>v.status==='fechada');
+  document.getElementById('vg-neg-h').innerHTML=`🤝 Em negociação <span class="mut" style="font-weight:400">(${neg.length})</span>`;
+  document.getElementById('vg-fec-h').innerHTML=`✅ Fechadas <span class="mut" style="font-weight:400">(${fec.length})</span>`;
+  const card=v=>`<div class="card" style="padding:10px 11px;margin-bottom:8px;cursor:pointer" onclick="abrirVendaG('${v.id}')"><div style="font-size:16px;font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="titulo" style="font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(v.cliente&&v.cliente.nome)||''}</div><div class="mut" style="font-size:11px;margin-top:3px">${v.consultor} · ${(v.data||'').slice(8,10)}/${(v.data||'').slice(5,7)}</div></div>`;
+  document.getElementById('vg-neg').innerHTML=neg.map(card).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
+  document.getElementById('vg-fec').innerHTML=fec.map(card).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
+}
+function abrirVendaG(id){const v=(window._vgVendas||[]).find(x=>x.id===id);if(!v)return;const c=v.cliente||{};
+  abrirPop('Venda · '+moneyG(v.valor),`<div style="font-size:14px;line-height:2"><b>Consultor:</b> ${v.consultor}<br><b>Cliente:</b> ${c.nome||'—'}<br><b>CPF:</b> ${c.cpf||'—'}<br><b>Valor:</b> ${moneyG(v.valor)}<br><b>Grupo/Cota:</b> ${v.grupo||'—'}/${v.cota||'—'}<br><b>Fechamento:</b> ${(v.data||'').split('-').reverse().join('/')}<br><b>Status:</b> ${v.status==='fechada'?'✅ Fechada':'🤝 Em negociação'}</div>`);
+}
 async function carregarRanking(){
   const res=await fetch('/api/gestor/ranking');const r=await res.json();
   document.getElementById('meta-input').value=r.metaSemanal;
