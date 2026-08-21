@@ -178,9 +178,9 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, { usuarios: auth.listarUsuarios() });
       }
       if (p === '/api/gestor/usuarios' && req.method === 'POST') {
-        const { email, senha, nome, papel, time, calendarId } = await readBody(req);
+        const { email, senha, nome, papel, time, calendarId, metaVenda } = await readBody(req);
         if (!email || !senha || !nome || !papel) return send(res, 400, { erro: 'Preencha nome, e-mail, senha e papel' });
-        auth.criarUsuario(email.trim().toLowerCase(), senha, nome.trim(), papel, { time: time || '', calendarId: calendarId || '' });
+        auth.criarUsuario(email.trim().toLowerCase(), senha, nome.trim(), papel, { time: time || '', calendarId: calendarId || '', metaVenda: +metaVenda || 0 });
         return send(res, 200, { ok: true });
       }
       if (p === '/api/gestor/usuarios/remover' && req.method === 'POST') {
@@ -193,8 +193,8 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, auth.redefinirSenha(email, senha));
       }
       if (p === '/api/gestor/usuarios/editar' && req.method === 'POST') {
-        const { email, novoEmail, nome, papel, time, calendarId, cargo, cor, master } = await readBody(req);
-        return send(res, 200, auth.atualizarUsuario(email, { novoEmail, nome, papel, time, calendarId, cargo, cor, master }));
+        const { email, novoEmail, nome, papel, time, calendarId, cargo, cor, master, metaVenda } = await readBody(req);
+        return send(res, 200, auth.atualizarUsuario(email, { novoEmail, nome, papel, time, calendarId, cargo, cor, master, metaVenda }));
       }
       if (p === '/api/gestor/usuarios/ativo' && req.method === 'POST') {
         const { email, ativo } = await readBody(req);

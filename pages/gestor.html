@@ -220,6 +220,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
         <select id="u-time" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><option value="">Time…</option></select>
       </div>
       <input type="email" id="u-cal" placeholder="E-mail da agenda Google (só gestor)" autocapitalize="none" style="display:none;width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
+      <input type="number" id="u-meta" placeholder="Meta de vendas do mês (R$) — só consultor" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
       <button class="btn" style="width:100%;margin-top:10px" onclick="criarUsuario()">Criar acesso</button>
     </div>
     <div class="h">✅ Tarefas do check-in diário</div>
@@ -690,10 +691,10 @@ function renderUsuarios(){
 }
 async function toggleAtivo(email,ativo){await fetch('/api/gestor/usuarios/ativo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,ativo})});toast(ativo?'Acesso ativado ✓':'Acesso desativado');carregarUsuarios()}
 async function criarUsuario(){
-  const b={nome:document.getElementById('u-nome').value,email:document.getElementById('u-email').value,senha:document.getElementById('u-senha').value,papel:document.getElementById('u-papel').value,time:document.getElementById('u-time').value,calendarId:document.getElementById('u-cal').value};
+  const b={nome:document.getElementById('u-nome').value,email:document.getElementById('u-email').value,senha:document.getElementById('u-senha').value,papel:document.getElementById('u-papel').value,time:document.getElementById('u-time').value,calendarId:document.getElementById('u-cal').value,metaVenda:parseFloat(document.getElementById('u-meta').value)||0};
   if(!b.nome||!b.email||!b.senha){toast('Preencha nome, usuário e senha');return}
   const res=await fetch('/api/gestor/usuarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await res.json();
-  if(j.ok){toast('Acesso criado ✓');['u-nome','u-email','u-senha','u-time','u-cal'].forEach(id=>document.getElementById(id).value='');carregarUsuarios()}else toast(j.erro||'Erro');
+  if(j.ok){toast('Acesso criado ✓');['u-nome','u-email','u-senha','u-time','u-cal','u-meta'].forEach(id=>document.getElementById(id).value='');carregarUsuarios()}else toast(j.erro||'Erro');
 }
 async function removerUsuario(email){if(!confirm('Remover o acesso de '+email+'?'))return;const res=await fetch('/api/gestor/usuarios/remover',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});const j=await res.json();toast(j.ok?'Removido ✓':(j.erro||'Erro'));carregarUsuarios()}
 async function resetSenha(email){const senha=prompt('Nova senha para '+email+':');if(!senha)return;await fetch('/api/gestor/usuarios/senha',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,senha})});toast('Senha redefinida ✓')}
@@ -715,12 +716,14 @@ function editarUsuario(i){
     <div style="margin-bottom:8px">Prévia: ${balaoNome(u.nome,u.cor)}</div>
     <label style="font-size:12px;color:var(--mut)">E-mail da agenda Google (só gestor)</label>
     <input type="text" id="ed-cal" value="${(u.calendarId||'').replace(/"/g,'&quot;')}" autocapitalize="none" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
+    <label style="font-size:12px;color:var(--mut)">Meta de vendas do mês (R$) — só consultor</label>
+    <input type="number" id="ed-meta" value="${u.metaVenda||''}" placeholder="0" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
     <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="ed-master" ${u.master?'checked':''} style="width:18px;height:18px;accent-color:var(--acc)"> Acesso master (vê todos os times)</label>
     <button class="btn" style="width:100%;margin-top:6px" onclick="salvarEdicaoUsuario('${u.email}')">Salvar alterações</button>
     <button class="btn sec2" style="width:100%;margin-top:8px" onclick="resetSenha('${u.email}')">🔑 Redefinir senha</button>`);
 }
 async function salvarEdicaoUsuario(email){
-  const b={email,novoEmail:document.getElementById('ed-email').value,nome:document.getElementById('ed-nome').value,papel:document.getElementById('ed-papel').value,time:document.getElementById('ed-time').value,calendarId:document.getElementById('ed-cal').value,cargo:document.getElementById('ed-cargo').value,cor:document.getElementById('ed-cor').value,master:document.getElementById('ed-master').checked};
+  const b={email,novoEmail:document.getElementById('ed-email').value,nome:document.getElementById('ed-nome').value,papel:document.getElementById('ed-papel').value,time:document.getElementById('ed-time').value,calendarId:document.getElementById('ed-cal').value,cargo:document.getElementById('ed-cargo').value,cor:document.getElementById('ed-cor').value,master:document.getElementById('ed-master').checked,metaVenda:parseFloat(document.getElementById('ed-meta').value)||0};
   const res=await fetch('/api/gestor/usuarios/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
   const j=await res.json();fecharPop();toast(j.ok?'Acesso atualizado ✓':(j.erro||'Erro'));carregarUsuarios();
 }
