@@ -34,7 +34,8 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 .prog{height:8px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden;margin-top:8px}
 .prog>div{height:100%;background:var(--acc);transition:width .3s}
 label{font-size:13px;color:var(--mut);display:block;margin:12px 0 5px}
-input[type=datetime-local],input[type=text],input[type=password],select{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:15px;background:#F7F8FA;color:var(--txt)}
+input[type=datetime-local],input[type=text],input[type=password],input[type=number],input[type=date],select{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:15px;background:#F7F8FA;color:var(--txt)}
+.inp2{width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;color:var(--txt)}
 input:focus,select:focus{outline:none;border-color:var(--acc)}
 .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#14161C;color:#fff;font-size:13px;padding:10px 18px;border-radius:99px;display:none;z-index:9}
 .chip{border:1px solid var(--bord);background:var(--card);color:var(--txt);border-radius:99px;padding:6px 14px;font-size:13px;cursor:pointer}
@@ -148,11 +149,29 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
+<!-- VENDAS (CRM) -->
+<div class="aba" id="aba-vendas">
+  <div class="sec">
+    <div class="row"><div class="h">💼 Minhas vendas</div><button class="btn" style="padding:7px 12px" onclick="novaVenda()">+ Nova venda</button></div>
+    <div class="card" style="padding:10px 12px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="vd-busca" placeholder="🔎 Cliente ou CPF" oninput="renderVendas()" style="flex:1;min-width:120px">
+        <input type="date" id="vd-de" onchange="carregarVendas()" title="Data inicial">
+        <input type="date" id="vd-ate" onchange="carregarVendas()" title="Data final">
+        <button class="btn sec2" style="padding:9px 11px" onclick="limparFiltroVendas()">Limpar</button>
+      </div>
+      <div class="mut" id="vd-total" style="margin-top:8px">—</div>
+    </div>
+    <div id="vd-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px"></div>
+  </div>
+</div>
+
 <div class="nav">
   <a href="#" class="on" data-aba="inicio" onclick="irAba('inicio');return false"><span class="ic">🏠</span>Início</a>
   <a href="#" data-aba="agenda" onclick="irAba('agenda');return false"><span class="ic">📅</span>Agenda</a>
   <a href="#" data-aba="checkin" onclick="irAba('checkin');return false"><span class="ic">✅</span>Check-in</a>
   <a href="#" data-aba="atividades" onclick="irAba('atividades');return false"><span class="ic">📋</span>Atividades</a>
+  <a href="#" data-aba="vendas" onclick="irAba('vendas');carregarVendas();return false"><span class="ic">💼</span>Vendas</a>
 </div>
 
 <!-- BALÃO DE NOTIFICAÇÕES (flutuante) -->
@@ -220,6 +239,43 @@ function escolherHorario(ev,bar,y,m,da){
   toast('Horário escolhido: '+p(da)+'/'+p(m+1)+' '+p(hh)+':'+p(mm));
 }
 function fmtData(iso){const d=new Date(iso);const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];return `${dias[d.getDay()]} ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function money(v){return 'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtCpf(c){c=String(c||'').replace(/\D/g,'');if(c.length!==11)return c;return c.slice(0,3)+'.'+c.slice(3,6)+'.'+c.slice(6,9)+'-'+c.slice(9)}
+function fmtDataBR(d){if(!d)return '';return d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4)}
+let _vendas=[];
+async function carregarVendas(){
+  const de=document.getElementById('vd-de').value, ate=document.getElementById('vd-ate').value;
+  const qs=[]; if(de)qs.push('de='+de); if(ate)qs.push('ate='+ate);
+  const res=await fetch('/api/vendas'+(qs.length?'?'+qs.join('&'):''));
+  const d=await res.json(); _vendas=d.vendas||[]; renderVendas();
+}
+function limparFiltroVendas(){document.getElementById('vd-de').value='';document.getElementById('vd-ate').value='';document.getElementById('vd-busca').value='';carregarVendas();}
+function renderVendas(){
+  const q=(document.getElementById('vd-busca').value||'').toLowerCase();
+  let list=(_vendas||[]).slice();
+  if(q)list=list.filter(v=>((v.cliente&&v.cliente.nome)||'').toLowerCase().includes(q)||((v.cliente&&v.cliente.cpf)||'').includes(q.replace(/\D/g,'')));
+  const total=list.reduce((s,v)=>s+(+v.valor||0),0);
+  document.getElementById('vd-total').innerHTML=`<b>${list.length}</b> venda(s) · total <b style="color:var(--ok)">${money(total)}</b>`;
+  document.getElementById('vd-cards').innerHTML=list.map(v=>`<div class="card" style="cursor:pointer;padding:12px 14px" onclick="abrirVenda('${v.id}')"><div style="font-size:18px;font-weight:700;color:var(--ok)">${money(v.valor)}</div><div class="titulo" style="margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(v.cliente.nome)}</div><div class="mut" style="margin-top:3px">${fmtDataBR(v.data)}${v.grupo?` · Gr ${esc(v.grupo)}`:''}${v.cota?`/${esc(v.cota)}`:''}</div></div>`).join('')||'<div class="mut" style="grid-column:1/-1;padding:10px 4px">Nenhuma venda no período</div>';
+}
+function formVenda(v){v=v||{};const c=v.cliente||{};return `
+  <label>Cliente</label><input type="text" id="vf-nome" class="inp2" value="${esc(c.nome)}" placeholder="Nome do cliente">
+  <label>CPF</label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf))}" placeholder="000.000.000-00">
+  <label>Valor da venda</label><input type="number" step="0.01" id="vf-valor" class="inp2" value="${v.valor||''}" placeholder="0,00">
+  <div style="display:flex;gap:8px"><div style="flex:1"><label>Grupo</label><input type="text" id="vf-grupo" class="inp2" value="${esc(v.grupo)}"></div><div style="flex:1"><label>Cota</label><input type="text" id="vf-cota" class="inp2" value="${esc(v.cota)}"></div></div>
+  <label>Data do fechamento</label><input type="date" id="vf-data" class="inp2" value="${v.data||new Date().toISOString().slice(0,10)}">`;}
+function novaVenda(){abrirPop('Nova venda',formVenda()+`<button class="btn full" style="background:var(--ok)" onclick="salvarVenda()">Salvar venda</button>`);}
+function abrirVenda(id){const v=_vendas.find(x=>x.id===id);if(!v)return;
+  abrirPop('Venda · '+money(v.valor),formVenda(v)+`<div style="display:flex;gap:6px;margin-top:6px"><button class="btn sec2" style="flex:1;color:var(--no)" onclick="excluirVendaF('${v.id}')">🗑 Excluir</button><button class="btn" style="flex:2;background:var(--ok)" onclick="salvarVenda('${v.id}')">Salvar alterações</button></div>`);}
+async function salvarVenda(id){
+  const b={nome:document.getElementById('vf-nome').value.trim(),cpf:document.getElementById('vf-cpf').value,valor:parseFloat(document.getElementById('vf-valor').value)||0,grupo:document.getElementById('vf-grupo').value,cota:document.getElementById('vf-cota').value,data:document.getElementById('vf-data').value};
+  if(!b.nome||!b.valor){toast('Informe o cliente e o valor');return}
+  let res; if(id){b.id=id;res=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});}
+  else res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  const j=await res.json(); if(j.ok||j.venda){fecharPop();toast(id?'Venda atualizada ✓':'Venda cadastrada ✓');carregarVendas()}else toast(j.erro||'Erro');
+}
+async function excluirVendaF(id){if(!confirm('Excluir esta venda?'))return;const res=await fetch('/api/vendas/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();if(j.ok){fecharPop();toast('Excluída ✓');carregarVendas()}else toast(j.erro||'Erro');}
 function badge(s){return s==='Aprovada'?'b-ok':s==='Pendente'?'b-warn':s==='Recusada'?'b-no':'b-blue'}
 function estiloCor(cor){if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%);color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor}33;color:#1a1a18;border:1px solid ${cor}`;return 'background:transparent;color:var(--txt)'}
 function estiloCorSolida(cor){if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%);color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#fff`;return ''}

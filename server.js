@@ -109,6 +109,18 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/atividade' && req.method === 'POST') {
         return send(res, 200, await notion.atualizarAtividade(session, await readBody(req)));
       }
+      if (p === '/api/vendas' && req.method === 'GET') {
+        return send(res, 200, await notion.listarVendas(session, { de: url.searchParams.get('de'), ate: url.searchParams.get('ate'), q: url.searchParams.get('q'), consultor: url.searchParams.get('consultor') }));
+      }
+      if (p === '/api/vendas' && req.method === 'POST') {
+        return send(res, 200, await notion.criarVenda(session, await readBody(req)));
+      }
+      if (p === '/api/vendas/editar' && req.method === 'POST') {
+        return send(res, 200, await notion.editarVenda(session, await readBody(req)));
+      }
+      if (p === '/api/vendas/excluir' && req.method === 'POST') {
+        return send(res, 200, await notion.excluirVenda(session, await readBody(req)));
+      }
       if (p === '/api/cancelar' && req.method === 'POST' && session.papel === 'consultor') {
         return send(res, 200, await notion.cancelarSolicitacao(session, await readBody(req)));
       }
