@@ -69,6 +69,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- PAINEL -->
 <div class="aba on" id="aba-painel">
   <div class="sec">
+    <div class="h" id="h-agend-home" style="display:none;color:var(--acc)">🔔 Agendamentos aguardando seu aceite</div>
+    <div id="agend-home" style="margin-bottom:6px"></div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
       <div onclick="irControleFiltro('atrasadas')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--no)" id="t-atr">0</div><div style="font-size:12px;color:var(--no)">Atrasadas</div></div>
       <div onclick="irControleFiltro('abertas')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--warn)" id="t-pen">0</div><div style="font-size:12px;color:var(--warn)">Pendentes</div></div>
@@ -314,8 +316,14 @@ async function carregar(){
   document.getElementById('minhas-tarefas').innerHTML=mt.map(a=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${a.titulo}</div><div class="mut">${a.tipo}${a.de?' · de '+a.de:''} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('');
   carregarDestinatarios();
   document.getElementById('decididas').innerHTML=(painel.decididas||[]).map(s=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${s.consultor} · ${fmtData(s.inicio)}</div><div class="mut">${s.resposta||''}</div></div><span class="badge ${s.status==='Aprovada'?'b-ok':s.status==='Recusada'?'b-no':'b-warn'}">${s.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma ainda</div>';
-  document.getElementById('pendentes').innerHTML = painel.pendentes.map(s=>`
-    <div class="card">
+  const pend=painel.pendentes||[];
+  document.getElementById('pendentes').innerHTML = pend.map(cardPendente).join('')||'<div class="mut" style="padding:0 4px">Nenhuma pendente 🎉</div>';
+  document.getElementById('h-agend-home').style.display=pend.length?'block':'none';
+  document.getElementById('agend-home').innerHTML=pend.map(cardPendente).join('');
+  carregarAgenda();
+}
+function cardPendente(s){return `
+    <div class="card" style="border-color:rgba(214,40,57,.35)">
       <div class="row" style="margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:10px;min-width:0">
           <div class="avatar" style="width:38px;height:38px;font-size:13px;flex:none;${estiloCorSolidaG(s.cor)}">${(s.consultor||'?').slice(0,2).toUpperCase()}</div>
@@ -329,9 +337,7 @@ async function carregar(){
         <button class="btn sec2" style="padding:7px 11px" onclick="transferir('${s.id}')">Transferir</button>
         <button class="btn" style="padding:7px 11px" onclick="decidir('${s.id}','Aprovada')">Aprovar</button>
       </div>
-    </div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma pendente 🎉</div>';
-  carregarAgenda();
-}
+    </div>`;}
 let ctrlData=null;
 async function carregarControle(){
   const res=await fetch('/api/gestor/controle');
