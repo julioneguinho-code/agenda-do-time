@@ -339,8 +339,9 @@ async function carregar(){
   const h = new Date().getHours();
   document.getElementById('saud').textContent = h<12?'Bom dia,':h<18?'Boa tarde,':'Boa noite,';
   document.getElementById('nome').textContent = dados.nome;
-  const av=document.getElementById('avatar');av.textContent = dados.nome.slice(0,2).toUpperCase();
-  aplicarCorAvatar(av,dados.cor);
+  const av=document.getElementById('avatar');
+  if(dados.foto){av.textContent='';av.style.cssText='width:38px;height:38px;border-radius:50%;background-image:url('+dados.foto+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
+  else{av.textContent=dados.nome.slice(0,2).toUpperCase();aplicarCorAvatar(av,dados.cor);}
   if(dados.cargo){document.getElementById('nome').innerHTML=dados.nome+` <span style="font-size:11px;${estiloCor(dados.cor)};padding:2px 9px;border-radius:10px;font-weight:500">${dados.cargo}</span>`}
   const ck = dados.checkin;
   document.getElementById('ck-resumo').textContent = `${ck.feitas} de ${ck.total} rotinas feitas`;

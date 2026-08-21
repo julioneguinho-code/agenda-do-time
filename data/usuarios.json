@@ -57,7 +57,8 @@
     "time": "Chama",
     "cargo": "",
     "cor": "",
-    "metaVenda": 100000
+    "metaVenda": 100000,
+    "foto": "data:image/jpeg;base64,ZZZ"
   },
   {
     "email": "ariel",
