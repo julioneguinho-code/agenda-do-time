@@ -56,7 +56,10 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 <div class="top">
-  <div><div class="ola" id="saud">Olá,</div><div class="nome" id="nome">…</div></div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button id="btn-voltar" onclick="irAba('inicio')" title="Voltar ao início" style="display:none;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 12px;font-size:14px;font-weight:600;cursor:pointer">‹ Voltar</button>
+    <div><div class="ola" id="saud">Olá,</div><div class="nome" id="nome">…</div></div>
+  </div>
   <div style="display:flex;align-items:center;gap:8px">
     <button onclick="abrirAvisos()" title="Avisos" style="position:relative;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔔<span id="badge-avisos" style="display:none;position:absolute;top:-5px;right:-5px;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:17px;height:17px;line-height:17px;text-align:center"></span></button>
     <button onclick="carregar();toast('Atualizado ✓')" title="Atualizar" style="border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔄</button>
@@ -75,7 +78,6 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <div class="tile" onclick="irAba('atividades')"><span class="bad" id="tile-atv">0</span><div class="emo">📋</div><div class="lbl">Atividades</div></div>
       <div class="tile" onclick="irAba('vendas');carregarVendas()"><div class="emo">💰</div><div class="lbl">Vendas</div></div>
       <div class="tile" onclick="abrirArquivosPop()"><div class="emo">📎</div><div class="lbl">Arquivos</div></div>
-      <div class="tile" onclick="toggleChat()"><span class="bad" id="tile-chat" style="display:none">0</span><div class="emo">💬</div><div class="lbl">Conversa</div></div>
     </div>
   </div>
   <!-- dados carregados pelo app (usados nas telas internas) -->
@@ -186,7 +188,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <script>
 let dados = null;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
-function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n));if(n==='agenda'){carregarDispo();carregarGestores()}}
+function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n));const bv=document.getElementById('btn-voltar');if(bv)bv.style.display=n==='inicio'?'none':'block';window.scrollTo(0,0);if(n==='agenda'){carregarDispo();carregarGestores()}}
 async function carregarDispo(){
   const el=document.getElementById('dispo-semana');if(!el)return;
   try{
