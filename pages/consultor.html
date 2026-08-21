@@ -36,6 +36,9 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 label{font-size:13px;color:var(--mut);display:block;margin:12px 0 5px}
 input[type=datetime-local],input[type=text],input[type=password],input[type=number],input[type=date],select{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:15px;background:#F7F8FA;color:var(--txt)}
 .inp2{width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;color:var(--txt)}
+.tile{min-height:130px;border-radius:18px;display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;font-weight:800;font-size:18px;letter-spacing:.5px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.12);padding:12px;position:relative}
+.tile:active{transform:scale(.98)}
+.tile .bad{position:absolute;top:10px;right:12px;background:rgba(255,255,255,.28);border-radius:99px;font-size:12px;font-weight:700;padding:2px 9px}
 input:focus,select:focus{outline:none;border-color:var(--acc)}
 .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#14161C;color:#fff;font-size:13px;padding:10px 18px;border-radius:99px;display:none;z-index:9}
 .chip{border:1px solid var(--bord);background:var(--card);color:var(--txt);border-radius:99px;padding:6px 14px;font-size:13px;cursor:pointer}
@@ -61,39 +64,23 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
-<!-- INÍCIO -->
+<!-- INÍCIO (menu de blocos) -->
 <div class="aba on" id="aba-inicio">
   <div class="sec">
-    <div class="card acc row">
-      <div>
-        <div class="titulo" style="color:var(--acc)">Check-in de hoje</div>
-        <div class="mut" style="color:var(--acc)" id="ck-resumo">…</div>
-      </div>
-      <button class="btn" onclick="irAba('checkin')">Continuar</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px">
+      <div class="tile" style="background:#57B36A" onclick="irAba('checkin')"><span class="bad" id="tile-ck">–</span>CHECK-IN</div>
+      <div class="tile" style="background:#D6534F" onclick="irAba('agenda')">AGENDA</div>
+      <div class="tile" style="background:#E8A13C" onclick="irAba('atividades')"><span class="bad" id="tile-atv">0</span>ATIVIDADES</div>
+      <div class="tile" style="background:#7E57C2" onclick="irAba('vendas');carregarVendas()">VENDAS</div>
+      <div class="tile" style="background:#4E86C6" onclick="abrirArquivosPop()">ARQUIVOS</div>
+      <div class="tile" style="background:#3FA45C" onclick="toggleChat()"><span class="bad" id="tile-chat" style="display:none">0</span>CONVERSA</div>
     </div>
-    <div class="card" style="background:var(--card2);border-color:rgba(228,0,43,.35)">
-      <div class="row">
-        <div class="titulo" style="color:var(--acc)">🏆 Meta da semana</div>
-        <div style="font-size:12px;color:var(--acc)" id="meta-num">–</div>
-      </div>
-      <div class="prog" style="background:rgba(0,0,0,.08)"><div id="meta-bar" style="width:0%;background:linear-gradient(90deg,var(--acc),var(--acc2))"></div></div>
-      <div class="row" style="margin-top:8px">
-        <div style="font-size:12px;color:var(--mut)" id="rank-txt">Sua posição: –</div>
-        <div style="font-size:12px;color:var(--mut)" id="rank-pts">– pts</div>
-      </div>
-    </div>
-    <div class="h">Próximas reuniões</div>
-    <div id="prox-reunioes" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
-    <button class="btn full" onclick="irAba('agenda')" style="background:var(--ok);color:#fff;border:none">＋ Enviar nova reunião</button>
-    <div class="h">Minhas tarefas</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
-      <div onclick="irFiltroAtv('atrasadas')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--no)" id="cnt-atr">0</div><div style="font-size:12px;color:var(--no)">Atrasadas</div></div>
-      <div onclick="irFiltroAtv('pendentes')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--warn)" id="cnt-pen">0</div><div style="font-size:12px;color:var(--warn)">Pendentes</div></div>
-      <div onclick="irFiltroAtv('finalizadas')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--ok)" id="cnt-fin">0</div><div style="font-size:12px;color:var(--ok)">Finalizadas</div></div>
-    </div>
-    <div id="lista-atividades-mini"></div>
-    <div class="h">📎 Arquivos do gestor</div>
-    <div id="lista-arquivos-consultor"></div>
+  </div>
+  <!-- dados carregados pelo app (usados nas telas internas) -->
+  <div id="home-data" style="display:none">
+    <span id="ck-resumo"></span><span id="meta-num"></span><div id="meta-bar"></div><span id="rank-txt"></span><span id="rank-pts"></span>
+    <div id="prox-reunioes"></div><span id="cnt-atr"></span><span id="cnt-pen"></span><span id="cnt-fin"></span>
+    <div id="lista-atividades-mini"></div><div id="lista-arquivos-consultor"></div>
   </div>
 </div>
 
@@ -312,6 +299,12 @@ async function carregarArquivosCons(){
     el.innerHTML=(d.arquivos||[]).map(a=>`<a class="card row" href="/api/arquivo?id=${a.id}" style="text-decoration:none;color:inherit;margin-bottom:8px"><div style="min-width:0"><div class="titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.titulo}</div><div class="mut" style="font-size:11px">${a.nome} · ${fmtTam(a.tamanho)} · expira em ${diasAte(a.expiraEm)}d</div></div><span class="btn sec2" style="padding:6px 12px;font-size:12px">⬇️ Baixar</span></a>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum arquivo por enquanto</div>';
   }catch(e){}
 }
+async function abrirArquivosPop(){
+  abrirPop('📎 Arquivos do gestor','<div id="pop-arq" class="mut">Carregando…</div>');
+  try{const r=await fetch('/api/arquivos');const d=await r.json();
+    document.getElementById('pop-arq').innerHTML=(d.arquivos||[]).map(a=>`<a class="card row" href="/api/arquivo?id=${a.id}" style="text-decoration:none;color:inherit;margin-bottom:8px"><div style="min-width:0"><div class="titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.titulo)}</div><div class="mut" style="font-size:11px">${esc(a.nome)} · ${fmtTam(a.tamanho)} · expira em ${diasAte(a.expiraEm)}d</div></div><span class="btn sec2" style="padding:6px 12px;font-size:12px">⬇️</span></a>`).join('')||'<div class="mut">Nenhum arquivo por enquanto</div>';
+  }catch(e){document.getElementById('pop-arq').innerHTML='<div class="mut">Erro ao carregar.</div>';}
+}
 async function carregar(){
   const res = await fetch('/api/home');
   if(res.status===401){location.href='/login';return}
@@ -356,6 +349,7 @@ async function carregar(){
   document.getElementById('cnt-atr').textContent=atrasadas.length;
   document.getElementById('cnt-pen').textContent=pendentes.length;
   document.getElementById('cnt-fin').textContent=finalizadas.length;
+  try{const tck=document.getElementById('tile-ck');if(tck)tck.textContent=ck.feitas+'/'+ck.total;const tav=document.getElementById('tile-atv');if(tav)tav.textContent=(atrasadas.length+pendentes.length);}catch(e){}
   document.getElementById('lista-atividades-mini').innerHTML = window._todasAtv.filter(a=>a.status!=='Feito'&&a.status!=='Cancelada').slice(0,3).map(rndAtv).join('')||'<div class="mut" style="padding:0 4px">Tudo em dia 🎉</div>';
   renderAtividades();
 }
