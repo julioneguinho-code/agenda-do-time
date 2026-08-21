@@ -732,6 +732,21 @@ iniciarNotif();
 setInterval(()=>{if(!document.hidden){carregar();if(document.getElementById('aba-controle').classList.contains('on'))carregarControle();if(document.getElementById('aba-ranking').classList.contains('on'))carregarRanking();if(document.getElementById('aba-contratacao').classList.contains('on'))carregarContratacao();if(document.getElementById('aba-perfil').classList.contains('on')&&perfilAtual)abrirPerfil(perfilAtual);}},8000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){carregar();carregarAvisos();if(document.getElementById('aba-controle').classList.contains('on'))carregarControle();}});
 carregar();
+// ----- Menu arrastável (cada gestor organiza a própria ordem) -----
+function tornarNavArrastavel(nav,key){
+  if(!nav)return;
+  try{const ord=JSON.parse(localStorage.getItem(key)||'[]');ord.forEach(a=>{const el=nav.querySelector('a[data-aba="'+a+'"]');if(el)nav.appendChild(el);});}catch(e){}
+  let drag=null,startX=0,moved=false,justDragged=false;
+  nav.addEventListener('click',e=>{if(justDragged){e.preventDefault();e.stopPropagation();justDragged=false;}},true);
+  nav.querySelectorAll('a').forEach(a=>{
+    a.style.touchAction='none';
+    a.addEventListener('pointerdown',e=>{drag=a;startX=e.clientX;moved=false;try{a.setPointerCapture(e.pointerId);}catch(_){}});
+    a.addEventListener('pointermove',e=>{if(!drag)return;if(!moved&&Math.abs(e.clientX-startX)>8)moved=true;if(!moved)return;drag.style.opacity='.55';const els=[...nav.querySelectorAll('a')];for(const el of els){if(el===drag)continue;const r=el.getBoundingClientRect();if(e.clientX>=r.left&&e.clientX<=r.right){if(e.clientX<r.left+r.width/2)nav.insertBefore(drag,el);else nav.insertBefore(drag,el.nextSibling);break;}}});
+    const end=()=>{if(!drag)return;drag.style.opacity='';if(moved){justDragged=true;setTimeout(()=>justDragged=false,400);try{localStorage.setItem(key,JSON.stringify([...nav.querySelectorAll('a')].map(x=>x.dataset.aba)));}catch(_){}}drag=null;};
+    a.addEventListener('pointerup',end);a.addEventListener('pointercancel',end);
+  });
+}
+tornarNavArrastavel(document.querySelector('.nav'),'nav-ordem-gestor');
 </script>
 </body>
 </html>
