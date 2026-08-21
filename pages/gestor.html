@@ -220,55 +220,72 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- ACESSOS -->
 <div class="aba" id="aba-acessos">
   <div class="sec">
-    <button class="btn sec2" style="margin-bottom:10px" onclick="irAba('painel')">← Voltar</button>
-    <div class="h">🏷️ Times</div>
-    <div class="card">
-      <div class="mut" style="font-size:12px;margin-bottom:8px">Crie ou remova times. Um time só pode ser excluído quando não tiver ninguém nele.</div>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="novo-time" placeholder="Nome do time (ex: Chama)" onkeydown="if(event.key==='Enter')criarTime()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
-        <button class="btn" onclick="criarTime()">+ Criar</button>
+    <div class="row" style="margin-bottom:10px"><div class="h" style="margin:0">⚙️ Configurações</div><button class="btn sec2" style="padding:6px 12px" onclick="irAba('painel')">← Voltar</button></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="chip on" data-sa="acessos" onclick="subAcesso('acessos')">👥 Acessos</button>
+      <button class="chip" data-sa="novo" onclick="subAcesso('novo')">➕ Novo</button>
+      <button class="chip" data-sa="times" onclick="subAcesso('times')">🏷️ Times</button>
+      <button class="chip" data-sa="check" onclick="subAcesso('check')">✅ Check-in</button>
+      <button class="chip" data-sa="arq" onclick="subAcesso('arq')">📎 Arquivos</button>
+    </div>
+
+    <div class="sa" id="sa-acessos">
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <input type="text" id="us-busca" placeholder="🔎 Buscar consultor ou gestor…" oninput="renderUsuarios()" style="flex:1;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#F7F8FA">
+        <select id="us-filtro" onchange="renderUsuarios()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#F7F8FA"><option value="">Todos</option><option value="ativo">Só ativos</option><option value="inativo">Só inativos</option></select>
       </div>
-      <div id="lista-times" style="margin-top:10px"></div>
+      <div id="lista-usuarios"></div>
     </div>
-    <div class="h">⚙️ Criar novo acesso</div>
-    <div class="card">
-      <input type="text" id="u-nome" placeholder="Nome" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
-      <input type="text" id="u-email" placeholder="Usuário (login)" autocapitalize="none" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
-      <input type="text" id="u-senha" placeholder="Senha inicial" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <select id="u-papel" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA" onchange="document.getElementById('u-cal').style.display=this.value==='gestor'?'block':'none'"><option value="consultor">Consultor</option><option value="gestor">Gestor</option></select>
-        <select id="u-time" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><option value="">Time…</option></select>
+
+    <div class="sa" id="sa-novo" style="display:none">
+      <div class="card">
+        <input type="text" id="u-nome" placeholder="Nome" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
+        <input type="text" id="u-email" placeholder="Usuário (login)" autocapitalize="none" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
+        <input type="text" id="u-senha" placeholder="Senha inicial" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <select id="u-papel" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA" onchange="document.getElementById('u-cal').style.display=this.value==='gestor'?'block':'none'"><option value="consultor">Consultor</option><option value="gestor">Gestor</option></select>
+          <select id="u-time" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><option value="">Time…</option></select>
+        </div>
+        <input type="email" id="u-cal" placeholder="E-mail da agenda Google (só gestor)" autocapitalize="none" style="display:none;width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
+        <input type="number" id="u-meta" placeholder="Meta de vendas do mês (R$) — só consultor" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
+        <button class="btn" style="width:100%;margin-top:10px" onclick="criarUsuario()">Criar acesso</button>
       </div>
-      <input type="email" id="u-cal" placeholder="E-mail da agenda Google (só gestor)" autocapitalize="none" style="display:none;width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
-      <input type="number" id="u-meta" placeholder="Meta de vendas do mês (R$) — só consultor" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
-      <button class="btn" style="width:100%;margin-top:10px" onclick="criarUsuario()">Criar acesso</button>
     </div>
-    <div class="h">✅ Tarefas do check-in diário</div>
-    <div class="card">
-      <div class="mut" style="font-size:12px;margin-bottom:8px">Estas são as rotinas que os consultores marcam todo dia. Edite, adicione ou remova.</div>
-      <div id="lista-rotinas-edit"></div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <input type="text" id="nova-rotina" placeholder="Nova rotina…" onkeydown="if(event.key==='Enter')addRotina()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
-        <button class="btn sec2" onclick="addRotina()">+ Adicionar</button>
+
+    <div class="sa" id="sa-times" style="display:none">
+      <div class="card">
+        <div class="mut" style="font-size:12px;margin-bottom:8px">Crie ou remova times. Um time só pode ser excluído quando não tiver ninguém nele.</div>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="novo-time" placeholder="Nome do time (ex: Chama)" onkeydown="if(event.key==='Enter')criarTime()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
+          <button class="btn" onclick="criarTime()">+ Criar</button>
+        </div>
+        <div id="lista-times" style="margin-top:10px"></div>
       </div>
-      <button class="btn" style="width:100%;margin-top:10px" onclick="salvarRotinas()">Salvar check-in</button>
     </div>
-    <div class="h">📎 Arquivos / Leads para o time</div>
-    <div class="card">
-      <div class="mut" style="font-size:12px;margin-bottom:8px">Envie uma planilha, PDF ou lista de leads. Os consultores baixam pela plataforma (em Início › Arquivos do gestor).</div>
-      <input type="text" id="arq-titulo" placeholder="Título (ex: Leads frios — Agosto)" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px">
-      <label style="font-size:12px;color:var(--mut)">Enviar para</label>
-      <select id="arq-destino" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px"><option value="Todos">Todos os consultores</option></select>
-      <input type="file" id="arq-file" style="width:100%;font-size:13px;margin-bottom:10px">
-      <button class="btn" style="width:100%" onclick="enviarArquivo()" id="btn-arq">Enviar arquivo</button>
-      <div id="lista-arquivos" style="margin-top:12px"></div>
+
+    <div class="sa" id="sa-check" style="display:none">
+      <div class="card">
+        <div class="mut" style="font-size:12px;margin-bottom:8px">Rotinas que os consultores marcam todo dia. Edite, adicione ou remova.</div>
+        <div id="lista-rotinas-edit"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input type="text" id="nova-rotina" placeholder="Nova rotina…" onkeydown="if(event.key==='Enter')addRotina()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
+          <button class="btn sec2" onclick="addRotina()">+ Adicionar</button>
+        </div>
+        <button class="btn" style="width:100%;margin-top:10px" onclick="salvarRotinas()">Salvar check-in</button>
+      </div>
     </div>
-    <div class="h">Acessos existentes</div>
-    <div style="display:flex;gap:6px;margin-bottom:8px">
-      <input type="text" id="us-busca" placeholder="🔎 Buscar…" oninput="renderUsuarios()" style="flex:1;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#F7F8FA">
-      <select id="us-filtro" onchange="renderUsuarios()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#F7F8FA"><option value="">Todos</option><option value="ativo">Só ativos</option><option value="inativo">Só inativos</option></select>
+
+    <div class="sa" id="sa-arq" style="display:none">
+      <div class="card">
+        <div class="mut" style="font-size:12px;margin-bottom:8px">Envie planilha, PDF ou lista de leads. Os consultores baixam em Início › Arquivos.</div>
+        <input type="text" id="arq-titulo" placeholder="Título (ex: Leads frios — Agosto)" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px">
+        <label style="font-size:12px;color:var(--mut)">Enviar para</label>
+        <select id="arq-destino" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px"><option value="Todos">Todos os consultores</option></select>
+        <input type="file" id="arq-file" style="width:100%;font-size:13px;margin-bottom:10px">
+        <button class="btn" style="width:100%" onclick="enviarArquivo()" id="btn-arq">Enviar arquivo</button>
+        <div id="lista-arquivos" style="margin-top:12px"></div>
+      </div>
     </div>
-    <div id="lista-usuarios"></div>
   </div>
 </div>
 
@@ -641,6 +658,7 @@ function toggleChat(){const box=document.getElementById('chat-box');const abrir=
 async function abrirAviso(i){const a=_avisos[i];abrirPop(a.titulo,`<div style="font-size:14px;line-height:1.7">${a.texto}</div><div class="mut" style="margin-top:10px;font-size:12px">${new Date(a.data).toLocaleString('pt-BR')}</div><div style="text-align:right;margin-top:12px"><button class="btn sec2" style="padding:6px 12px" onclick="apagarAviso('${a.id}');fecharPop()">🗑 Apagar</button></div>`);if(!a.lida){await fetch('/api/avisos/ler',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id})});carregarAvisos()}}
 async function apagarAviso(id){await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});carregarAvisos()}
 async function apagarAvisos(){if(!confirm('Apagar todas as notificações?'))return;await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({todos:true})});carregarAvisos()}
+function subAcesso(n){document.querySelectorAll('#aba-acessos .sa').forEach(e=>e.style.display='none');const el=document.getElementById('sa-'+n);if(el)el.style.display='block';document.querySelectorAll('[data-sa]').forEach(c=>c.classList.toggle('on',c.dataset.sa===n));}
 async function carregarUsuarios(){
   const res=await fetch('/api/gestor/usuarios');const j=await res.json();
   window._usuarios=j.usuarios||[];
