@@ -61,7 +61,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
     <button onclick="abrirAvisos()" title="Avisos" style="position:relative;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔔<span id="badge-avisos" style="display:none;position:absolute;top:-5px;right:-5px;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:17px;height:17px;line-height:17px;text-align:center"></span></button>
     <button onclick="irAba('acessos');carregarUsuarios()" title="Acessos e identidade" style="border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">⚙️</button>
     <button onclick="carregar();toast('Atualizado ✓')" title="Atualizar" style="border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔄</button>
-    <div class="avatar" id="avatar"></div>
+    <div class="avatar" id="avatar" title="Trocar minha foto" style="cursor:pointer" onclick="document.getElementById('minha-foto-file').click()"></div>
+    <input id="minha-foto-file" type="file" accept="image/*" style="display:none" onchange="trocarMinhaFoto(this)">
     <button onclick="sair()" style="border:1px solid var(--bord);background:var(--card);color:var(--mut);border-radius:12px;padding:8px 12px;font-size:12px;cursor:pointer">Sair</button>
   </div>
 </div>
@@ -163,12 +164,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- VENDAS DO TIME (CRM gestor) -->
 <div class="aba" id="aba-vendasg">
   <div class="sec">
-    <div class="row"><div class="h">💰 Vendas do time</div><span class="mut" id="vg-mes-lbl"></span></div>
+    <div class="row"><div class="h">💰 Vendas do time</div><button class="btn" style="padding:6px 12px" onclick="novaVendaG()">+ Nova venda</button></div>
     <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px">
       <button class="btn sec2" style="padding:5px 12px" onclick="vgMes(-1)">◀</button>
-      <select id="vg-consultor" onchange="carregarVendasG()" style="flex:1;margin:0 8px;padding:8px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#F7F8FA"><option value="">Todos os consultores</option></select>
+      <div style="font-weight:700" id="vg-mes-lbl">—</div>
       <button class="btn sec2" style="padding:5px 12px" onclick="vgMes(1)">▶</button>
     </div>
+    <div class="mut" style="font-size:12px;margin:2px 2px 6px">Filtrar consultores (toque para escolher vários):</div>
+    <div id="vg-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
     <div class="kpis"><div class="kpi"><div class="l">Total fechado</div><div class="v" id="vg-total" style="color:var(--ok)">—</div></div><div class="kpi"><div class="l">Meta do time</div><div class="v" id="vg-meta">—</div></div><div class="kpi"><div class="l">Bateram meta</div><div class="v" id="vg-bateram">0</div></div></div>
     <div class="h">📊 Fechado por consultor</div>
     <div class="card"><div id="vg-bars"></div></div>
@@ -234,6 +237,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
         <input type="text" id="us-busca" placeholder="🔎 Buscar consultor ou gestor…" oninput="renderUsuarios()" style="flex:1;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#F7F8FA">
         <select id="us-filtro" onchange="renderUsuarios()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#F7F8FA"><option value="">Todos</option><option value="ativo">Só ativos</option><option value="inativo">Só inativos</option></select>
       </div>
+      <button class="btn sec2" id="btn-reset-todos" style="width:100%;margin-bottom:10px;color:var(--no);display:none" onclick="resetSenhasConsultores()">🔑 Redefinir senha de TODOS os consultores para 1234</button>
       <div id="lista-usuarios"></div>
     </div>
 
@@ -341,13 +345,15 @@ function avatarHTML(nome,cor,size){size=size||34;const f=(window._fotos&&window.
 }
 function setFotoEd(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=()=>{const max=400,s=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*s),h=Math.round(img.height*s);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);const d=c.toDataURL('image/jpeg',0.75);document.getElementById('ed-foto').value=d;document.getElementById('ed-foto-prev').style.backgroundImage="url('"+d+"')";};img.src=rd.result;};rd.readAsDataURL(f);}
 function removerFotoEd(){document.getElementById('ed-foto').value='';document.getElementById('ed-foto-prev').style.backgroundImage='';}
+function trocarMinhaFoto(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=async()=>{const max=400,s=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*s),h=Math.round(img.height*s);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);const d=c.toDataURL('image/jpeg',0.75);const r=await fetch('/api/minha-foto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({foto:d})});const j=await r.json();if(j.ok){toast('Foto atualizada ✓');carregar();}else toast(j.erro||'Erro');};img.src=rd.result;};rd.readAsDataURL(f);}
 const PALETA=[{n:'— sem cor —',c:''},{n:'Branca',c:'#FFFFFF'},{n:'Vermelha',c:'#E23B3B'},{n:'Vermelha e Preta',c:'grad'},{n:'Laranja',c:'#FB923C'},{n:'Roxo',c:'#A78BFA'},{n:'Cinza',c:'#9CA3AF'}];
 
 async function carregar(){
   const res = await fetch('/api/gestor/painel');
   if(res.status===401||res.status===403){location.href='/login';return}
   painel = await res.json();
-  window._fotos=painel.fotos||{};
+  window._fotos=painel.fotos||{};window._meuEmail=painel.email;window._meuNome=(painel.nome||'').split(' ')[0];
+  {const b=document.getElementById('btn-reset-todos');if(b)b.style.display=painel.master?'block':'none';}
   document.getElementById('time').textContent = 'Equipe ' + (painel.time||'');
   const gav=document.getElementById('avatar');
   if(painel.foto){gav.textContent='';gav.style.cssText='width:38px;height:38px;border-radius:50%;background-image:url('+painel.foto+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
@@ -458,29 +464,62 @@ async function salvarPlanilhaContratacao(){
 }
 function moneyG(v){return 'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 let vgMesRef=new Date().toISOString().slice(0,7);
+let _vgSel=new Set();
+function fmtCpfG(c){c=String(c||'').replace(/\D/g,'');if(c.length!==11)return c;return c.slice(0,3)+'.'+c.slice(3,6)+'.'+c.slice(6,9)+'-'+c.slice(9)}
+function parseBRG(s){s=String(s).replace(/[^\d.,-]/g,'');if(s.includes(',')){s=s.replace(/\./g,'').replace(',','.');}return parseFloat(s)||0;}
 function vgMes(d){const [y,m]=vgMesRef.split('-').map(Number);const dt=new Date(y,m-1+d,1);vgMesRef=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');carregarVendasG();}
 async function carregarVendasG(){
   const dash=await (await fetch('/api/gestor/vendas-dash?mes='+vgMesRef)).json();
   const M=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   document.getElementById('vg-mes-lbl').textContent=M[+vgMesRef.slice(5)-1]+'/'+vgMesRef.slice(0,4);
-  document.getElementById('vg-total').textContent=moneyG(dash.totalTime);
   document.getElementById('vg-meta').textContent=moneyG(dash.totalMeta);
   document.getElementById('vg-bateram').textContent=dash.bateram;
-  const sel=document.getElementById('vg-consultor');if(sel.options.length<=1){sel.innerHTML='<option value="">Todos os consultores</option>'+(dash.consultores||[]).map(c=>`<option>${c.nome}</option>`).join('');}
-  const max=Math.max(1,...(dash.consultores||[]).map(c=>Math.max(c.total,c.meta||0)));
-  document.getElementById('vg-bars').innerHTML=(dash.consultores||[]).map(c=>`<div style="margin-bottom:10px"><div class="row" style="font-size:12px"><span>${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}</span><span style="font-weight:700">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div></div>`).join('')||'<div class="mut">Nenhum consultor</div>';
-  const de=vgMesRef+'-01',ate=vgMesRef+'-31',cons=document.getElementById('vg-consultor').value;
-  const qs=['de='+de,'ate='+ate];if(cons)qs.push('consultor='+encodeURIComponent(cons));
-  const vd=await (await fetch('/api/vendas?'+qs.join('&'))).json();const list=vd.vendas||[];window._vgVendas=list;
+  window._vgDash=dash.consultores||[];
+  renderVgChips();
+  const max=Math.max(1,...window._vgDash.map(c=>Math.max(c.total,c.meta||0)));
+  document.getElementById('vg-bars').innerHTML=window._vgDash.map(c=>`<div style="margin-bottom:10px;${_vgSel.size&&!_vgSel.has(c.nome)?'opacity:.4':''}"><div class="row" style="font-size:12px"><span>${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}${c.papel==='gestor'?' <span class="mut" style="font-weight:400">(gestor)</span>':''}</span><span style="font-weight:700">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div></div>`).join('')||'<div class="mut">Nenhum vendedor</div>';
+  const de=vgMesRef+'-01',ate=vgMesRef+'-31';
+  const vd=await (await fetch('/api/vendas?de='+de+'&ate='+ate)).json();window._vgAll=vd.vendas||[];
+  renderVgKanban();
+}
+function renderVgChips(){
+  const el=document.getElementById('vg-chips');if(!el)return;
+  el.innerHTML=`<button class="chip ${_vgSel.size===0?'on':''}" onclick="_vgSel.clear();renderVgChips();renderVgKanban();atualizarBarsOpacidade()">Todos</button>`+
+    (window._vgDash||[]).map(c=>`<button class="chip ${_vgSel.has(c.nome)?'on':''}" onclick="toggleVgSel('${(c.nome||'').replace(/'/g,"\\'")}')">${esc(c.nome)}</button>`).join('');
+}
+function toggleVgSel(nome){if(_vgSel.has(nome))_vgSel.delete(nome);else _vgSel.add(nome);renderVgChips();renderVgKanban();atualizarBarsOpacidade();}
+function atualizarBarsOpacidade(){document.querySelectorAll('#vg-bars>div').forEach((d,i)=>{const c=(window._vgDash||[])[i];if(c)d.style.opacity=(_vgSel.size&&!_vgSel.has(c.nome))?'.4':'1';});}
+function renderVgKanban(){
+  let list=(window._vgAll||[]);
+  if(_vgSel.size)list=list.filter(v=>_vgSel.has(v.consultor));
   const neg=list.filter(v=>v.status!=='fechada'),fec=list.filter(v=>v.status==='fechada');
+  const totFec=fec.reduce((s,v)=>s+(+v.valor||0),0);
+  document.getElementById('vg-total').textContent=moneyG(totFec);
   document.getElementById('vg-neg-h').innerHTML=`🤝 Em negociação <span class="mut" style="font-weight:400">(${neg.length})</span>`;
   document.getElementById('vg-fec-h').innerHTML=`✅ Fechadas <span class="mut" style="font-weight:400">(${fec.length})</span>`;
-  const card=v=>`<div class="card" style="padding:10px 11px;margin-bottom:8px;cursor:pointer" onclick="abrirVendaG('${v.id}')"><div style="font-size:16px;font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="titulo" style="font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(v.cliente&&v.cliente.nome)||''}</div><div class="mut" style="font-size:11px;margin-top:3px">${v.consultor} · ${(v.data||'').slice(8,10)}/${(v.data||'').slice(5,7)}</div></div>`;
+  const card=v=>`<div class="card" style="padding:10px 11px;margin-bottom:8px;cursor:pointer" onclick="abrirVendaG('${v.id}')"><div style="font-size:16px;font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="titulo" style="font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(v.cliente&&v.cliente.nome)||''}</div><div class="mut" style="font-size:11px;margin-top:3px">${esc(v.consultor)} · ${(v.data||'').slice(8,10)}/${(v.data||'').slice(5,7)}</div></div>`;
   document.getElementById('vg-neg').innerHTML=neg.map(card).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
   document.getElementById('vg-fec').innerHTML=fec.map(card).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
 }
-function abrirVendaG(id){const v=(window._vgVendas||[]).find(x=>x.id===id);if(!v)return;const c=v.cliente||{};
-  abrirPop('Venda · '+moneyG(v.valor),`<div style="font-size:14px;line-height:2"><b>Consultor:</b> ${v.consultor}<br><b>Cliente:</b> ${c.nome||'—'}<br><b>CPF:</b> ${c.cpf||'—'}<br><b>Valor:</b> ${moneyG(v.valor)}<br><b>Grupo/Cota:</b> ${v.grupo||'—'}/${v.cota||'—'}<br><b>Fechamento:</b> ${(v.data||'').split('-').reverse().join('/')}<br><b>Status:</b> ${v.status==='fechada'?'✅ Fechada':'🤝 Em negociação'}</div>`);
+function formVendaG(v){v=v||{};const c=v.cliente||{};return `
+  <label style="font-size:12px;color:var(--mut)">Cliente</label><input type="text" id="vgf-nome" value="${esc(c.nome)}" placeholder="Nome do cliente" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
+  <label style="font-size:12px;color:var(--mut)">CPF</label><input type="text" id="vgf-cpf" inputmode="numeric" value="${esc(fmtCpfG(c.cpf))}" placeholder="000.000.000-00" oninput="this.value=fmtCpfG(this.value)" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
+  <label style="font-size:12px;color:var(--mut)">Valor da venda</label><div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><span class="mut">R$</span><input type="text" inputmode="decimal" id="vgf-valor" value="${v.valor?moneyG(v.valor).replace('R$ ',''):''}" placeholder="0,00" onblur="this.value=this.value?moneyG(parseBRG(this.value)).replace('R$ ',''):''" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
+  <div style="display:flex;gap:8px"><div style="flex:1"><label style="font-size:12px;color:var(--mut)">Grupo</label><input type="text" id="vgf-grupo" value="${esc(v.grupo)}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div><div style="flex:1"><label style="font-size:12px;color:var(--mut)">Cota</label><input type="text" id="vgf-cota" value="${esc(v.cota)}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div></div>
+  <label style="font-size:12px;color:var(--mut);margin-top:8px;display:block">Data do fechamento</label><input type="date" id="vgf-data" value="${v.data||new Date().toISOString().slice(0,10)}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
+  <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-bottom:6px"><input type="checkbox" id="vgf-fechada" ${v.status==='fechada'?'checked':''} style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Venda fechada</label>`;}
+function novaVendaG(){abrirPop('Nova venda',formVendaG()+`<button class="btn" style="width:100%" onclick="salvarVendaG()">Salvar venda</button>`);}
+async function salvarVendaG(id){
+  const b={nome:document.getElementById('vgf-nome').value.trim(),cpf:document.getElementById('vgf-cpf').value,valor:parseBRG(document.getElementById('vgf-valor').value),grupo:document.getElementById('vgf-grupo').value,cota:document.getElementById('vgf-cota').value,data:document.getElementById('vgf-data').value,status:document.getElementById('vgf-fechada').checked?'fechada':'negociacao'};
+  if(!b.nome||!b.valor){toast('Informe o cliente e o valor');return}
+  let res;if(id){b.id=id;res=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});}else res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  const j=await res.json();if(j.ok||j.venda){fecharPop();toast(id?'Venda atualizada ✓':'Venda cadastrada ✓');carregarVendasG()}else toast(j.erro||'Erro');
+}
+async function excluirVendaG(id){if(!confirm('Excluir esta venda?'))return;const res=await fetch('/api/vendas/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();if(j.ok){fecharPop();toast('Excluída ✓');carregarVendasG()}else toast(j.erro||'Erro');}
+function abrirVendaG(id){const v=(window._vgAll||[]).find(x=>x.id===id);if(!v)return;const c=v.cliente||{};
+  const minha=v.consultorEmail===window._meuEmail;
+  if(minha){abrirPop('Minha venda · '+moneyG(v.valor),formVendaG(v)+`<div style="display:flex;gap:6px;margin-top:6px"><button class="btn sec2" style="flex:1;color:var(--no)" onclick="excluirVendaG('${v.id}')">🗑 Excluir</button><button class="btn" style="flex:2" onclick="salvarVendaG('${v.id}')">Salvar</button></div>`);}
+  else abrirPop('Venda · '+moneyG(v.valor),`<div style="font-size:14px;line-height:2"><b>Vendedor:</b> ${esc(v.consultor)}<br><b>Cliente:</b> ${esc(c.nome)||'—'}<br><b>CPF:</b> ${fmtCpfG(c.cpf)||'—'}<br><b>Valor:</b> ${moneyG(v.valor)}<br><b>Grupo/Cota:</b> ${esc(v.grupo)||'—'}/${esc(v.cota)||'—'}<br><b>Fechamento:</b> ${(v.data||'').split('-').reverse().join('/')}<br><b>Status:</b> ${v.status==='fechada'?'✅ Fechada':'🤝 Em negociação'}</div>`);
 }
 async function carregarRanking(){
   const res=await fetch('/api/gestor/ranking');const r=await res.json();
@@ -774,6 +813,12 @@ async function criarUsuario(){
 }
 async function removerUsuario(email){if(!confirm('Remover o acesso de '+email+'?'))return;const res=await fetch('/api/gestor/usuarios/remover',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});const j=await res.json();toast(j.ok?'Removido ✓':(j.erro||'Erro'));carregarUsuarios()}
 async function resetSenha(email){const senha=prompt('Nova senha para '+email+':');if(!senha)return;await fetch('/api/gestor/usuarios/senha',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,senha})});toast('Senha redefinida ✓')}
+async function resetSenhasConsultores(){
+  if(!confirm('Redefinir a senha de TODOS os consultores para 1234? Cada um poderá trocar depois.'))return;
+  const r=await fetch('/api/gestor/reset-senhas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({papel:'consultor',senha:'1234'})});
+  const j=await r.json();
+  toast(j.ok?(j.alterados+' consultores agora com senha 1234 ✓'):(j.erro||'Erro'));
+}
 function editarUsuario(i){
   const u=window._usuarios[i];
   abrirPop('Editar acesso — '+u.email,`

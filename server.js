@@ -80,6 +80,10 @@ const server = http.createServer(async (req, res) => {
         const { atual, nova } = await readBody(req);
         return send(res, 200, auth.trocarSenha(session.email, atual, nova));
       }
+      if (p === '/api/minha-foto' && req.method === 'POST') {
+        const { foto } = await readBody(req);
+        return send(res, 200, auth.atualizarUsuario(session.email, { foto: foto || '' }));
+      }
       if (p === '/api/avisos') return send(res, 200, await notion.listarAvisos(session));
       if (p === '/api/chat') return send(res, 200, await notion.listarChat(session, url.searchParams.get('consultor')));
       if (p === '/api/chat/enviar' && req.method === 'POST') return send(res, 200, await notion.enviarChat(session, await readBody(req)));
@@ -190,6 +194,12 @@ const server = http.createServer(async (req, res) => {
         const { email } = await readBody(req);
         if (email === session.email) return send(res, 400, { erro: 'Você não pode remover seu próprio acesso' });
         return send(res, 200, auth.removerUsuario(email));
+      }
+      if (p === '/api/gestor/reset-senhas' && req.method === 'POST') {
+        const isM = session.master === true || String(session.email || '').toLowerCase() === 'gestorchama';
+        if (!isM) return send(res, 403, { erro: 'Apenas o acesso master pode fazer isso' });
+        const { senha, papel } = await readBody(req);
+        return send(res, 200, auth.redefinirSenhaPorPapel(papel === 'gestor' ? 'gestor' : 'consultor', senha || '1234'));
       }
       if (p === '/api/gestor/usuarios/senha' && req.method === 'POST') {
         const { email, senha } = await readBody(req);
