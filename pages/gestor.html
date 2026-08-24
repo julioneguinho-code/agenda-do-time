@@ -237,7 +237,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
         <input type="text" id="us-busca" placeholder="🔎 Buscar consultor ou gestor…" oninput="renderUsuarios()" style="flex:1;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#F7F8FA">
         <select id="us-filtro" onchange="renderUsuarios()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#F7F8FA"><option value="">Todos</option><option value="ativo">Só ativos</option><option value="inativo">Só inativos</option></select>
       </div>
-      <button class="btn sec2" id="btn-reset-todos" style="width:100%;margin-bottom:10px;color:var(--no);display:none" onclick="resetSenhasConsultores()">🔑 Redefinir senha de TODOS os consultores para 1234</button>
+      <button class="btn sec2" id="btn-reset-todos" style="width:100%;margin-bottom:10px;color:var(--no)" onclick="resetSenhasConsultores()">🔑 Redefinir senha de TODOS os consultores para 1234</button>
       <div id="lista-usuarios"></div>
     </div>
 
@@ -353,7 +353,6 @@ async function carregar(){
   if(res.status===401||res.status===403){location.href='/login';return}
   painel = await res.json();
   window._fotos=painel.fotos||{};window._meuEmail=painel.email;window._meuNome=(painel.nome||'').split(' ')[0];
-  {const b=document.getElementById('btn-reset-todos');if(b)b.style.display=painel.master?'block':'none';}
   document.getElementById('time').textContent = 'Equipe ' + (painel.time||'');
   const gav=document.getElementById('avatar');
   if(painel.foto){gav.textContent='';gav.style.cssText='width:38px;height:38px;border-radius:50%;background-image:url('+painel.foto+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
@@ -477,7 +476,7 @@ async function carregarVendasG(){
   window._vgDash=dash.consultores||[];
   renderVgChips();
   const max=Math.max(1,...window._vgDash.map(c=>Math.max(c.total,c.meta||0)));
-  document.getElementById('vg-bars').innerHTML=window._vgDash.map(c=>`<div style="margin-bottom:10px;${_vgSel.size&&!_vgSel.has(c.nome)?'opacity:.4':''}"><div class="row" style="font-size:12px"><span>${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}${c.papel==='gestor'?' <span class="mut" style="font-weight:400">(gestor)</span>':''}</span><span style="font-weight:700">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div></div>`).join('')||'<div class="mut">Nenhum vendedor</div>';
+  document.getElementById('vg-bars').innerHTML=window._vgDash.map(c=>`<div onclick="focarConsultorVenda('${(c.nome||'').replace(/'/g,"\\'")}')" style="margin-bottom:10px;cursor:pointer;padding:6px;border-radius:10px;border:1px solid ${_vgSel.has(c.nome)?'var(--acc)':'transparent'};${_vgSel.size&&!_vgSel.has(c.nome)?'opacity:.45':''}"><div class="row" style="font-size:12px"><span style="display:flex;align-items:center;gap:6px">${avatarHTML(c.nome,c.cor,22)}${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}${c.papel==='gestor'?' <span class="mut" style="font-weight:400">(gestor)</span>':''}</span><span style="font-weight:700">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div>${c.negociando?`<div class="mut" style="font-size:11px;margin-top:3px">🤝 em negociação: <b style="color:var(--warn)">${moneyG(c.negociando)}</b></div>`:''}</div>`).join('')||'<div class="mut">Nenhum vendedor</div>';
   const de=vgMesRef+'-01',ate=vgMesRef+'-31';
   const vd=await (await fetch('/api/vendas?de='+de+'&ate='+ate)).json();window._vgAll=vd.vendas||[];
   renderVgKanban();
@@ -488,6 +487,11 @@ function renderVgChips(){
     (window._vgDash||[]).map(c=>`<button class="chip ${_vgSel.has(c.nome)?'on':''}" onclick="toggleVgSel('${(c.nome||'').replace(/'/g,"\\'")}')">${esc(c.nome)}</button>`).join('');
 }
 function toggleVgSel(nome){if(_vgSel.has(nome))_vgSel.delete(nome);else _vgSel.add(nome);renderVgChips();renderVgKanban();atualizarBarsOpacidade();}
+function focarConsultorVenda(nome){
+  if(_vgSel.size===1&&_vgSel.has(nome)){_vgSel.clear();}else{_vgSel=new Set([nome]);}
+  renderVgChips();renderVgKanban();atualizarBarsOpacidade();
+  if(_vgSel.size){const el=document.getElementById('vg-neg-h');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+}
 function atualizarBarsOpacidade(){document.querySelectorAll('#vg-bars>div').forEach((d,i)=>{const c=(window._vgDash||[])[i];if(c)d.style.opacity=(_vgSel.size&&!_vgSel.has(c.nome))?'.4':'1';});}
 function renderVgKanban(){
   let list=(window._vgAll||[]);

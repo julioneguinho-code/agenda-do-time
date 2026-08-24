@@ -196,8 +196,6 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, auth.removerUsuario(email));
       }
       if (p === '/api/gestor/reset-senhas' && req.method === 'POST') {
-        const isM = session.master === true || String(session.email || '').toLowerCase() === 'gestorchama';
-        if (!isM) return send(res, 403, { erro: 'Apenas o acesso master pode fazer isso' });
         const { senha, papel } = await readBody(req);
         return send(res, 200, auth.redefinirSenhaPorPapel(papel === 'gestor' ? 'gestor' : 'consultor', senha || '1234'));
       }
