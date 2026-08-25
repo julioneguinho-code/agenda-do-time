@@ -117,6 +117,13 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/atividade' && req.method === 'POST') {
         return send(res, 200, await notion.atualizarAtividade(session, await readBody(req)));
       }
+      if (p === '/api/mural' && req.method === 'GET') {
+        return send(res, 200, await notion.muralDados(session, { mes: url.searchParams.get('mes') }));
+      }
+      if (p === '/api/mural' && req.method === 'POST') {
+        if (session.papel !== 'gestor') return send(res, 403, { erro: 'Somente gestores podem editar o Mural' });
+        return send(res, 200, await notion.muralSalvar(session, await readBody(req)));
+      }
       if (p === '/api/vendas' && req.method === 'GET') {
         return send(res, 200, await notion.listarVendas(session, { de: url.searchParams.get('de'), ate: url.searchParams.get('ate'), q: url.searchParams.get('q'), consultor: url.searchParams.get('consultor') }));
       }

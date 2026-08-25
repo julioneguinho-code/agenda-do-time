@@ -333,6 +333,20 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 </div>
 
 
+<div class="aba" id="aba-mural">
+  <div class="sec">
+    <div class="row" style="align-items:center"><div class="h" style="margin:0">🏅 Mural</div><div style="display:flex;gap:6px;align-items:center"><button class="btn sec2" id="mural-edit" style="padding:6px 12px;display:none" onclick="abrirEditMural()">✏️ Editar</button></div></div>
+    <div id="mural-nav" style="display:none;align-items:center;justify-content:center;gap:10px;margin:4px 0 10px"><button class="btn sec2" style="padding:5px 12px" onclick="muralMes(-1)">◀</button><div style="font-weight:700" id="mural-mes-lbl">—</div><button class="btn sec2" style="padding:5px 12px" onclick="muralMes(1)">▶</button></div>
+    <div id="mural-recado"></div>
+    <div id="mural-metas"></div>
+    <div id="mural-chart"></div>
+    <div id="mural-podio"></div>
+    <div id="mural-times"></div>
+    <div class="h" style="margin-top:14px">Ranking de consultores</div>
+    <div id="mural-ranking"></div>
+  </div>
+</div>
+
 <div class="nav">
   <a href="#" class="on" data-aba="painel" onclick="irAba('painel');return false"><span class="ic">📊</span>Painel</a>
   <a href="#" data-aba="controle" onclick="irAba('controle');carregarControle();return false"><span class="ic">📋</span>Controle</a>
@@ -340,6 +354,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   <a href="#" data-aba="agenda" onclick="irAba('agenda');return false"><span class="ic">📅</span>Agenda</a>
   <a href="#" data-aba="vendasg" onclick="irAba('vendasg');carregarVendasG();return false"><span class="ic">💰</span>Vendas</a>
   <a href="#" data-aba="ranking" onclick="irAba('ranking');carregarRanking();return false"><span class="ic">🏆</span>Ranking</a>
+  <a href="#" data-aba="mural" onclick="irAba('mural');carregarMural();return false"><span class="ic">🏅</span>Mural</a>
 </div>
 
 <!-- BALÃO DE NOTIFICAÇÕES (flutuante) -->
@@ -687,6 +702,84 @@ async function carregarRanking(){
     <div style="margin-top:8px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>💰 ${moneyG(x.vendido)}${x.metaVenda?(' / '+moneyG(x.metaVenda)):' (sem meta)'}</span><span style="font-weight:700;color:#3E8E6E">${x.vendasPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.vendasPct}%;height:100%;background:#3E8E6E"></div></div></div>
     <div style="margin-top:6px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>✅ Check-in ${x.checkAtual}/${x.checkAlvo}</span><span style="font-weight:700;color:#5175A0">${x.checkPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.checkPct}%;height:100%;background:#5175A0"></div></div></div>
   </div>`).join('')||'<div class="mut" style="padding:0 4px">Sem consultores</div>';
+}
+// ---------- MURAL ----------
+let muralMesRef='', _mural=null;
+function labelMesM(ym){const M=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];return M[+ym.slice(5)-1]+' '+ym.slice(0,4);}
+async function carregarMural(mes){
+  const ref=mes||muralMesRef;
+  const m=await (await fetch('/api/mural'+(ref?'?mes='+ref:''))).json();
+  _mural=m;muralMesRef=m.mes;
+  document.getElementById('mural-edit').style.display=m.podeEditar?'block':'none';
+  document.getElementById('mural-nav').style.display=m.podeNavegar?'flex':'none';
+  document.getElementById('mural-mes-lbl').textContent=labelMesM(m.mes);
+  renderMural(m);
+}
+function muralMes(d){const [y,mm]=muralMesRef.split('-').map(Number);const dt=new Date(y,mm-1+d,1);muralMesRef=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');carregarMural(muralMesRef);}
+function medalhaCor(pos){return pos===1?'#E6B800':pos===2?'#9AA0A6':pos===3?'#B87333':'var(--mut)';}
+function seloBadge(s){if(!s)return '';const c=s==='LENDÁRIO'?'#B23B3B':s==='CAMPEÃO'?'#2E7D50':'#7A6A1F';const bg=s==='LENDÁRIO'?'#F5E4E4':s==='CAMPEÃO'?'#E5F1EA':'#F3EFDD';return `<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:5px;background:${bg};color:${c}">${s}</span>`;}
+function muralChartSVG(meses,cfg){
+  const W=720,H=250,pl=54,pr=14,pt=16,pb=26,iw=W-pl-pr,ih=H-pt-pb;
+  const vals=meses.map(x=>x.valor);
+  const maxY=Math.max(1,...vals,cfg.desafio||0,cfg.expectativa||0,cfg.piso||0)*1.12;
+  const x=i=>pl+(iw*i/(meses.length-1));
+  const y=v=>pt+ih-(ih*v/maxY);
+  const pts=meses.map((m,i)=>`${x(i)},${y(m.valor)}`).join(' ');
+  const area=`${pl},${pt+ih} ${pts} ${x(meses.length-1)},${pt+ih}`;
+  const linhaAlvo=(v,cor,label)=>{if(!v)return '';const yy=y(v);return `<line x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}" stroke="${cor}" stroke-width="1.4" stroke-dasharray="5 4"/><text x="${W-pr}" y="${yy-3}" text-anchor="end" font-size="9" fill="${cor}">${label}</text>`;};
+  const gy=[0,.25,.5,.75,1].map(f=>{const yy=pt+ih-ih*f;const val=maxY*f;return `<line x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}" stroke="#EAECEF" stroke-width="1"/><text x="${pl-6}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--mut)">${val>=1000000?(val/1000000).toFixed(1)+'M':Math.round(val/1000)+'k'}</text>`;}).join('');
+  const xl=meses.map((m,i)=>(i%1===0)?`<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="8.5" fill="var(--mut)">${m.label}</text>`:'').join('');
+  const dots=meses.map((m,i)=>`<circle cx="${x(i)}" cy="${y(m.valor)}" r="2.6" fill="#4F8CC7"/>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${gy}<polygon points="${area}" fill="rgba(127,178,229,.28)"/><polyline points="${pts}" fill="none" stroke="#4F8CC7" stroke-width="2"/>${dots}${linhaAlvo(cfg.desafio,'#4E9A6B','Desafio')}${linhaAlvo(cfg.expectativa,'#4F79A8','Expectativa')}${linhaAlvo(cfg.piso,'#8A8F98','Piso')}${xl}</svg>`;
+}
+function renderMural(m){
+  // recado
+  document.getElementById('mural-recado').innerHTML=m.config.recado?`<div style="background:linear-gradient(90deg,#FFF6DC,#FDEFC9);border:1px solid #E9D8A0;color:#7A5B12;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-weight:600;text-align:center">📣 ${esc(m.config.recado)}</div>`:'';
+  // metas do ano
+  const cardMeta=(icon,label,val,cor)=>`<div class="card" style="padding:10px 8px;text-align:center"><div style="font-size:18px">${icon}</div><div class="mut" style="font-size:11px;margin-top:2px">${label}</div><div style="font-weight:800;font-size:14px;color:${cor||'var(--txt)'};margin-top:2px">${moneyG(val)}</div></div>`;
+  document.getElementById('mural-metas').innerHTML=`<div class="mut" style="font-size:12px;margin:2px 2px 6px">Desafio de ${m.ano} · total vendido no ano: <b style="color:var(--ok)">${moneyG(m.totalVendidoAno)}</b></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">${cardMeta('🏆','Desafio',m.config.desafio,'#3E8E6E')}${cardMeta('🎯','Expectativa',m.config.expectativa,'#4F79A8')}${cardMeta('⭐','Piso',m.config.piso,'#8A8F98')}${cardMeta('💰','Vendido (ano)',m.totalVendidoAno,'var(--ok)')}</div>`;
+  // gráfico
+  document.getElementById('mural-chart').innerHTML=`<div class="card" style="padding:10px"><div class="h" style="margin:0 0 4px">📈 Projeção do desafio de ${m.ano}</div>${muralChartSVG(m.meses,m.config)}</div>`;
+  // pódio top3
+  const p=m.top3;
+  const col=(r,ordem,alt)=>{if(!r)return '<div style="flex:1"></div>';const c=medalhaCor(r.pos);return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">
+    <div style="position:relative">${avatarHTML(r.primeiro,r.cor,alt?64:52,r.foto)}<div style="position:absolute;-webkit-text-stroke:0;top:-6px;right:-6px;background:${c};color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:2px solid #fff">${r.pos}</div></div>
+    <div style="font-weight:700;font-size:13px;margin-top:6px;text-align:center">${esc(r.primeiro)}</div>
+    <div class="mut" style="font-size:10px">${esc(r.time)}</div>
+    <div style="font-weight:800;color:var(--ok);font-size:13px;margin-top:2px">${moneyG(r.vendido)}</div>
+    <div class="mut" style="font-size:10px">${r.pct}% da meta · ${r.qtd} venda(s)</div>
+    <div style="margin-top:3px">${seloBadge(r.selo)}</div>
+    <div style="margin-top:6px;background:${alt?'#FBF3D6':'#F1F2F4'};border:1px solid ${alt?'#E7D28A':'var(--bord)'};border-radius:10px 10px 0 0;width:100%;text-align:center;padding:${alt?'12px':'8px'} 0;font-size:11px;font-weight:700;color:${c}">${ordem}º LUGAR</div>
+  </div>`;};
+  document.getElementById('mural-podio').innerHTML=p.length?`<div class="h" style="text-align:center;margin-top:14px">🥇 Top 3 consultores</div><div style="display:flex;gap:8px;align-items:flex-end;margin-top:6px">${col(p[1],2,false)}${col(p[0],1,true)}${col(p[2],3,false)}</div>`:'';
+  // times
+  document.getElementById('mural-times').innerHTML=m.times.length?`<div class="h" style="margin-top:16px">Por time</div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${m.times.map(t=>`<div class="card" style="padding:10px 12px"><div style="font-weight:700">${esc(t.time)}</div><div style="font-weight:800;color:var(--ok);margin:2px 0">${moneyG(t.vendido)}</div><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>${t.meta?('meta '+moneyG(t.meta)):'sem meta'}</span><span style="font-weight:700">${t.pct}%</span></div><div class="prog" style="margin-top:4px"><div style="width:${Math.min(100,t.pct)}%;height:100%;background:var(--acc)"></div></div><div class="mut" style="font-size:10px;margin-top:3px">${t.consultores} consultor(es)</div></div>`).join('')}</div>`:'';
+  // ranking
+  document.getElementById('mural-ranking').innerHTML=m.ranking.map(r=>`<div class="card" style="padding:9px 11px;margin-bottom:7px"><div class="row" style="align-items:center"><div style="display:flex;align-items:center;gap:9px;min-width:0"><div style="width:22px;text-align:center;font-weight:800;color:${medalhaCor(r.pos)}">${r.pos}</div>${avatarHTML(r.primeiro,r.cor,34,r.foto)}<div style="min-width:0"><div class="titulo" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.nome)} ${r.time?`<span class="badge b-blue" style="font-size:9px">${esc(r.time)}</span>`:''} ${seloBadge(r.selo)}</div><div class="mut" style="font-size:11px">${r.qtd} venda(s)${r.meta?(' · meta '+moneyG(r.meta)):''}</div></div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:var(--ok)">${moneyG(r.vendido)}</div><div class="mut" style="font-size:11px;font-weight:700;color:${r.pct>=100?'#3E8E6E':'var(--mut)'}">${r.pct}%</div></div></div>${r.meta?`<div class="prog" style="margin-top:5px"><div style="width:${Math.min(100,r.pct)}%;height:100%;background:${r.pct>=100?'#3E8E6E':'var(--acc)'}"></div></div>`:''}</div>`).join('')||'<div class="mut" style="padding:10px">Sem consultores</div>';
+}
+function abrirEditMural(){
+  const c=(_mural&&_mural.config)||{desafio:0,expectativa:0,piso:0,recado:'',metasTime:{}};
+  const times=(_mural&&_mural.times)||[];
+  const inp=(id,val,ph)=>`<input id="${id}" inputmode="decimal" value="${val?moneyG(val).replace('R$ ',''):''}" placeholder="${ph||'0,00'}" onblur="this.value=this.value?moneyG(parseBRG(this.value)).replace('R$ ',''):''" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)">`;
+  const timesHtml=times.map(t=>`<div style="margin-bottom:6px"><label style="font-size:12px;color:var(--mut)">Meta ${esc(t.time)}</label>${inp('mt-'+btoa(unescape(encodeURIComponent(t.time))).replace(/=/g,''),t.meta,'')}</div>`).join('');
+  abrirPop('✏️ Editar Mural',`
+    <label style="font-size:12px;color:var(--mut)">📣 Recado (topo)</label><input id="mm-recado" value="${esc(c.recado||'')}" maxlength="200" placeholder="Ex: Corrida de agosto — bora!" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><label style="font-size:12px;color:var(--mut)">🏆 Desafio (ano)</label>${inp('mm-desafio',c.desafio)}</div>
+      <div><label style="font-size:12px;color:var(--mut)">🎯 Expectativa</label>${inp('mm-expectativa',c.expectativa)}</div>
+      <div><label style="font-size:12px;color:var(--mut)">⭐ Piso</label>${inp('mm-piso',c.piso)}</div>
+      <div><label style="font-size:12px;color:var(--mut)">Ano</label><input id="mm-ano" type="number" value="${_mural?_mural.ano:new Date().getFullYear()}" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
+    </div>
+    <div class="h" style="margin:12px 0 6px;font-size:13px">Metas por time</div>${timesHtml||'<div class="mut" style="font-size:12px">Nenhum time com vendas ainda.</div>'}
+    <button class="btn" style="width:100%;margin-top:12px" onclick="salvarMural()">Salvar</button>`);
+}
+async function salvarMural(){
+  const times=(_mural&&_mural.times)||[];
+  const metasTime={};
+  times.forEach(t=>{const el=document.getElementById('mt-'+btoa(unescape(encodeURIComponent(t.time))).replace(/=/g,''));if(el)metasTime[t.time]=parseBRG(el.value);});
+  const b={recado:document.getElementById('mm-recado').value,desafio:parseBRG(document.getElementById('mm-desafio').value),expectativa:parseBRG(document.getElementById('mm-expectativa').value),piso:parseBRG(document.getElementById('mm-piso').value),ano:+document.getElementById('mm-ano').value||new Date().getFullYear(),metasTime};
+  const r=await fetch('/api/mural',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  const j=await r.json();if(j.ok){fecharPop();toast('Mural atualizado ✓');carregarMural(muralMesRef);}else toast(j.erro||'Erro');
 }
 let chatConsultor=null;
 async function abrirChatLista(){
