@@ -267,6 +267,7 @@ function atualizarGamif(){
   }catch(e){}
 }
 function fmtCpf(c){c=String(c||'').replace(/\D/g,'');if(c.length!==11)return c;return c.slice(0,3)+'.'+c.slice(3,6)+'.'+c.slice(6,9)+'-'+c.slice(9)}
+function cpfValido(cpf){cpf=String(cpf||'').replace(/\D/g,'');if(cpf.length!==11)return false;if(/^(\d)\1{10}$/.test(cpf))return false;let s=0;for(let i=0;i<9;i++)s+=parseInt(cpf[i])*(10-i);let d1=11-(s%11);if(d1>=10)d1=0;if(d1!==parseInt(cpf[9]))return false;s=0;for(let i=0;i<10;i++)s+=parseInt(cpf[i])*(11-i);let d2=11-(s%11);if(d2>=10)d2=0;return d2===parseInt(cpf[10]);}
 function trocarMinhaFoto(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=async()=>{const max=400,s=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*s),h=Math.round(img.height*s);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);const d=c.toDataURL('image/jpeg',0.75);const r=await fetch('/api/minha-foto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({foto:d})});const j=await r.json();if(j.ok){toast('Foto atualizada ✓');carregar();}else toast(j.erro||'Erro');};img.src=rd.result;};rd.readAsDataURL(f);}
 function fmtDataBR(d){if(!d)return '';return d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4)}
 let _vendas=[];
@@ -323,7 +324,7 @@ function abrirCliente(i){
 }
 function novaVendaCliente(nomeEnc,cpf){
   const nome=decodeURIComponent(nomeEnc);
-  abrirPop('Nova cota · '+nome,formVenda({cliente:{nome,cpf}})+`<button class="btn full" style="background:var(--ok)" onclick="salvarVenda()">Salvar venda</button>`);
+  abrirPop('Novas cotas · '+nome,formVendaMulti({cliente:{nome,cpf},lock:true})+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();
 }
 function renderVendas(){
   if(vendaView==='clientes'){renderClientes();return;}
@@ -339,24 +340,54 @@ function renderVendas(){
   document.getElementById('vd-fec').innerHTML=fec.map(cardVenda).join('')||'<div class="mut" style="padding:6px 2px;font-size:12px">Nenhuma</div>';
 }
 async function toggleFechada(id,checked){
-  const v=_vendas.find(x=>x.id===id); if(v)v.status=checked?'fechada':'negociacao'; renderVendas();
+  const v=_vendas.find(x=>x.id===id);
+  // para efetivar exige CPF válido — se não tiver, abre a venda para preencher
+  if(checked&&v&&!cpfValido((v.cliente&&v.cliente.cpf)||'')){toast('Para efetivar, informe um CPF válido do cliente');abrirVenda(id);return}
+  if(v)v.status=checked?'fechada':'negociacao'; renderVendas();
   const r=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:checked?'fechada':'negociacao'})});
   const j=await r.json(); if(j.ok){toast(checked?'Venda fechada ✅':'Voltou para negociação');}else{toast(j.erro||'Erro');carregarVendas();}
 }
 function formVenda(v){v=v||{};const c=v.cliente||{};return `
   <label>Cliente</label><input type="text" id="vf-nome" class="inp2" value="${esc(c.nome)}" placeholder="Nome do cliente">
-  <label>CPF <span style="color:var(--no)">*</span></label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf))}" placeholder="000.000.000-00 (obrigatório)" oninput="this.value=fmtCpf(this.value)">
+  <label>CPF <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf))}" placeholder="000.000.000-00" oninput="this.value=fmtCpf(this.value);checaCpf(this,'vf-cpf-msg')"><div id="vf-cpf-msg" style="font-size:11px;margin-top:2px"></div>
   <label>Valor da venda</label><div style="display:flex;align-items:center;gap:6px"><span class="mut" style="font-size:13px">R$</span><input type="text" inputmode="decimal" id="vf-valor" class="inp2" value="${v.valor?fmtBR(v.valor):''}" placeholder="0,00" onblur="this.value=this.value?fmtBR(parseBR(this.value)):''"></div>
   <div style="display:flex;gap:8px"><div style="flex:1"><label>Grupo</label><input type="text" id="vf-grupo" class="inp2" value="${esc(v.grupo)}"></div><div style="flex:1"><label>Cota</label><input type="text" id="vf-cota" class="inp2" value="${esc(v.cota)}"></div></div>
   <label>Data do fechamento</label><input type="date" id="vf-data" class="inp2" value="${v.data||new Date().toISOString().slice(0,10)}">
   <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:14px;color:var(--txt)"><input type="checkbox" id="vf-fechada" ${v.status==='fechada'?'checked':''} style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Venda fechada</label>`;}
-function novaVenda(){abrirPop('Nova venda',formVenda()+`<button class="btn full" style="background:var(--ok)" onclick="salvarVenda()">Salvar venda</button>`);}
+function checaCpf(inp,msgId){const el=document.getElementById(msgId);if(!el)return;const d=(inp.value||'').replace(/\D/g,'');if(!d){el.textContent='';return}if(d.length<11){el.textContent='';return}if(cpfValido(d)){el.textContent='✓ CPF válido';el.style.color='var(--ok)';}else{el.textContent='✗ CPF inválido';el.style.color='var(--no)';}}
+function formVendaMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre.lock;return `
+  <label>Cliente</label><input type="text" id="vf-nome" class="inp2" value="${esc(c.nome||'')}" placeholder="Nome do cliente" ${lock?'readonly style="background:#eef0f3"':''}>
+  <label>CPF <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf||''))}" placeholder="000.000.000-00" oninput="this.value=fmtCpf(this.value);checaCpf(this,'vf-cpf-msg')" ${lock&&c.cpf?'readonly style="background:#eef0f3"':''}><div id="vf-cpf-msg" style="font-size:11px;margin-top:2px"></div>
+  <label>Data do fechamento</label><input type="date" id="vf-data" class="inp2" value="${new Date().toISOString().slice(0,10)}">
+  <div class="h" style="margin:12px 0 6px">Cotas</div>
+  <div id="vf-cotas"></div>
+  <button class="btn sec2" style="width:100%;padding:8px" onclick="addCotaRow()">➕ adicionar outra cota</button>
+  <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:14px;color:var(--txt)"><input type="checkbox" id="vf-fechada" style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Já efetivada(s) — fechada(s)</label>`;}
+function addCotaRow(g,co,val){const wrap=document.getElementById('vf-cotas');if(!wrap)return;const div=document.createElement('div');div.className='cota-row';div.style.cssText='display:flex;gap:6px;margin-bottom:6px;align-items:center';div.innerHTML=`<input class="inp2 c-grupo" placeholder="Grupo" value="${esc(g||'')}" style="flex:1;margin:0"><input class="inp2 c-cota" placeholder="Cota" value="${esc(co||'')}" style="flex:1;margin:0"><div style="display:flex;align-items:center;gap:3px;flex:1.2"><span class="mut" style="font-size:12px">R$</span><input class="inp2 c-valor" inputmode="decimal" placeholder="0,00" value="${val?fmtBR(val):''}" onblur="this.value=this.value?fmtBR(parseBR(this.value)):''" style="margin:0"></div><button class="btn sec2" onclick="this.closest('.cota-row').remove()" style="padding:7px 9px;margin:0;color:var(--no)">✕</button>`;wrap.appendChild(div);}
+function novaVenda(){abrirPop('Nova venda',formVendaMulti()+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();}
+async function salvarVendaMulti(){
+  const nome=document.getElementById('vf-nome').value.trim();
+  const cpf=document.getElementById('vf-cpf').value, cpfDig=cpf.replace(/\D/g,'');
+  const data=document.getElementById('vf-data').value;
+  const status=document.getElementById('vf-fechada').checked?'fechada':'negociacao';
+  if(!nome){toast('Informe o nome do cliente');return}
+  if(cpfDig&&!cpfValido(cpfDig)){toast('CPF inválido — confira os números');return}
+  if(status==='fechada'&&!cpfValido(cpfDig)){toast('Para efetivar, informe um CPF válido do cliente');return}
+  const rows=[...document.querySelectorAll('#vf-cotas .cota-row')].map(r=>({grupo:r.querySelector('.c-grupo').value.trim(),cota:r.querySelector('.c-cota').value.trim(),valor:parseBR(r.querySelector('.c-valor').value)})).filter(r=>r.valor>0);
+  if(!rows.length){toast('Adicione ao menos uma cota com valor');return}
+  let ok=0,erro='';
+  for(const r of rows){const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,data,status})});const j=await res.json();if(j.ok||j.venda)ok++;else erro=j.erro||'Erro';}
+  if(ok){fecharPop();toast(ok+' cota(s) cadastrada(s) ✓'+(erro?' · '+erro:''));carregarVendas();}
+  else toast(erro||'Erro ao salvar');
+}
 function abrirVenda(id){const v=_vendas.find(x=>x.id===id);if(!v)return;
   abrirPop('Venda · '+money(v.valor),formVenda(v)+`<div style="display:flex;gap:6px;margin-top:6px"><button class="btn sec2" style="flex:1;color:var(--no)" onclick="excluirVendaF('${v.id}')">🗑 Excluir</button><button class="btn" style="flex:2;background:var(--ok)" onclick="salvarVenda('${v.id}')">Salvar alterações</button></div>`);}
 async function salvarVenda(id){
   const b={nome:document.getElementById('vf-nome').value.trim(),cpf:document.getElementById('vf-cpf').value,valor:parseBR(document.getElementById('vf-valor').value),grupo:document.getElementById('vf-grupo').value,cota:document.getElementById('vf-cota').value,data:document.getElementById('vf-data').value,status:(document.getElementById('vf-fechada')&&document.getElementById('vf-fechada').checked)?'fechada':'negociacao'};
   if(!b.nome||!b.valor){toast('Informe o cliente e o valor');return}
-  if((b.cpf||'').replace(/\D/g,'').length!==11){toast('Informe o CPF do cliente (11 dígitos)');return}
+  const cpfDig=(b.cpf||'').replace(/\D/g,'');
+  if(cpfDig&&!cpfValido(cpfDig)){toast('CPF inválido — confira os números');return}
+  if(b.status==='fechada'&&!cpfValido(cpfDig)){toast('Para efetivar, informe um CPF válido do cliente');return}
   let res; if(id){b.id=id;res=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});}
   else res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
   const j=await res.json(); if(j.ok||j.venda){fecharPop();toast(id?'Venda atualizada ✓':'Venda cadastrada ✓');carregarVendas()}else toast(j.erro||'Erro');
