@@ -100,6 +100,20 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- AGENDA (unificada com Aprovações) -->
 <div class="aba" id="aba-agenda">
   <div class="sec">
+    <div class="card" style="margin-bottom:12px">
+      <div class="row" style="cursor:pointer" onclick="const f=document.getElementById('form-reuniao-g');f.style.display=f.style.display==='none'?'block':'none'"><div class="titulo" style="font-weight:600">📅 Reunião com outro gestor</div><span class="mut">＋</span></div>
+      <div id="form-reuniao-g" style="display:none;margin-top:10px">
+        <select id="rg-para" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><option value="">Escolha o gestor…</option></select>
+        <input type="text" id="rg-assunto" placeholder="Assunto da reunião" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input type="datetime-local" id="rg-inicio" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
+          <select id="rg-dur" style="width:110px;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><option value="30">30 min</option><option value="60" selected>1 hora</option><option value="90">1h30</option><option value="120">2 horas</option></select>
+        </div>
+        <input type="text" id="rg-local" placeholder="Local (ex: Google Meet, sala…)" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
+        <button class="btn" style="width:100%;margin-top:10px" onclick="enviarReuniaoGestor()">Enviar pedido de reunião</button>
+        <div class="mut" style="font-size:11px;margin-top:6px">O outro gestor recebe o pedido na tela inicial dele e aceita.</div>
+      </div>
+    </div>
     <div class="h">✅ Solicitações pendentes</div><div id="pendentes"></div>
     <div class="h" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
       <button class="btn sec2" style="padding:5px 12px" onclick="mudarMes(-1)">◀</button>
@@ -346,7 +360,7 @@ function estiloCor(cor){
   return 'background:transparent;color:var(--txt)';
 }
 function balaoNome(nome,cor){return `<span style="${estiloCor(cor)};padding:3px 10px;border-radius:12px;font-weight:500;display:inline-block">${nome}</span>`}
-function avatarHTML(nome,cor,size){size=size||34;const f=(window._fotos&&window._fotos[nome])||'';
+function avatarHTML(nome,cor,size,foto){size=size||34;const f=foto||(window._fotos&&window._fotos[nome])||'';
   if(f)return `<div style="width:${size}px;height:${size}px;border-radius:50%;background-image:url('${f}');background-size:cover;background-position:center;flex:none;border:1px solid var(--bord)"></div>`;
   return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.36)}px;flex:none;${estiloCorSolidaG(cor)}">${(nome||'?').slice(0,2).toUpperCase()}</div>`;
 }
@@ -365,8 +379,8 @@ async function carregar(){
   if(painel.foto){gav.textContent='';gav.style.cssText='width:38px;height:38px;border-radius:50%;background-image:url('+painel.foto+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
   else{gav.textContent=(painel.nome||painel.time||'G').replace(/^Gestor\s+/i,'').trim().slice(0,2).toUpperCase();aplicarCorAvatar(gav,painel.cor);}
   if(painel.tarefas){document.getElementById('t-atr').textContent=painel.tarefas.atrasadas;document.getElementById('t-pen').textContent=painel.tarefas.pendentes;document.getElementById('t-fin').textContent=painel.tarefas.finalizadas;}
-  document.getElementById('execucao').innerHTML = painel.execucao.map(e=>`<div class="exe" style="cursor:pointer" onclick="abrirPerfil('${e.nome}')"><span class="n" style="width:auto;min-width:70px;display:flex;align-items:center;gap:6px">${avatarHTML(e.nome,e.cor,24)}${balaoNome(e.nome,e.cor)}</span><div class="bar"><div style="width:${e.pct}%;height:100%;background:${corPct(e.pct)}"></div></div><span class="pct" style="${e.pct<40?'color:var(--no)':''}">${e.pct}%</span></div>`).join('');
-  document.getElementById('atrasadas').innerHTML = painel.atividadesAtrasadas.map(a=>`<div class="card row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(a.consultor,'',30)}<div><div class="titulo" style="font-weight:500;color:var(--acc);cursor:pointer" onclick="abrirPerfil('${a.consultor}')">${a.consultor}</div><div class="mut">${a.titulo} · venceu ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma 🎉</div>';
+  document.getElementById('execucao').innerHTML = painel.execucao.map(e=>`<div class="exe" style="cursor:pointer" onclick="abrirPerfil('${e.nome}')"><span class="n" style="width:auto;min-width:70px;display:flex;align-items:center;gap:6px">${avatarHTML(e.nome,e.cor,24,e.foto)}${balaoNome(e.nome,e.cor)}</span><div class="bar"><div style="width:${e.pct}%;height:100%;background:${corPct(e.pct)}"></div></div><span class="pct" style="${e.pct<40?'color:var(--no)':''}">${e.pct}%</span></div>`).join('');
+  document.getElementById('atrasadas').innerHTML = painel.atividadesAtrasadas.map(a=>`<div class="card row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(a.consultor,'',30,a.foto)}<div><div class="titulo" style="font-weight:500;color:var(--acc);cursor:pointer" onclick="abrirPerfil('${a.consultor}')">${a.consultor}</div><div class="mut">${a.titulo} · venceu ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma 🎉</div>';
   // Minhas tarefas (enviadas por outros gestores)
   const mt=(painel.minhasTarefas||[]).filter(t=>t.status!=='Feito');
   document.getElementById('h-minhas-tarefas').style.display=mt.length?'block':'none';
@@ -384,8 +398,8 @@ function cardPendente(s){return `
     <div class="card" style="border-color:rgba(214,40,57,.35)">
       <div class="row" style="margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:10px;min-width:0">
-          ${avatarHTML(s.consultor,s.cor,38)}
-          <div style="min-width:0"><div>${balaoNome(s.consultor,s.cor)}</div><div class="mut" style="margin-top:3px">${s.assunto||'Reunião'} · ${fmtData(s.inicio)} · ${s.duracao} min${s.local?' · '+s.local:''}</div></div>
+          ${avatarHTML(s.consultor,s.cor,38,s.foto)}
+          <div style="min-width:0"><div>${balaoNome(s.consultor,s.cor)}${s.deGestor?' <span class="badge b-blue">gestor</span>':''}</div><div class="mut" style="margin-top:3px">${s.assunto||'Reunião'} · ${fmtData(s.inicio)} · ${s.duracao} min${s.local?' · '+s.local:''}</div></div>
         </div>
         <span class="badge ${s.conflito?'b-no':'b-ok'}" style="flex:none">${s.conflito?'⚠ conflito':'livre ✓'}</span>
       </div>
@@ -484,7 +498,7 @@ async function carregarVendasG(){
   window._vgDash=dash.consultores||[];
   renderVgChips();
   const max=Math.max(1,...window._vgDash.map(c=>Math.max(c.total,c.meta||0)));
-  document.getElementById('vg-bars').innerHTML=window._vgDash.map(c=>`<div onclick="focarConsultorVenda('${(c.nome||'').replace(/'/g,"\\'")}')" style="margin-bottom:10px;cursor:pointer;padding:6px;border-radius:10px;border:1px solid ${_vgSel.has(c.nome)?'var(--acc)':'transparent'};${_vgSel.size&&!_vgSel.has(c.nome)?'opacity:.45':''}"><div class="row" style="font-size:12px"><span style="display:flex;align-items:center;gap:6px">${avatarHTML(c.nome,c.cor,22)}${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}${c.papel==='gestor'?' <span class="mut" style="font-weight:400">(gestor)</span>':''}</span><span style="font-weight:700">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div>${c.negociando?`<div class="mut" style="font-size:11px;margin-top:3px">🤝 em negociação: <b style="color:var(--warn)">${moneyG(c.negociando)}</b></div>`:''}</div>`).join('')||'<div class="mut">Nenhum vendedor</div>';
+  document.getElementById('vg-bars').innerHTML=window._vgDash.map(c=>`<div onclick="focarConsultorVenda('${(c.nome||'').replace(/'/g,"\\'")}')" style="margin-bottom:10px;cursor:pointer;padding:6px;border-radius:10px;border:1px solid ${_vgSel.has(c.nome)?'var(--acc)':'transparent'};${_vgSel.size&&!_vgSel.has(c.nome)?'opacity:.45':''}"><div class="row" style="font-size:12px"><span style="display:flex;align-items:center;gap:6px">${avatarHTML(c.nome,c.cor,22,c.foto)}${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}${c.papel==='gestor'?' <span class="mut" style="font-weight:400">(gestor)</span>':''}</span><span style="font-weight:700">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div>${c.negociando?`<div class="mut" style="font-size:11px;margin-top:3px">🤝 em negociação: <b style="color:var(--warn)">${moneyG(c.negociando)}</b></div>`:''}</div>`).join('')||'<div class="mut">Nenhum vendedor</div>';
   const de=vgMesRef+'-01',ate=vgMesRef+'-31';
   const vd=await (await fetch('/api/vendas?de='+de+'&ate='+ate)).json();window._vgAll=vd.vendas||[];
   renderVgKanban();
@@ -550,7 +564,7 @@ function abrirVendaG(id){const v=(window._vgAll||[]).find(x=>x.id===id);if(!v)re
 async function carregarRanking(){
   const res=await fetch('/api/gestor/ranking');const r=await res.json();
   document.getElementById('meta-input').value=r.metaSemanal;
-  document.getElementById('ranking-lista').innerHTML=r.ranking.map(x=>`<div class="card"><div class="row"><div class="titulo" style="cursor:pointer;color:var(--acc);display:flex;align-items:center;gap:8px" onclick="abrirPerfil('${x.nome}')"><span style="font-weight:700">${x.medalha||x.pos+'º'}</span>${avatarHTML(x.nome,x.cor,28)}${x.nome}${x.time?` <span class="mut" style="font-weight:400">· ${x.time}</span>`:''}</div><div style="font-weight:800">${x.pontos}<span class="mut" style="font-weight:400;font-size:11px"> / 200 pts</span></div></div>
+  document.getElementById('ranking-lista').innerHTML=r.ranking.map(x=>`<div class="card"><div class="row"><div class="titulo" style="cursor:pointer;color:var(--acc);display:flex;align-items:center;gap:8px" onclick="abrirPerfil('${x.nome}')"><span style="font-weight:700">${x.medalha||x.pos+'º'}</span>${avatarHTML(x.nome,x.cor,28,x.foto)}${x.nome}${x.time?` <span class="mut" style="font-weight:400">· ${x.time}</span>`:''}</div><div style="font-weight:800">${x.pontos}<span class="mut" style="font-weight:400;font-size:11px"> / 200 pts</span></div></div>
     <div style="margin-top:8px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>💰 ${moneyG(x.vendido)}${x.metaVenda?(' / '+moneyG(x.metaVenda)):' (sem meta)'}</span><span style="font-weight:700;color:#3E8E6E">${x.vendasPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.vendasPct}%;height:100%;background:#3E8E6E"></div></div></div>
     <div style="margin-top:6px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>✅ Check-in ${x.checkAtual}/${x.checkAlvo}</span><span style="font-weight:700;color:#5175A0">${x.checkPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.checkPct}%;height:100%;background:#5175A0"></div></div></div>
   </div>`).join('')||'<div class="mut" style="padding:0 4px">Sem consultores</div>';
@@ -590,7 +604,7 @@ function renderConsultores(){
   const lista=_consultores.filter(c=>c.nome.toLowerCase().includes(busca));
   document.getElementById('lista-consultores').innerHTML=lista.map(c=>{
     const ab=c.tarefas.abertas.length,ft=c.tarefas.feitas.length;
-    return `<div class="card row" style="cursor:pointer" onclick="abrirPerfil('${c.nome}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,c.cor,34)}<div>${balaoNome(c.nome,c.cor)}<div class="mut" style="font-size:11px;margin-top:2px">${c.totalEnvios}/7 check-ins · ${ab} tarefas abertas · ${ft} feitas</div></div></div><span class="mut">›</span></div>`;
+    return `<div class="card row" style="cursor:pointer" onclick="abrirPerfil('${c.nome}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,c.cor,34,c.foto)}<div>${balaoNome(c.nome,c.cor)}<div class="mut" style="font-size:11px;margin-top:2px">${c.totalEnvios}/7 check-ins · ${ab} tarefas abertas · ${ft} feitas</div></div></div><span class="mut">›</span></div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nenhum consultor</div>';
 }
 function estiloCorSolidaG(cor){if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%);color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#fff`;return ''}
@@ -600,7 +614,7 @@ async function abrirPerfil(nome){
   perfilAtual=nome;
   const res=await fetch('/api/gestor/consultor?nome='+encodeURIComponent(nome));
   const p=await res.json();
-  const av=document.getElementById('pf-avatar');const pf=(window._fotos&&window._fotos[nome])||'';
+  const av=document.getElementById('pf-avatar');const pf=p.foto||(window._fotos&&window._fotos[nome])||'';
   if(pf){av.textContent='';av.style.cssText='width:48px;height:48px;border-radius:50%;background-image:url('+pf+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
   else{av.textContent=nome.slice(0,2).toUpperCase();av.style.cssText='width:48px;height:48px;font-size:16px';aplicarCorAvatar(av,p.cor);}
   document.getElementById('pf-nome').innerHTML=p.nome+(p.cargo?` <span style="font-size:11px;${estiloCor(p.cor)};padding:2px 9px;border-radius:10px;font-weight:500">${p.cargo}</span>`:'');
@@ -654,8 +668,27 @@ let mesRef=null, diaSel=null, _agenda={eventos:[],googleEventos:[]};
 function isoLocal(dt){const d=new Date(dt);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function appsDoDia(iso){return [...(_agenda.eventos||[]),...(_agenda.googleEventos||[])].filter(e=>isoLocal(e.inicio)===iso).sort((a,b)=>a.inicio<b.inicio?-1:1)}
 function corStatusEv(e){return (e.google||e.status==='Google')?'#3E6FA0':e.status==='Aprovada'?'#3E8E6E':e.status==='Pendente'?'#A9772F':'#9CA3AF'}
+async function carregarGestoresSelect(){
+  try{
+    const j=await(await fetch('/api/gestores')).json();
+    const sel=document.getElementById('rg-para');if(!sel)return;
+    const outros=(j.gestores||[]).filter(g=>String(g.email).toLowerCase()!==String(window._meuEmail||'').toLowerCase());
+    sel.innerHTML='<option value="">Escolha o gestor…</option>'+outros.map(g=>`<option value="${g.email}">${esc(g.nome)}${g.time?' · '+esc(g.time):''}</option>`).join('');
+  }catch(e){}
+}
+async function enviarReuniaoGestor(){
+  const b={paraEmail:document.getElementById('rg-para').value,assunto:document.getElementById('rg-assunto').value.trim(),inicio:document.getElementById('rg-inicio').value,duracao:+document.getElementById('rg-dur').value,local:document.getElementById('rg-local').value.trim()};
+  if(!b.paraEmail){toast('Escolha o gestor');return}
+  if(!b.inicio){toast('Informe a data e o horário');return}
+  b.inicio=new Date(b.inicio).toISOString();
+  const res=await fetch('/api/gestor/reuniao-gestor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  const j=await res.json();
+  if(j.ok){toast('Pedido enviado para '+(j.paraNome||'o gestor')+' ✓');['rg-assunto','rg-inicio','rg-local'].forEach(id=>document.getElementById(id).value='');document.getElementById('rg-para').value='';document.getElementById('form-reuniao-g').style.display='none';}
+  else toast(j.erro||'Erro');
+}
 async function carregarAgenda(){
   const res = await fetch('/api/gestor/agenda');_agenda = await res.json();
+  carregarGestoresSelect();
   if(!mesRef){const h=new Date();mesRef=new Date(h.getFullYear(),h.getMonth(),1);}
   renderCalendario();
 }
