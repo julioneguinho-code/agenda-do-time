@@ -26,6 +26,7 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 .b-ok{background:var(--okbg);color:var(--ok)}.b-warn{background:var(--warnbg);color:var(--warn)}.b-no{background:var(--nobg);color:var(--no)}.b-blue{background:var(--accbg);color:var(--acc)}
 .btn{border:none;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
 .btn.sec2{background:transparent;border:1px solid var(--bord);color:var(--txt)}
+.vv-tab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .btn.full{width:100%;margin-top:8px}
 .mut{color:var(--mut);font-size:12px}
 .titulo{font-size:14px;font-weight:600}
@@ -151,6 +152,10 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-vendas">
   <div class="sec">
     <div class="row"><div class="h">💼 Minhas vendas</div><button class="btn" style="padding:7px 12px" onclick="novaVenda()">+ Nova venda</button></div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button class="btn sec2 vv-tab on" id="vv-kanban" style="flex:1;padding:9px" onclick="setVendaView('kanban')">🗂 Vendas</button>
+      <button class="btn sec2 vv-tab" id="vv-clientes" style="flex:1;padding:9px" onclick="setVendaView('clientes')">👥 Clientes</button>
+    </div>
     <div class="card" style="padding:10px 12px">
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         <input type="text" id="vd-busca" placeholder="🔎 Cliente ou CPF" oninput="renderVendas()" style="flex:1;min-width:120px">
@@ -160,10 +165,11 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       </div>
       <div class="mut" id="vd-total" style="margin-top:8px">—</div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start">
+    <div id="vd-kanban-wrap" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start">
       <div><div class="h" id="col-neg-h" style="margin-top:2px">🤝 Em negociação</div><div id="vd-neg"></div></div>
       <div><div class="h" id="col-fec-h" style="margin-top:2px;color:var(--ok)">✅ Fechadas</div><div id="vd-fec"></div></div>
     </div>
+    <div id="vd-clientes-wrap" style="display:none"><div id="vd-clientes"></div></div>
   </div>
 </div>
 
@@ -278,7 +284,49 @@ function cardVenda(v){const fechada=v.status==='fechada';return `<div class="car
   </div>
   <div class="mut" style="margin-top:4px;font-size:11px">${fmtDataBR(v.data)}${v.grupo?` · Gr ${esc(v.grupo)}`:''}</div>
 </div>`;}
+let vendaView='kanban';
+function setVendaView(v){
+  vendaView=v;
+  document.getElementById('vv-kanban').classList.toggle('on',v==='kanban');
+  document.getElementById('vv-clientes').classList.toggle('on',v==='clientes');
+  document.getElementById('vd-kanban-wrap').style.display=v==='kanban'?'grid':'none';
+  document.getElementById('vd-clientes-wrap').style.display=v==='clientes'?'block':'none';
+  renderVendas();
+}
+function clienteKey(v){const cpf=((v.cliente&&v.cliente.cpf)||'').replace(/\D/g,'');return cpf?('cpf:'+cpf):('nome:'+(((v.cliente&&v.cliente.nome)||'').trim().toLowerCase()));}
+function agruparClientes(list){
+  const map=new Map();
+  list.forEach(v=>{const k=clienteKey(v);if(!map.has(k))map.set(k,{key:k,nome:(v.cliente&&v.cliente.nome)||'—',cpf:(v.cliente&&v.cliente.cpf)||'',vendas:[]});const c=map.get(k);c.vendas.push(v);if((v.cliente&&v.cliente.nome))c.nome=v.cliente.nome;if((v.cliente&&v.cliente.cpf))c.cpf=v.cliente.cpf;});
+  const arr=Array.from(map.values()).map(c=>{const fechado=c.vendas.filter(v=>v.status==='fechada').reduce((s,v)=>s+(+v.valor||0),0);const neg=c.vendas.filter(v=>v.status!=='fechada').reduce((s,v)=>s+(+v.valor||0),0);return {...c,qtd:c.vendas.length,fechado,neg,total:fechado+neg};});
+  arr.sort((a,b)=>b.total-a.total);
+  return arr;
+}
+function renderClientes(){
+  const q=(document.getElementById('vd-busca').value||'').toLowerCase();
+  let list=(_vendas||[]).slice();
+  if(q)list=list.filter(v=>((v.cliente&&v.cliente.nome)||'').toLowerCase().includes(q)||((v.cliente&&v.cliente.cpf)||'').includes(q.replace(/\D/g,'')));
+  const clientes=agruparClientes(list);window._clientesG=clientes;
+  document.getElementById('vd-total').innerHTML=`<b>${clientes.length}</b> cliente(s) · <b>${list.length}</b> cota(s)`;
+  document.getElementById('vd-clientes').innerHTML=clientes.map((c,i)=>`<div class="card" style="cursor:pointer;padding:11px 12px;margin-bottom:8px" onclick="abrirCliente(${i})">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div style="min-width:0"><div class="titulo" style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:11px;margin-top:2px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${c.qtd} cota(s)</div></div>
+      <div style="text-align:right;flex:none"><div style="font-weight:700;color:var(--ok)">${money(c.total)}</div><div class="mut" style="font-size:11px">${c.neg?('🤝 '+money(c.neg)):'—'}</div></div>
+    </div></div>`).join('')||'<div class="mut" style="padding:10px 2px;font-size:13px">Nenhum cliente ainda. Cadastre uma venda para começar.</div>';
+}
+function abrirCliente(i){
+  const grp=(window._clientesG||[])[i];if(!grp)return;
+  const list=grp.vendas||[];
+  if(!list.length)return;
+  const c={nome:grp.nome||'—',cpf:grp.cpf||''};
+  const linhas=list.map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="fecharPop();abrirVenda('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:700;color:var(--ok)">${money(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${fmtDataBR(v.data)}</div></div><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅ Fechada':'🤝 Negociação'}</span></div></div>`).join('');
+  abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${list.length} cota(s)</div>${linhas}<button class="btn full" style="background:var(--ok);margin-top:8px" onclick="novaVendaCliente('${encodeURIComponent(c.nome)}','${c.cpf}')">+ Nova cota para este cliente</button>`);
+}
+function novaVendaCliente(nomeEnc,cpf){
+  const nome=decodeURIComponent(nomeEnc);
+  abrirPop('Nova cota · '+nome,formVenda({cliente:{nome,cpf}})+`<button class="btn full" style="background:var(--ok)" onclick="salvarVenda()">Salvar venda</button>`);
+}
 function renderVendas(){
+  if(vendaView==='clientes'){renderClientes();return;}
   const q=(document.getElementById('vd-busca').value||'').toLowerCase();
   let list=(_vendas||[]).slice();
   if(q)list=list.filter(v=>((v.cliente&&v.cliente.nome)||'').toLowerCase().includes(q)||((v.cliente&&v.cliente.cpf)||'').includes(q.replace(/\D/g,'')));
@@ -297,7 +345,7 @@ async function toggleFechada(id,checked){
 }
 function formVenda(v){v=v||{};const c=v.cliente||{};return `
   <label>Cliente</label><input type="text" id="vf-nome" class="inp2" value="${esc(c.nome)}" placeholder="Nome do cliente">
-  <label>CPF</label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf))}" placeholder="000.000.000-00" oninput="this.value=fmtCpf(this.value)">
+  <label>CPF <span style="color:var(--no)">*</span></label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf))}" placeholder="000.000.000-00 (obrigatório)" oninput="this.value=fmtCpf(this.value)">
   <label>Valor da venda</label><div style="display:flex;align-items:center;gap:6px"><span class="mut" style="font-size:13px">R$</span><input type="text" inputmode="decimal" id="vf-valor" class="inp2" value="${v.valor?fmtBR(v.valor):''}" placeholder="0,00" onblur="this.value=this.value?fmtBR(parseBR(this.value)):''"></div>
   <div style="display:flex;gap:8px"><div style="flex:1"><label>Grupo</label><input type="text" id="vf-grupo" class="inp2" value="${esc(v.grupo)}"></div><div style="flex:1"><label>Cota</label><input type="text" id="vf-cota" class="inp2" value="${esc(v.cota)}"></div></div>
   <label>Data do fechamento</label><input type="date" id="vf-data" class="inp2" value="${v.data||new Date().toISOString().slice(0,10)}">
@@ -308,6 +356,7 @@ function abrirVenda(id){const v=_vendas.find(x=>x.id===id);if(!v)return;
 async function salvarVenda(id){
   const b={nome:document.getElementById('vf-nome').value.trim(),cpf:document.getElementById('vf-cpf').value,valor:parseBR(document.getElementById('vf-valor').value),grupo:document.getElementById('vf-grupo').value,cota:document.getElementById('vf-cota').value,data:document.getElementById('vf-data').value,status:(document.getElementById('vf-fechada')&&document.getElementById('vf-fechada').checked)?'fechada':'negociacao'};
   if(!b.nome||!b.valor){toast('Informe o cliente e o valor');return}
+  if((b.cpf||'').replace(/\D/g,'').length!==11){toast('Informe o CPF do cliente (11 dígitos)');return}
   let res; if(id){b.id=id;res=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});}
   else res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
   const j=await res.json(); if(j.ok||j.venda){fecharPop();toast(id?'Venda atualizada ✓':'Venda cadastrada ✓');carregarVendas()}else toast(j.erro||'Erro');
