@@ -392,8 +392,8 @@ async function carregar(){
   if(painel.foto){gav.textContent='';gav.style.cssText='width:38px;height:38px;border-radius:50%;background-image:url('+painel.foto+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
   else{gav.textContent=(painel.nome||painel.time||'G').replace(/^Gestor\s+/i,'').trim().slice(0,2).toUpperCase();aplicarCorAvatar(gav,painel.cor);}
   if(painel.tarefas){document.getElementById('t-atr').textContent=painel.tarefas.atrasadas;document.getElementById('t-pen').textContent=painel.tarefas.pendentes;document.getElementById('t-fin').textContent=painel.tarefas.finalizadas;}
-  document.getElementById('execucao').innerHTML = painel.execucao.map(e=>`<div class="exe" style="cursor:pointer" onclick="abrirPerfil('${e.nome}')"><span class="n" style="width:auto;min-width:70px;display:flex;align-items:center;gap:6px">${avatarHTML(e.nome,e.cor,24,e.foto)}${balaoNome(e.nome,e.cor)}</span><div class="bar"><div style="width:${e.pct}%;height:100%;background:${corPct(e.pct)}"></div></div><span class="pct" style="${e.pct<40?'color:var(--no)':''}">${e.pct}%</span></div>`).join('');
-  document.getElementById('atrasadas').innerHTML = painel.atividadesAtrasadas.map(a=>`<div class="card row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(a.consultor,'',30,a.foto)}<div><div class="titulo" style="font-weight:500;color:var(--acc);cursor:pointer" onclick="abrirPerfil('${a.consultor}')">${a.consultor}</div><div class="mut">${a.titulo} · venceu ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma 🎉</div>';
+  document.getElementById('execucao').innerHTML = painel.execucao.map(e=>`<div class="exe" style="cursor:pointer" onclick="abrirPerfil('${e.email}')"><span class="n" style="width:auto;min-width:70px;display:flex;align-items:center;gap:6px">${avatarHTML(e.nome,e.cor,24,e.foto)}${balaoNome(e.nome,e.cor)}</span><div class="bar"><div style="width:${e.pct}%;height:100%;background:${corPct(e.pct)}"></div></div><span class="pct" style="${e.pct<40?'color:var(--no)':''}">${e.pct}%</span></div>`).join('');
+  document.getElementById('atrasadas').innerHTML = painel.atividadesAtrasadas.map(a=>`<div class="card row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(a.consultor,'',30,a.foto)}<div><div class="titulo" style="font-weight:500;color:var(--acc);cursor:pointer" onclick="abrirPerfil('${a.consultorEmail||''}')">${a.consultor}</div><div class="mut">${a.titulo} · venceu ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma 🎉</div>';
   // Minhas tarefas (enviadas por outros gestores)
   const mt=(painel.minhasTarefas||[]).filter(t=>t.status!=='Feito');
   document.getElementById('h-minhas-tarefas').style.display=mt.length?'block':'none';
@@ -434,7 +434,7 @@ async function carregarControle(){
     + c.dias.map(d=>`<th style="padding:6px 2px;color:var(--mut);font-weight:500;font-size:10px">${d.label}<br>${d.data.slice(0,5)}</th>`).join('')
     + '<th style="padding:6px 4px;color:var(--mut);font-weight:500">Total</th></tr>'
     + c.consultores.map(x=>`<tr style="border-top:1px solid var(--bord)">
-        <td style="padding:8px 4px;cursor:pointer" onclick="abrirPerfil('${x.nome}')">${balaoNome(x.nome,x.cor)}</td>
+        <td style="padding:8px 4px;cursor:pointer" onclick="abrirPerfil('${x.email}')">${balaoNome(x.nome,x.cor)}</td>
         ${(x.enviosDetalhe||x.envios.map(e=>({enviou:e,feitas:0}))).map(e=>`<td style="text-align:center;padding:8px 2px;font-size:11px" title="${e.feitas||0} rotinas">${e.enviou?`<span style="color:#0F6E56;font-weight:600">${e.feitas}</span>`:'<span style="color:#E24B4A">0</span>'}</td>`).join('')}
         <td style="text-align:center;padding:8px 4px;font-weight:600;color:${x.totalEnvios>=5?'#0F6E56':x.totalEnvios>=3?'#854F0B':'#A32D2D'}">${x.totalEnvios}/7</td>
       </tr>`).join('');
@@ -452,7 +452,7 @@ function renderTarefas(){
     if(busca&&!ab.length&&!ft.length)return '';
     return `<div class="card">
       <div class="row" style="margin-bottom:6px">
-        <div class="titulo" style="cursor:pointer;color:var(--acc)" onclick="abrirPerfil('${x.nome}')">${x.nome}</div>
+        <div class="titulo" style="cursor:pointer;color:var(--acc)" onclick="abrirPerfil('${x.email}')">${x.nome}</div>
         <div style="display:flex;gap:6px"><span class="badge b-warn">${ab.length} abertas</span><span class="badge b-ok">${ft.length} feitas</span></div>
       </div>
       ${ab.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--bord)"><span style="font-size:13px">${t.atrasada?'🔴':'🟡'} ${t.titulo}</span><span style="display:flex;gap:6px;align-items:center;white-space:nowrap;margin-left:8px"><span class="mut">${t.status}${t.prazo?' · '+t.prazo.slice(8,10)+'/'+t.prazo.slice(5,7):''}</span>${t.id?`<button class="btn sec2" style="padding:4px 8px;font-size:11px;color:var(--no)" onclick="cancelarAtvGestor('${t.id}')" title="Cancelar">✕</button>`:''}</span></div>`).join('')}
@@ -539,7 +539,7 @@ async function carregarVendasG(){
   window._vgDash=dash.consultores||[];
   renderVgChips();
   const max=Math.max(1,...window._vgDash.map(c=>Math.max(c.total,c.meta||0)));
-  document.getElementById('vg-bars').innerHTML=window._vgDash.map(c=>`<div onclick="focarConsultorVenda('${(c.nome||'').replace(/'/g,"\\'")}')" style="margin-bottom:10px;cursor:pointer;padding:6px;border-radius:10px;border:1px solid ${_vgSel.has(c.nome)?'var(--acc)':'transparent'};${_vgSel.size&&!_vgSel.has(c.nome)?'opacity:.45':''}"><div class="row" style="font-size:12px"><span style="display:flex;align-items:center;gap:6px">${avatarHTML(c.nome,c.cor,22,c.foto)}${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}${c.papel==='gestor'?' <span class="mut" style="font-weight:400">(gestor)</span>':''}</span><span style="font-weight:700">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div>${c.negociando?`<div class="mut" style="font-size:11px;margin-top:3px">🤝 em negociação: <b style="color:var(--warn)">${moneyG(c.negociando)}</b></div>`:''}</div>`).join('')||'<div class="mut">Nenhum vendedor</div>';
+  document.getElementById('vg-bars').innerHTML=window._vgDash.map(c=>`<div onclick="focarConsultorVenda('${c.email}')" style="margin-bottom:10px;cursor:pointer;padding:6px;border-radius:10px;border:1px solid ${_vgSel.has(c.email)?'var(--acc)':'transparent'};${_vgSel.size&&!_vgSel.has(c.email)?'opacity:.45':''}"><div class="row" style="font-size:12px"><span style="display:flex;align-items:center;gap:6px">${avatarHTML(c.nome,c.cor,22,c.foto)}${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}${c.papel==='gestor'?' <span class="mut" style="font-weight:400">(gestor)</span>':''}</span><span style="font-weight:700">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div>${c.negociando?`<div class="mut" style="font-size:11px;margin-top:3px">🤝 em negociação: <b style="color:var(--warn)">${moneyG(c.negociando)}</b></div>`:''}</div>`).join('')||'<div class="mut">Nenhum vendedor</div>';
   const de=vgMesRef+'-01',ate=vgMesRef+'-31';
   const vd=await (await fetch('/api/vendas?de='+de+'&ate='+ate)).json();window._vgAll=vd.vendas||[];
   renderVgKanban();
@@ -547,18 +547,18 @@ async function carregarVendasG(){
 function renderVgChips(){
   const el=document.getElementById('vg-chips');if(!el)return;
   el.innerHTML=`<button class="chip ${_vgSel.size===0?'on':''}" onclick="_vgSel.clear();renderVgChips();renderVgKanban();atualizarBarsOpacidade()">Todos</button>`+
-    (window._vgDash||[]).map(c=>`<button class="chip ${_vgSel.has(c.nome)?'on':''}" onclick="toggleVgSel('${(c.nome||'').replace(/'/g,"\\'")}')">${esc(c.nome)}</button>`).join('');
+    (window._vgDash||[]).map(c=>`<button class="chip ${_vgSel.has(c.email)?'on':''}" onclick="toggleVgSel('${c.email}')">${esc(c.nome)}</button>`).join('');
 }
-function toggleVgSel(nome){if(_vgSel.has(nome))_vgSel.delete(nome);else _vgSel.add(nome);renderVgChips();renderVgKanban();atualizarBarsOpacidade();}
-function focarConsultorVenda(nome){
-  if(_vgSel.size===1&&_vgSel.has(nome)){_vgSel.clear();}else{_vgSel=new Set([nome]);}
+function toggleVgSel(email){if(_vgSel.has(email))_vgSel.delete(email);else _vgSel.add(email);renderVgChips();renderVgKanban();atualizarBarsOpacidade();}
+function focarConsultorVenda(email){
+  if(_vgSel.size===1&&_vgSel.has(email)){_vgSel.clear();}else{_vgSel=new Set([email]);}
   renderVgChips();renderVgKanban();atualizarBarsOpacidade();
   if(_vgSel.size){const el=document.getElementById('vg-neg-h');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
 }
-function atualizarBarsOpacidade(){document.querySelectorAll('#vg-bars>div').forEach((d,i)=>{const c=(window._vgDash||[])[i];if(c)d.style.opacity=(_vgSel.size&&!_vgSel.has(c.nome))?'.4':'1';});if(typeof vgView!=='undefined'&&vgView==='clientes')carregarClientesG();}
+function atualizarBarsOpacidade(){document.querySelectorAll('#vg-bars>div').forEach((d,i)=>{const c=(window._vgDash||[])[i];if(c)d.style.opacity=(_vgSel.size&&!_vgSel.has(c.email))?'.4':'1';});if(typeof vgView!=='undefined'&&vgView==='clientes')carregarClientesG();}
 function renderVgKanban(){
   let list=(window._vgAll||[]);
-  if(_vgSel.size)list=list.filter(v=>_vgSel.has(v.consultor));
+  if(_vgSel.size)list=list.filter(v=>_vgSel.has(String(v.consultorEmail||'').toLowerCase()));
   const neg=list.filter(v=>v.status!=='fechada'),fec=list.filter(v=>v.status==='fechada');
   const totFec=fec.reduce((s,v)=>s+(+v.valor||0),0);
   document.getElementById('vg-total').textContent=moneyG(totFec);
@@ -644,7 +644,7 @@ function abrirVendaG(id){const v=(window._vgAll||[]).find(x=>x.id===id);if(!v)re
 async function carregarRanking(){
   const res=await fetch('/api/gestor/ranking');const r=await res.json();
   document.getElementById('meta-input').value=r.metaSemanal;
-  document.getElementById('ranking-lista').innerHTML=r.ranking.map(x=>`<div class="card"><div class="row"><div class="titulo" style="cursor:pointer;color:var(--acc);display:flex;align-items:center;gap:8px" onclick="abrirPerfil('${x.nome}')"><span style="font-weight:700">${x.medalha||x.pos+'º'}</span>${avatarHTML(x.nome,x.cor,28,x.foto)}${x.nome}${x.time?` <span class="mut" style="font-weight:400">· ${x.time}</span>`:''}</div><div style="font-weight:800">${x.pontos}<span class="mut" style="font-weight:400;font-size:11px"> / 200 pts</span></div></div>
+  document.getElementById('ranking-lista').innerHTML=r.ranking.map(x=>`<div class="card"><div class="row"><div class="titulo" style="cursor:pointer;color:var(--acc);display:flex;align-items:center;gap:8px" onclick="abrirPerfil('${x.email}')"><span style="font-weight:700">${x.medalha||x.pos+'º'}</span>${avatarHTML(x.nome,x.cor,28,x.foto)}${x.nome}${x.time?` <span class="mut" style="font-weight:400">· ${x.time}</span>`:''}</div><div style="font-weight:800">${x.pontos}<span class="mut" style="font-weight:400;font-size:11px"> / 200 pts</span></div></div>
     <div style="margin-top:8px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>💰 ${moneyG(x.vendido)}${x.metaVenda?(' / '+moneyG(x.metaVenda)):' (sem meta)'}</span><span style="font-weight:700;color:#3E8E6E">${x.vendasPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.vendasPct}%;height:100%;background:#3E8E6E"></div></div></div>
     <div style="margin-top:6px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>✅ Check-in ${x.checkAtual}/${x.checkAlvo}</span><span style="font-weight:700;color:#5175A0">${x.checkPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.checkPct}%;height:100%;background:#5175A0"></div></div></div>
   </div>`).join('')||'<div class="mut" style="padding:0 4px">Sem consultores</div>';
@@ -655,14 +655,14 @@ async function abrirChatLista(){
   document.getElementById('chat-thread-wrap').style.display='none';
   document.getElementById('chat-titulo').textContent='💬 Conversas do time';
   const res=await fetch('/api/chat');const j=await res.json();
-  document.getElementById('chat-lista').innerHTML=(j.lista||[]).map(c=>`<div class="card row" style="cursor:pointer" onclick="abrirChatThread('${c.nome}')"><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:34px;height:34px;font-size:12px">${c.nome.slice(0,2).toUpperCase()}</div><div class="titulo">${c.nome}</div></div>${c.naoLidas>0?`<span class="badge b-no">${c.naoLidas} nova(s)</span>`:'<span class="mut">›</span>'}</div>`).join('');
+  document.getElementById('chat-lista').innerHTML=(j.lista||[]).map(c=>`<div class="card row" style="cursor:pointer" onclick="abrirChatThread('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,'',34,c.foto)}<div class="titulo">${c.nome}</div></div>${c.naoLidas>0?`<span class="badge b-no">${c.naoLidas} nova(s)</span>`:'<span class="mut">›</span>'}</div>`).join('')||'<div class="mut" style="padding:10px">Nenhum consultor no time</div>';
 }
-async function abrirChatThread(nome){
-  chatConsultor=nome;
+async function abrirChatThread(login,nome){
+  chatConsultor=login;
   document.getElementById('chat-lista-wrap').style.display='none';
   document.getElementById('chat-thread-wrap').style.display='flex';
-  document.getElementById('chat-titulo').textContent='💬 '+nome;
-  const res=await fetch('/api/chat?consultor='+encodeURIComponent(nome));const j=await res.json();
+  const res=await fetch('/api/chat?consultor='+encodeURIComponent(login));const j=await res.json();
+  document.getElementById('chat-titulo').textContent='💬 '+(nome||j.consultor||'');
   const box=document.getElementById('chat-msgs');
   box.innerHTML=(j.mensagens||[]).map(m=>{const meu=m.de==='gestor';return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px"><div style="font-size:14px">${m.texto}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`}).join('')||'<div class="mut" style="text-align:center;padding:20px">Sem mensagens ainda</div>';
   box.scrollTop=box.scrollHeight;
@@ -684,17 +684,18 @@ function renderConsultores(){
   const lista=_consultores.filter(c=>c.nome.toLowerCase().includes(busca));
   document.getElementById('lista-consultores').innerHTML=lista.map(c=>{
     const ab=c.tarefas.abertas.length,ft=c.tarefas.feitas.length;
-    return `<div class="card row" style="cursor:pointer" onclick="abrirPerfil('${c.nome}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,c.cor,34,c.foto)}<div>${balaoNome(c.nome,c.cor)}<div class="mut" style="font-size:11px;margin-top:2px">${c.totalEnvios}/7 check-ins · ${ab} tarefas abertas · ${ft} feitas</div></div></div><span class="mut">›</span></div>`;
+    return `<div class="card row" style="cursor:pointer" onclick="abrirPerfil('${c.email}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,c.cor,34,c.foto)}<div>${balaoNome(c.nome,c.cor)}<div class="mut" style="font-size:11px;margin-top:2px">${c.totalEnvios}/7 check-ins · ${ab} tarefas abertas · ${ft} feitas</div></div></div><span class="mut">›</span></div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nenhum consultor</div>';
 }
 function estiloCorSolidaG(cor){if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%);color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#fff`;return ''}
 function aplicarCorAvatar(el,cor){if(!cor)return;el.style.border='none';if(cor==='grad'){el.style.background='linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%)';el.style.color='#fff'}else if((cor||'').toLowerCase()==='#ffffff'){el.style.background='#fff';el.style.color='#1a1a18';el.style.border='1px solid #d4d2cb'}else{el.style.background=cor;el.style.color='#fff'}}
 let perfilAtual=null;
-async function abrirPerfil(nome){
-  perfilAtual=nome;
-  const res=await fetch('/api/gestor/consultor?nome='+encodeURIComponent(nome));
+async function abrirPerfil(login){
+  perfilAtual=login;
+  const res=await fetch('/api/gestor/consultor?email='+encodeURIComponent(login));
   const p=await res.json();
-  const av=document.getElementById('pf-avatar');const pf=p.foto||(window._fotos&&window._fotos[nome])||'';
+  const nome=p.nome||'';
+  const av=document.getElementById('pf-avatar');const pf=p.foto||'';
   if(pf){av.textContent='';av.style.cssText='width:48px;height:48px;border-radius:50%;background-image:url('+pf+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
   else{av.textContent=nome.slice(0,2).toUpperCase();av.style.cssText='width:48px;height:48px;font-size:16px';aplicarCorAvatar(av,p.cor);}
   document.getElementById('pf-nome').innerHTML=p.nome+(p.cargo?` <span style="font-size:11px;${estiloCor(p.cor)};padding:2px 9px;border-radius:10px;font-weight:500">${p.cargo}</span>`:'');
@@ -731,16 +732,16 @@ async function carregarDestinatarios(force){
   try{
     const res=await fetch('/api/gestor/destinatarios');const d=await res.json();
     let html='<option value="">Escolha o destinatário…</option>';
-    if((d.consultores||[]).length){html+='<optgroup label="Consultores">'+d.consultores.map(c=>`<option>${c.nome}</option>`).join('')+'</optgroup>';}
-    if((d.gestores||[]).length){html+='<optgroup label="Gestores">'+d.gestores.map(g=>`<option>${g.nome}</option>`).join('')+'</optgroup>';}
+    if((d.consultores||[]).length){html+='<optgroup label="Consultores">'+d.consultores.map(c=>`<option value="${c.login}">${c.nomeCompleto||c.nome}</option>`).join('')+'</optgroup>';}
+    if((d.gestores||[]).length){html+='<optgroup label="Gestores">'+d.gestores.map(g=>`<option value="${g.login}">${g.nome}</option>`).join('')+'</optgroup>';}
     sel.innerHTML=html;
     if(atual)sel.value=atual;
   }catch(e){}
 }
 async function novaAtividade(){
-  const consultor=document.getElementById('na-consultor').value, titulo=document.getElementById('na-titulo').value.trim();
-  if(!consultor||!titulo){toast('Escolha o consultor e escreva a atividade');return}
-  const res=await fetch('/api/gestor/atividade',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({consultor,titulo,tipo:document.getElementById('na-tipo').value,prazo:document.getElementById('na-prazo').value,recorrente:document.getElementById('na-recorrente').checked})});
+  const consultorEmail=document.getElementById('na-consultor').value, titulo=document.getElementById('na-titulo').value.trim();
+  if(!consultorEmail||!titulo){toast('Escolha o destinatário e escreva a atividade');return}
+  const res=await fetch('/api/gestor/atividade',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({consultorEmail,titulo,tipo:document.getElementById('na-tipo').value,prazo:document.getElementById('na-prazo').value,recorrente:document.getElementById('na-recorrente').checked})});
   const j=await res.json();
   if(j.ok){toast('Atividade criada ✓');document.getElementById('na-titulo').value='';document.getElementById('na-recorrente').checked=false;carregar()}else toast(j.erro||'Erro');
 }

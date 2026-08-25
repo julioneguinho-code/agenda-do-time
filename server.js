@@ -141,7 +141,7 @@ const server = http.createServer(async (req, res) => {
       // --- gestor
       if (session.papel !== 'gestor' && p.startsWith('/api/gestor')) return send(res, 403, { erro: 'Somente gestores' });
       if (p === '/api/gestor/painel') return send(res, 200, await notion.painelGestor(session));
-      if (p === '/api/gestor/consultor') return send(res, 200, await notion.perfilConsultor(session, url.searchParams.get('nome')));
+      if (p === '/api/gestor/consultor') return send(res, 200, await notion.perfilConsultor(session, url.searchParams.get('email') || url.searchParams.get('nome')));
       if (p === '/api/gestor/controle') return send(res, 200, await notion.controleGestor(session));
       if (p === '/api/gestor/ranking') return send(res, 200, await notion.rankingGestor(session));
       if (p === '/api/gestor/meta' && req.method === 'POST') return send(res, 200, await notion.definirMeta(session, await readBody(req)));
