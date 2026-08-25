@@ -196,8 +196,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <div style="font-weight:700" id="vg-mes-lbl">—</div>
       <button class="btn sec2" style="padding:5px 12px" onclick="vgMes(1)">▶</button>
     </div>
-    <div class="mut" style="font-size:12px;margin:2px 2px 6px">Filtrar consultores (toque para escolher vários):</div>
-    <div id="vg-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
+    <div class="mut" style="font-size:12px;margin:2px 2px 6px">Filtrar por time:</div>
+    <div id="vg-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
+    <div style="position:relative;margin-bottom:10px">
+      <input type="text" id="vg-busca" placeholder="🔎 Buscar consultor individual" autocomplete="off" oninput="renderVgBusca()" onfocus="renderVgBusca()" style="width:100%;padding:10px 12px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
+      <div id="vg-busca-drop" style="display:none;position:absolute;left:0;right:0;top:44px;z-index:50;background:var(--card);border:1px solid var(--bord);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);max-height:220px;overflow:auto"></div>
+    </div>
+    <div id="vg-sel-consultor" style="display:none;margin-bottom:10px"></div>
     <div class="kpis"><div class="kpi"><div class="l">Total fechado</div><div class="v" id="vg-total" style="color:var(--ok)">—</div></div><div class="kpi"><div class="l">Meta do time</div><div class="v" id="vg-meta">—</div></div><div class="kpi"><div class="l">Bateram meta</div><div class="v" id="vg-bateram">0</div></div></div>
     <div class="h">📊 Fechado por consultor</div>
     <div class="card"><div id="vg-bars"></div></div>
@@ -498,13 +503,27 @@ async function salvarPlanilhaContratacao(){
 }
 function moneyG(v){return 'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 let vgMesRef=new Date().toISOString().slice(0,7);
-let _vgSel=new Set();
+// filtro de vendas: por TIME (vgTime) ou por CONSULTOR individual (vgConsultor = login)
+let vgTime='';        // '' = Todos
+let vgConsultor='';   // login do consultor buscado
+let vgConsultorNome='';
+function vgConsultorParam(){ // logins que o filtro atual representa (para a API de clientes)
+  if(vgConsultor) return vgConsultor;
+  if(vgTime) return (window._vgDash||[]).filter(c=>(c.time||'')===vgTime).map(c=>c.email).join(',');
+  return '';
+}
 function fmtCpfG(c){c=String(c||'').replace(/\D/g,'');if(c.length!==11)return c;return c.slice(0,3)+'.'+c.slice(3,6)+'.'+c.slice(6,9)+'-'+c.slice(9)}
 function cpfValidoG(cpf){cpf=String(cpf||'').replace(/\D/g,'');if(cpf.length!==11)return false;if(/^(\d)\1{10}$/.test(cpf))return false;let s=0;for(let i=0;i<9;i++)s+=parseInt(cpf[i])*(10-i);let d1=11-(s%11);if(d1>=10)d1=0;if(d1!==parseInt(cpf[9]))return false;s=0;for(let i=0;i<10;i++)s+=parseInt(cpf[i])*(11-i);let d2=11-(s%11);if(d2>=10)d2=0;return d2===parseInt(cpf[10]);}
+// tipo da cota (cores suaves) — reaproveitável em outros projetos
+const TIPOS_COTA={veiculo:{label:'Veículo',emoji:'🚗',bg:'#E4ECF5',bd:'#9BB6D4',tx:'#3E5F86',dot:'#5E82AC'},imovel:{label:'Imóvel',emoji:'🏠',bg:'#F4E7E5',bd:'#D6A8A2',tx:'#8C463F',dot:'#B5645C'},servicos:{label:'Serviços',emoji:'🛠️',bg:'#F5EFDC',bd:'#D9C58C',tx:'#7E661E',dot:'#C6A24A'}};
+function tipoInfo(t){return TIPOS_COTA[String(t||'').toLowerCase()]||null;}
+function tipoPill(t){const i=tipoInfo(t);if(!i)return '';return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:${i.bg};color:${i.tx};border:1px solid ${i.bd}">${i.emoji} ${i.label}</span>`;}
+function tipoSelectorG(val){return `<div style="display:flex;gap:6px">`+Object.keys(TIPOS_COTA).map(k=>{const i=TIPOS_COTA[k];const on=String(val||'')===k;return `<button type="button" data-tipo="${k}" onclick="pickTipoG(this)" style="flex:1;padding:9px 4px;border-radius:10px;border:1.5px solid ${on?i.dot:'var(--bord)'};background:${on?i.bg:'transparent'};color:${on?i.tx:'var(--txt)'};font-size:13px;font-weight:600;cursor:pointer">${i.emoji} ${i.label}</button>`;}).join('')+`</div><input type="hidden" id="vgf-tipo" value="${String(val||'')}">`;}
+function pickTipoG(btn){const wrap=btn.parentElement;const k=btn.dataset.tipo;const inp=document.getElementById('vgf-tipo');const atual=inp?inp.value:'';const novo=atual===k?'':k;if(inp)inp.value=novo;wrap.querySelectorAll('button[data-tipo]').forEach(b=>{const i=TIPOS_COTA[b.dataset.tipo];const on=b.dataset.tipo===novo;b.style.border='1.5px solid '+(on?i.dot:'var(--bord)');b.style.background=on?i.bg:'transparent';b.style.color=on?i.tx:'var(--txt)';});}
 let vgView='painel';
 function setVgView(v){vgView=v;document.getElementById('vgv-painel').classList.toggle('on',v==='painel');document.getElementById('vgv-clientes').classList.toggle('on',v==='clientes');document.getElementById('vg-painel-wrap').style.display=v==='painel'?'block':'none';document.getElementById('vg-clientes-wrap').style.display=v==='clientes'?'block':'none';if(v==='clientes')carregarClientesG();}
 async function carregarClientesG(){
-  const consultor=_vgSel.size?[..._vgSel].join(','):'';
+  const consultor=vgConsultorParam();
   const q=(document.getElementById('vgc-busca').value||'').trim();
   const qs=[];if(q)qs.push('q='+encodeURIComponent(q));if(consultor)qs.push('consultor='+encodeURIComponent(consultor));
   const j=await(await fetch('/api/gestor/clientes'+(qs.length?'?'+qs.join('&'):''))).json();
@@ -525,7 +544,7 @@ function renderClientesGList(){
 }
 function abrirClienteG(i){
   const c=(window._clientesG||[])[i];if(!c)return;
-  const linhas=(c.vendas||[]).map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${esc(v.consultor)} · ${(v.data||'').split('-').reverse().join('/')}</div></div><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅':'🤝'}</span></div></div>`).join('');
+  const linhas=(c.vendas||[]).map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${esc(v.consultor)} · ${(v.data||'').split('-').reverse().join('/')}</div>${v.tipo?`<div style="margin-top:4px">${tipoPill(v.tipo)}</div>`:''}</div><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅':'🤝'}</span></div></div>`).join('');
   abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s) · Fechado ${moneyG(c.fechado)} · Negociação ${moneyG(c.negociacao)}</div>${linhas}`);
 }
 function parseBRG(s){s=String(s).replace(/[^\d.,-]/g,'');if(s.includes(',')){s=s.replace(/\./g,'').replace(',','.');}return parseFloat(s)||0;}
@@ -537,34 +556,51 @@ async function carregarVendasG(){
   document.getElementById('vg-meta').textContent=moneyG(dash.totalMeta);
   document.getElementById('vg-bateram').textContent=dash.bateram;
   window._vgDash=dash.consultores||[];
-  renderVgChips();
+  renderVgTimes();renderSelConsultor();
   const max=Math.max(1,...window._vgDash.map(c=>Math.max(c.total,c.meta||0)));
-  document.getElementById('vg-bars').innerHTML=window._vgDash.map(c=>`<div onclick="focarConsultorVenda('${c.email}')" style="margin-bottom:10px;cursor:pointer;padding:6px;border-radius:10px;border:1px solid ${_vgSel.has(c.email)?'var(--acc)':'transparent'};${_vgSel.size&&!_vgSel.has(c.email)?'opacity:.45':''}"><div class="row" style="font-size:12px"><span style="display:flex;align-items:center;gap:6px">${avatarHTML(c.nome,c.cor,22,c.foto)}${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}${c.papel==='gestor'?' <span class="mut" style="font-weight:400">(gestor)</span>':''}</span><span style="font-weight:700">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div>${c.negociando?`<div class="mut" style="font-size:11px;margin-top:3px">🤝 em negociação: <b style="color:var(--warn)">${moneyG(c.negociando)}</b></div>`:''}</div>`).join('')||'<div class="mut">Nenhum vendedor</div>';
+  document.getElementById('vg-bars').innerHTML=window._vgDash.map(c=>`<div onclick="selVgConsultor('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')" style="margin-bottom:10px;cursor:pointer;padding:6px;border-radius:10px;border:1px solid ${vgConsultor===c.email?'var(--acc)':'transparent'};${vgFiltroAtivo()&&!vgConsVisivel(c)?'opacity:.45':''}"><div class="row" style="font-size:12px"><span style="display:flex;align-items:center;gap:6px">${avatarHTML(c.nome,c.cor,22,c.foto)}${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}${c.papel==='gestor'?' <span class="mut" style="font-weight:400">(gestor)</span>':''}</span><span style="font-weight:700">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div>${c.negociando?`<div class="mut" style="font-size:11px;margin-top:3px">🤝 em negociação: <b style="color:var(--warn)">${moneyG(c.negociando)}</b></div>`:''}</div>`).join('')||'<div class="mut">Nenhum vendedor</div>';
   const de=vgMesRef+'-01',ate=vgMesRef+'-31';
   const vd=await (await fetch('/api/vendas?de='+de+'&ate='+ate)).json();window._vgAll=vd.vendas||[];
   renderVgKanban();
 }
-function renderVgChips(){
+function vgFiltroAtivo(){return !!(vgTime||vgConsultor);}
+function vgConsVisivel(c){ if(vgConsultor) return c.email===vgConsultor; if(vgTime) return (c.time||'')===vgTime; return true; }
+function vgTimes(){ return [...new Set((window._vgDash||[]).map(c=>c.time||'').filter(Boolean))].sort((a,b)=>a.localeCompare(b)); }
+function renderVgTimes(){
   const el=document.getElementById('vg-chips');if(!el)return;
-  el.innerHTML=`<button class="chip ${_vgSel.size===0?'on':''}" onclick="_vgSel.clear();renderVgChips();renderVgKanban();atualizarBarsOpacidade()">Todos</button>`+
-    (window._vgDash||[]).map(c=>`<button class="chip ${_vgSel.has(c.email)?'on':''}" onclick="toggleVgSel('${c.email}')">${esc(c.nome)}</button>`).join('');
+  el.innerHTML=`<button class="chip ${(!vgTime&&!vgConsultor)?'on':''}" onclick="setVgTime('')">Todos</button>`+
+    vgTimes().map(t=>`<button class="chip ${vgTime===t?'on':''}" onclick="setVgTime('${(t||'').replace(/'/g,"\\'")}')">${esc(t)}</button>`).join('');
 }
-function toggleVgSel(email){if(_vgSel.has(email))_vgSel.delete(email);else _vgSel.add(email);renderVgChips();renderVgKanban();atualizarBarsOpacidade();}
-function focarConsultorVenda(email){
-  if(_vgSel.size===1&&_vgSel.has(email)){_vgSel.clear();}else{_vgSel=new Set([email]);}
-  renderVgChips();renderVgKanban();atualizarBarsOpacidade();
-  if(_vgSel.size){const el=document.getElementById('vg-neg-h');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+function setVgTime(t){vgTime=t;vgConsultor='';vgConsultorNome='';document.getElementById('vg-busca').value='';fecharVgDrop();atualizarVgVisual();}
+function selVgConsultor(email,nome){vgConsultor=email;vgConsultorNome=nome||'';vgTime='';document.getElementById('vg-busca').value='';fecharVgDrop();atualizarVgVisual();const el=document.getElementById('vg-neg-h');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+function limparVgConsultor(){vgConsultor='';vgConsultorNome='';atualizarVgVisual();}
+function renderSelConsultor(){
+  const el=document.getElementById('vg-sel-consultor');if(!el)return;
+  if(!vgConsultor){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='block';
+  el.innerHTML=`<span class="chip on" style="display:inline-flex;align-items:center;gap:8px">👤 ${esc(vgConsultorNome||vgConsultor)}<span onclick="limparVgConsultor()" style="cursor:pointer;font-weight:700">✕</span></span>`;
 }
-function atualizarBarsOpacidade(){document.querySelectorAll('#vg-bars>div').forEach((d,i)=>{const c=(window._vgDash||[])[i];if(c)d.style.opacity=(_vgSel.size&&!_vgSel.has(c.email))?'.4':'1';});if(typeof vgView!=='undefined'&&vgView==='clientes')carregarClientesG();}
+function renderVgBusca(){
+  const inp=document.getElementById('vg-busca'),drop=document.getElementById('vg-busca-drop');if(!inp||!drop)return;
+  const q=(inp.value||'').trim().toLowerCase();
+  if(!q){fecharVgDrop();return;}
+  const matches=(window._vgDash||[]).filter(c=>(c.nome||'').toLowerCase().includes(q)||(c.email||'').toLowerCase().includes(q)).slice(0,12);
+  drop.innerHTML=matches.length?matches.map(c=>`<div onclick="selVgConsultor('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')" style="display:flex;align-items:center;gap:8px;padding:9px 11px;cursor:pointer;border-bottom:1px solid var(--bord)">${avatarHTML(c.nome,c.cor,26,c.foto)}<div><div style="font-size:13px;font-weight:600">${esc(c.nome)}</div><div class="mut" style="font-size:11px">${esc(c.email)}${c.time?' · '+esc(c.time):''}</div></div></div>`).join(''):'<div class="mut" style="padding:10px 11px">Nenhum consultor</div>';
+  drop.style.display='block';
+}
+function fecharVgDrop(){const d=document.getElementById('vg-busca-drop');if(d)d.style.display='none';}
+document.addEventListener('click',e=>{const w=document.getElementById('vg-busca'),d=document.getElementById('vg-busca-drop');if(w&&d&&!w.contains(e.target)&&!d.contains(e.target))fecharVgDrop();});
+function atualizarVgVisual(){renderVgTimes();renderSelConsultor();renderVgKanban();document.querySelectorAll('#vg-bars>div').forEach((el,i)=>{const c=(window._vgDash||[])[i];if(!c)return;el.style.opacity=(vgFiltroAtivo()&&!vgConsVisivel(c))?'.45':'1';el.style.border='1px solid '+(vgConsultor===c.email?'var(--acc)':'transparent');});if(typeof vgView!=='undefined'&&vgView==='clientes')carregarClientesG();}
 function renderVgKanban(){
   let list=(window._vgAll||[]);
-  if(_vgSel.size)list=list.filter(v=>_vgSel.has(String(v.consultorEmail||'').toLowerCase()));
+  if(vgConsultor)list=list.filter(v=>String(v.consultorEmail||'').toLowerCase()===vgConsultor.toLowerCase());
+  else if(vgTime)list=list.filter(v=>(v.time||'')===vgTime);
   const neg=list.filter(v=>v.status!=='fechada'),fec=list.filter(v=>v.status==='fechada');
   const totFec=fec.reduce((s,v)=>s+(+v.valor||0),0);
   document.getElementById('vg-total').textContent=moneyG(totFec);
   document.getElementById('vg-neg-h').innerHTML=`🤝 Em negociação <span class="mut" style="font-weight:400">(${neg.length})</span>`;
   document.getElementById('vg-fec-h').innerHTML=`✅ Fechadas <span class="mut" style="font-weight:400">(${fec.length})</span>`;
-  const card=v=>`<div class="card" style="padding:10px 11px;margin-bottom:8px;cursor:pointer" onclick="abrirVendaG('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px"><div style="min-width:0"><div style="font-size:16px;font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="titulo" style="font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(v.cliente&&v.cliente.nome)||''}</div></div><input type="checkbox" ${v.status==='fechada'?'checked':''} title="Marcar como fechada" onclick="event.stopPropagation();toggleFechadaG('${v.id}',this.checked)" style="width:22px;height:22px;accent-color:var(--ok);flex:none"></div><div class="mut" style="font-size:11px;margin-top:3px">${esc(v.consultor)} · ${(v.data||'').slice(8,10)}/${(v.data||'').slice(5,7)}</div></div>`;
+  const card=v=>`<div class="card" style="padding:10px 11px;margin-bottom:8px;cursor:pointer" onclick="abrirVendaG('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px"><div style="min-width:0"><div style="font-size:16px;font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="titulo" style="font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(v.cliente&&v.cliente.nome)||''}</div></div><input type="checkbox" ${v.status==='fechada'?'checked':''} title="Marcar como fechada" onclick="event.stopPropagation();toggleFechadaG('${v.id}',this.checked)" style="width:22px;height:22px;accent-color:var(--ok);flex:none"></div><div class="mut" style="font-size:11px;margin-top:3px">${esc(v.consultor)} · ${(v.data||'').slice(8,10)}/${(v.data||'').slice(5,7)}</div>${v.tipo?`<div style="margin-top:5px">${tipoPill(v.tipo)}</div>`:''}</div>`;
   document.getElementById('vg-neg').innerHTML=neg.map(card).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
   document.getElementById('vg-fec').innerHTML=fec.map(card).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
 }
@@ -583,6 +619,7 @@ function formVendaG(v,novo){v=v||{};const c=v.cliente||{};return `
   <label style="font-size:12px;color:var(--mut)">CPF <span style="font-weight:400">(obrigatório para efetivar)</span></label><input type="text" id="vgf-cpf" inputmode="numeric" value="${esc(fmtCpfG(c.cpf))}" placeholder="000.000.000-00" oninput="this.value=fmtCpfG(this.value)" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
   <label style="font-size:12px;color:var(--mut)">Valor da venda</label><div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><span class="mut">R$</span><input type="text" inputmode="decimal" id="vgf-valor" value="${v.valor?moneyG(v.valor).replace('R$ ',''):''}" placeholder="0,00" onblur="this.value=this.value?moneyG(parseBRG(this.value)).replace('R$ ',''):''" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
   <div style="display:flex;gap:8px"><div style="flex:1"><label style="font-size:12px;color:var(--mut)">Grupo</label><input type="text" id="vgf-grupo" value="${esc(v.grupo)}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div><div style="flex:1"><label style="font-size:12px;color:var(--mut)">Cota</label><input type="text" id="vgf-cota" value="${esc(v.cota)}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div></div>
+  <label style="font-size:12px;color:var(--mut);margin-top:8px;display:block">Tipo da cota</label>${tipoSelectorG(v.tipo||'')}
   <label style="font-size:12px;color:var(--mut);margin-top:8px;display:block">Data do fechamento</label><input type="date" id="vgf-data" value="${v.data||new Date().toISOString().slice(0,10)}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-bottom:6px"><input type="checkbox" id="vgf-fechada" ${v.status==='fechada'?'checked':''} style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Venda fechada</label>`;}
 function formVendaGMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre.lock;const inp='width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)';return `
@@ -590,6 +627,7 @@ function formVendaGMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre
   <label style="font-size:12px;color:var(--mut)">Cliente</label><input type="text" id="vgf-nome" value="${esc(c.nome||'')}" placeholder="Nome do cliente" ${lock?'readonly':''} style="${inp};margin-bottom:8px${lock?';opacity:.7':''}">
   <label style="font-size:12px;color:var(--mut)">CPF <span style="font-weight:400">(obrigatório para efetivar)</span></label><input type="text" id="vgf-cpf" inputmode="numeric" value="${esc(fmtCpfG(c.cpf||''))}" placeholder="000.000.000-00" oninput="this.value=fmtCpfG(this.value)" ${lock&&c.cpf?'readonly':''} style="${inp};margin-bottom:8px${lock&&c.cpf?';opacity:.7':''}">
   <label style="font-size:12px;color:var(--mut)">Data do fechamento</label><input type="date" id="vgf-data" value="${new Date().toISOString().slice(0,10)}" style="${inp};margin-bottom:8px">
+  <label style="font-size:12px;color:var(--mut)">Tipo da cota</label>${tipoSelectorG(pre.tipo||'')}
   <div style="font-weight:700;font-size:13px;margin:10px 0 6px">Cotas</div>
   <div id="vgf-cotas"></div>
   <button class="btn sec2" style="width:100%;padding:8px" onclick="addCotaRowG()">➕ adicionar outra cota</button>
@@ -606,16 +644,17 @@ async function salvarVendaGMulti(){
   if(!nome){toast('Informe o nome do cliente');return}
   if(cpfDig&&!cpfValidoG(cpfDig)){toast('CPF inválido — confira os números');return}
   if(status==='fechada'&&!cpfValidoG(cpfDig)){toast('Para efetivar, informe um CPF válido do cliente');return}
+  const tipo=(document.getElementById('vgf-tipo')||{}).value||'';
   const rows=[...document.querySelectorAll('#vgf-cotas .cotaG-row')].map(r=>({grupo:r.querySelector('.cg-grupo').value.trim(),cota:r.querySelector('.cg-cota').value.trim(),valor:parseBRG(r.querySelector('.cg-valor').value)})).filter(r=>r.valor>0);
   if(!rows.length){toast('Adicione ao menos uma cota com valor');return}
   const consultorEmail=selC&&selC.value?selC.value:undefined;
   let ok=0,erro='';
-  for(const r of rows){const body={nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,data,status};if(consultorEmail)body.consultorEmail=consultorEmail;const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await res.json();if(j.ok||j.venda)ok++;else erro=j.erro||'Erro';}
+  for(const r of rows){const body={nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,tipo,data,status};if(consultorEmail)body.consultorEmail=consultorEmail;const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await res.json();if(j.ok||j.venda)ok++;else erro=j.erro||'Erro';}
   if(ok){fecharPop();toast(ok+' cota(s) cadastrada(s) ✓'+(erro?' · '+erro:''));carregarVendasG();}else toast(erro||'Erro ao salvar');
 }
 async function salvarVendaG(id){
   const selC=document.getElementById('vgf-consultor');
-  const b={nome:document.getElementById('vgf-nome').value.trim(),cpf:document.getElementById('vgf-cpf').value,valor:parseBRG(document.getElementById('vgf-valor').value),grupo:document.getElementById('vgf-grupo').value,cota:document.getElementById('vgf-cota').value,data:document.getElementById('vgf-data').value,status:document.getElementById('vgf-fechada').checked?'fechada':'negociacao'};
+  const b={nome:document.getElementById('vgf-nome').value.trim(),cpf:document.getElementById('vgf-cpf').value,valor:parseBRG(document.getElementById('vgf-valor').value),grupo:document.getElementById('vgf-grupo').value,cota:document.getElementById('vgf-cota').value,tipo:(document.getElementById('vgf-tipo')||{}).value||'',data:document.getElementById('vgf-data').value,status:document.getElementById('vgf-fechada').checked?'fechada':'negociacao'};
   if(selC&&selC.value)b.consultorEmail=selC.value;
   if(!b.nome||!b.valor){toast('Informe o cliente e o valor');return}
   const cpfDigG=(b.cpf||'').replace(/\D/g,'');
