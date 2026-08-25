@@ -380,8 +380,9 @@ async function salvarVendaMulti(){
   if(ok){fecharPop();toast(ok+' cota(s) cadastrada(s) ✓'+(erro?' · '+erro:''));carregarVendas();}
   else toast(erro||'Erro ao salvar');
 }
-function abrirVenda(id){const v=_vendas.find(x=>x.id===id);if(!v)return;
-  abrirPop('Venda · '+money(v.valor),formVenda(v)+`<div style="display:flex;gap:6px;margin-top:6px"><button class="btn sec2" style="flex:1;color:var(--no)" onclick="excluirVendaF('${v.id}')">🗑 Excluir</button><button class="btn" style="flex:2;background:var(--ok)" onclick="salvarVenda('${v.id}')">Salvar alterações</button></div>`);}
+function abrirVenda(id){const v=_vendas.find(x=>x.id===id);if(!v)return;const c=v.cliente||{};
+  const btnCota=(c.cpf||c.nome)?`<button class="btn sec2" style="width:100%;margin-top:8px" onclick="novaVendaCliente('${encodeURIComponent(c.nome||'')}','${(c.cpf||'')}')">➕ Nova cota deste cliente</button>`:'';
+  abrirPop('Venda · '+money(v.valor),formVenda(v)+`<div style="display:flex;gap:6px;margin-top:6px"><button class="btn sec2" style="flex:1;color:var(--no)" onclick="excluirVendaF('${v.id}')">🗑 Excluir</button><button class="btn" style="flex:2;background:var(--ok)" onclick="salvarVenda('${v.id}')">Salvar alterações</button></div>${btnCota}`);}
 async function salvarVenda(id){
   const b={nome:document.getElementById('vf-nome').value.trim(),cpf:document.getElementById('vf-cpf').value,valor:parseBR(document.getElementById('vf-valor').value),grupo:document.getElementById('vf-grupo').value,cota:document.getElementById('vf-cota').value,data:document.getElementById('vf-data').value,status:(document.getElementById('vf-fechada')&&document.getElementById('vf-fechada').checked)?'fechada':'negociacao'};
   if(!b.nome||!b.valor){toast('Informe o cliente e o valor');return}
