@@ -57,9 +57,9 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <body>
 <div class="toast" id="toast"></div>
 <div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)fecharPop()">
-  <div style="background:var(--card);border-radius:18px;padding:20px;max-width:400px;width:100%;max-height:80vh;overflow:auto">
+  <div style="background:var(--card);border-radius:18px;padding:20px;max-width:400px;width:100%;max-height:80vh;overflow-y:auto;overflow-x:hidden;box-sizing:border-box">
     <div class="row" style="margin-bottom:10px"><div class="titulo" id="modal-titulo" style="font-size:16px"></div><button onclick="fecharPop()" style="border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--mut)">✕</button></div>
-    <div id="modal-corpo"></div>
+    <div id="modal-corpo" style="overflow-x:hidden"></div>
   </div>
 </div>
 <div class="top">
@@ -363,7 +363,7 @@ function formVendaMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre.
   <div id="vf-cotas"></div>
   <button class="btn sec2" style="width:100%;padding:8px" onclick="addCotaRow()">➕ adicionar outra cota</button>
   <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:14px;color:var(--txt)"><input type="checkbox" id="vf-fechada" style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Já efetivada(s) — fechada(s)</label>`;}
-function addCotaRow(g,co,val){const wrap=document.getElementById('vf-cotas');if(!wrap)return;const div=document.createElement('div');div.className='cota-row';div.style.cssText='display:flex;gap:6px;margin-bottom:6px;align-items:center';div.innerHTML=`<input class="inp2 c-grupo" placeholder="Grupo" value="${esc(g||'')}" style="flex:1;margin:0"><input class="inp2 c-cota" placeholder="Cota" value="${esc(co||'')}" style="flex:1;margin:0"><div style="display:flex;align-items:center;gap:3px;flex:1.2"><span class="mut" style="font-size:12px">R$</span><input class="inp2 c-valor" inputmode="decimal" placeholder="0,00" value="${val?fmtBR(val):''}" onblur="this.value=this.value?fmtBR(parseBR(this.value)):''" style="margin:0"></div><button class="btn sec2" onclick="this.closest('.cota-row').remove()" style="padding:7px 9px;margin:0;color:var(--no)">✕</button>`;wrap.appendChild(div);}
+function addCotaRow(g,co,val){const wrap=document.getElementById('vf-cotas');if(!wrap)return;const div=document.createElement('div');div.className='cota-row';div.style.cssText='display:flex;gap:5px;margin-bottom:6px;align-items:center;width:100%';div.innerHTML=`<input class="inp2 c-grupo" placeholder="Grupo" value="${esc(g||'')}" style="flex:1;margin:0;min-width:0"><input class="inp2 c-cota" placeholder="Cota" value="${esc(co||'')}" style="flex:1;margin:0;min-width:0"><div style="display:flex;align-items:center;gap:2px;flex:1;min-width:0"><span class="mut" style="font-size:12px">R$</span><input class="inp2 c-valor" inputmode="decimal" placeholder="0,00" value="${val?fmtBR(val):''}" onblur="this.value=this.value?fmtBR(parseBR(this.value)):''" style="margin:0;min-width:0;width:100%"></div><button class="btn sec2" onclick="this.closest('.cota-row').remove()" style="padding:7px 9px;margin:0;color:var(--no);flex:none">✕</button>`;wrap.appendChild(div);}
 function novaVenda(){abrirPop('Nova venda',formVendaMulti()+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();}
 async function salvarVendaMulti(){
   const nome=document.getElementById('vf-nome').value.trim();

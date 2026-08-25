@@ -50,9 +50,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <body>
 <div class="toast" id="toast"></div>
 <div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)fecharPop()">
-  <div style="background:var(--card);border-radius:18px;padding:20px;max-width:440px;width:100%;max-height:82vh;overflow:auto">
+  <div style="background:var(--card);border-radius:18px;padding:20px;max-width:440px;width:100%;max-height:82vh;overflow-y:auto;overflow-x:hidden;box-sizing:border-box">
     <div class="row" style="margin-bottom:10px"><div class="titulo" id="modal-titulo" style="font-size:16px"></div><button onclick="fecharPop()" style="border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--mut)">✕</button></div>
-    <div id="modal-corpo"></div>
+    <div id="modal-corpo" style="overflow-x:hidden"></div>
   </div>
 </div>
 <div class="top">
@@ -564,9 +564,17 @@ function renderVgKanban(){
   document.getElementById('vg-total').textContent=moneyG(totFec);
   document.getElementById('vg-neg-h').innerHTML=`🤝 Em negociação <span class="mut" style="font-weight:400">(${neg.length})</span>`;
   document.getElementById('vg-fec-h').innerHTML=`✅ Fechadas <span class="mut" style="font-weight:400">(${fec.length})</span>`;
-  const card=v=>`<div class="card" style="padding:10px 11px;margin-bottom:8px;cursor:pointer" onclick="abrirVendaG('${v.id}')"><div style="font-size:16px;font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="titulo" style="font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(v.cliente&&v.cliente.nome)||''}</div><div class="mut" style="font-size:11px;margin-top:3px">${esc(v.consultor)} · ${(v.data||'').slice(8,10)}/${(v.data||'').slice(5,7)}</div></div>`;
+  const card=v=>`<div class="card" style="padding:10px 11px;margin-bottom:8px;cursor:pointer" onclick="abrirVendaG('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px"><div style="min-width:0"><div style="font-size:16px;font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="titulo" style="font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(v.cliente&&v.cliente.nome)||''}</div></div><input type="checkbox" ${v.status==='fechada'?'checked':''} title="Marcar como fechada" onclick="event.stopPropagation();toggleFechadaG('${v.id}',this.checked)" style="width:22px;height:22px;accent-color:var(--ok);flex:none"></div><div class="mut" style="font-size:11px;margin-top:3px">${esc(v.consultor)} · ${(v.data||'').slice(8,10)}/${(v.data||'').slice(5,7)}</div></div>`;
   document.getElementById('vg-neg').innerHTML=neg.map(card).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
   document.getElementById('vg-fec').innerHTML=fec.map(card).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
+}
+async function toggleFechadaG(id,checked){
+  const v=(window._vgAll||[]).find(x=>x.id===id);
+  // para efetivar exige CPF válido — se não tiver, abre a venda para preencher
+  if(checked&&v&&!cpfValidoG((v.cliente&&v.cliente.cpf)||'')){toast('Para efetivar, informe um CPF válido do cliente');abrirVendaG(id);return}
+  if(v)v.status=checked?'fechada':'negociacao';renderVgKanban();
+  const r=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:checked?'fechada':'negociacao'})});
+  const j=await r.json();if(j.ok){toast(checked?'Venda fechada ✅':'Voltou para negociação');carregarVendasG();}else{toast(j.erro||'Erro');carregarVendasG();}
 }
 function selConsultorVenda(sel){const ops=(window._vgDash||[]).filter(c=>c.email).map(c=>`<option value="${esc(c.email)}" ${sel===c.email?'selected':''}>${esc(c.nome)}${c.papel==='gestor'?' (você/gestor)':''}</option>`).join('');return `<label style="font-size:12px;color:var(--mut)">Consultor (de quem é a venda)</label><select id="vgf-consultor" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"><option value="">— Minha venda —</option>${ops}</select>`;}
 function formVendaG(v,novo){v=v||{};const c=v.cliente||{};return `
@@ -586,7 +594,7 @@ function formVendaGMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre
   <div id="vgf-cotas"></div>
   <button class="btn sec2" style="width:100%;padding:8px" onclick="addCotaRowG()">➕ adicionar outra cota</button>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-top:10px"><input type="checkbox" id="vgf-fechada" style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Já efetivada(s) — fechada(s)</label>`;}
-function addCotaRowG(g,co,val){const wrap=document.getElementById('vgf-cotas');if(!wrap)return;const inp='padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin:0';const div=document.createElement('div');div.className='cotaG-row';div.style.cssText='display:flex;gap:6px;margin-bottom:6px;align-items:center';div.innerHTML=`<input class="cg-grupo" placeholder="Grupo" value="${esc(g||'')}" style="flex:1;${inp}"><input class="cg-cota" placeholder="Cota" value="${esc(co||'')}" style="flex:1;${inp}"><div style="display:flex;align-items:center;gap:3px;flex:1.2"><span class="mut" style="font-size:12px">R$</span><input class="cg-valor" inputmode="decimal" placeholder="0,00" value="${val?moneyG(val).replace('R$ ',''):''}" onblur="this.value=this.value?moneyG(parseBRG(this.value)).replace('R$ ',''):''" style="width:100%;${inp}"></div><button class="btn sec2" onclick="this.closest('.cotaG-row').remove()" style="padding:7px 9px;margin:0;color:var(--no)">✕</button>`;wrap.appendChild(div);}
+function addCotaRowG(g,co,val){const wrap=document.getElementById('vgf-cotas');if(!wrap)return;const inp='padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin:0;min-width:0';const div=document.createElement('div');div.className='cotaG-row';div.style.cssText='display:flex;gap:5px;margin-bottom:6px;align-items:center;width:100%';div.innerHTML=`<input class="cg-grupo" placeholder="Grupo" value="${esc(g||'')}" style="flex:1;${inp}"><input class="cg-cota" placeholder="Cota" value="${esc(co||'')}" style="flex:1;${inp}"><div style="display:flex;align-items:center;gap:2px;flex:1;min-width:0"><span class="mut" style="font-size:12px">R$</span><input class="cg-valor" inputmode="decimal" placeholder="0,00" value="${val?moneyG(val).replace('R$ ',''):''}" onblur="this.value=this.value?moneyG(parseBRG(this.value)).replace('R$ ',''):''" style="width:100%;${inp}"></div><button class="btn sec2" onclick="this.closest('.cotaG-row').remove()" style="padding:7px 9px;margin:0;color:var(--no);flex:none">✕</button>`;wrap.appendChild(div);}
 function novaVendaG(){abrirPop('Nova venda',formVendaGMulti()+`<button class="btn" style="width:100%;margin-top:10px" onclick="salvarVendaGMulti()">Salvar</button>`);addCotaRowG();}
 function novaCotaClienteG(nomeEnc,cpf){const nome=decodeURIComponent(nomeEnc);abrirPop('Novas cotas · '+nome,formVendaGMulti({cliente:{nome,cpf},lock:true})+`<button class="btn" style="width:100%;margin-top:10px" onclick="salvarVendaGMulti()">Salvar</button>`);addCotaRowG();}
 async function salvarVendaGMulti(){
