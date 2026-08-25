@@ -180,6 +180,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <div><div class="h" id="vg-neg-h" style="margin-top:2px">🤝 Em negociação</div><div id="vg-neg"></div></div>
       <div><div class="h" id="vg-fec-h" style="margin-top:2px;color:var(--ok)">✅ Fechadas</div><div id="vg-fec"></div></div>
     </div>
+    <button class="btn sec2" style="width:100%;margin-top:12px" onclick="abrirHistoricoVendas()">🕘 Histórico de inclusões e exclusões</button>
   </div>
 </div>
 
@@ -226,6 +227,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
     <div class="row" style="margin-bottom:10px"><div class="h" style="margin:0">⚙️ Configurações</div><button class="btn sec2" style="padding:6px 12px" onclick="irAba('painel')">← Voltar</button></div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
       <button class="chip on" data-sa="acessos" onclick="subAcesso('acessos')">👥 Acessos</button>
+      <button class="chip" data-sa="pedidos" onclick="subAcesso('pedidos')">📩 Pedidos <span id="cad-badge" class="badge b-no" style="display:none;margin-left:2px">0</span></button>
       <button class="chip" data-sa="novo" onclick="subAcesso('novo')">➕ Novo</button>
       <button class="chip" data-sa="times" onclick="subAcesso('times')">🏷️ Times</button>
       <button class="chip" data-sa="check" onclick="subAcesso('check')">✅ Check-in</button>
@@ -239,6 +241,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       </div>
       <button class="btn sec2" id="btn-reset-todos" style="width:100%;margin-bottom:10px;color:var(--no)" onclick="resetSenhasConsultores()">🔑 Redefinir senha de TODOS os consultores para 1234</button>
       <div id="lista-usuarios"></div>
+    </div>
+
+    <div class="sa" id="sa-pedidos" style="display:none">
+      <div class="mut" style="font-size:12px;margin-bottom:8px">Pedidos de acesso feitos por consultores na tela de login. Aprove para liberar a entrada.</div>
+      <div id="lista-cadastros"></div>
     </div>
 
     <div class="sa" id="sa-novo" style="display:none">
@@ -365,6 +372,7 @@ async function carregar(){
   document.getElementById('h-minhas-tarefas').style.display=mt.length?'block':'none';
   document.getElementById('minhas-tarefas').innerHTML=mt.map(a=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${a.titulo}</div><div class="mut">${a.tipo}${a.de?' · de '+a.de:''} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('');
   carregarDestinatarios();
+  carregarCadastros();
   document.getElementById('decididas').innerHTML=(painel.decididas||[]).map(s=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${s.consultor} · ${fmtData(s.inicio)}</div><div class="mut">${s.resposta||''}</div></div><span class="badge ${s.status==='Aprovada'?'b-ok':s.status==='Recusada'?'b-no':'b-warn'}">${s.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma ainda</div>';
   const pend=painel.pendentes||[];
   document.getElementById('pendentes').innerHTML = pend.map(cardPendente).join('')||'<div class="mut" style="padding:0 4px">Nenhuma pendente 🎉</div>';
@@ -505,25 +513,39 @@ function renderVgKanban(){
   document.getElementById('vg-neg').innerHTML=neg.map(card).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
   document.getElementById('vg-fec').innerHTML=fec.map(card).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
 }
-function formVendaG(v){v=v||{};const c=v.cliente||{};return `
+function selConsultorVenda(sel){const ops=(window._vgDash||[]).filter(c=>c.email).map(c=>`<option value="${esc(c.email)}" ${sel===c.email?'selected':''}>${esc(c.nome)}${c.papel==='gestor'?' (você/gestor)':''}</option>`).join('');return `<label style="font-size:12px;color:var(--mut)">Consultor (de quem é a venda)</label><select id="vgf-consultor" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"><option value="">— Minha venda —</option>${ops}</select>`;}
+function formVendaG(v,novo){v=v||{};const c=v.cliente||{};return `
+  ${novo?selConsultorVenda(''):''}
   <label style="font-size:12px;color:var(--mut)">Cliente</label><input type="text" id="vgf-nome" value="${esc(c.nome)}" placeholder="Nome do cliente" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
   <label style="font-size:12px;color:var(--mut)">CPF</label><input type="text" id="vgf-cpf" inputmode="numeric" value="${esc(fmtCpfG(c.cpf))}" placeholder="000.000.000-00" oninput="this.value=fmtCpfG(this.value)" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
   <label style="font-size:12px;color:var(--mut)">Valor da venda</label><div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><span class="mut">R$</span><input type="text" inputmode="decimal" id="vgf-valor" value="${v.valor?moneyG(v.valor).replace('R$ ',''):''}" placeholder="0,00" onblur="this.value=this.value?moneyG(parseBRG(this.value)).replace('R$ ',''):''" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
   <div style="display:flex;gap:8px"><div style="flex:1"><label style="font-size:12px;color:var(--mut)">Grupo</label><input type="text" id="vgf-grupo" value="${esc(v.grupo)}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div><div style="flex:1"><label style="font-size:12px;color:var(--mut)">Cota</label><input type="text" id="vgf-cota" value="${esc(v.cota)}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div></div>
   <label style="font-size:12px;color:var(--mut);margin-top:8px;display:block">Data do fechamento</label><input type="date" id="vgf-data" value="${v.data||new Date().toISOString().slice(0,10)}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-bottom:6px"><input type="checkbox" id="vgf-fechada" ${v.status==='fechada'?'checked':''} style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Venda fechada</label>`;}
-function novaVendaG(){abrirPop('Nova venda',formVendaG()+`<button class="btn" style="width:100%" onclick="salvarVendaG()">Salvar venda</button>`);}
+function novaVendaG(){abrirPop('Nova venda',formVendaG(null,true)+`<button class="btn" style="width:100%" onclick="salvarVendaG()">Salvar venda</button>`);}
 async function salvarVendaG(id){
+  const selC=document.getElementById('vgf-consultor');
   const b={nome:document.getElementById('vgf-nome').value.trim(),cpf:document.getElementById('vgf-cpf').value,valor:parseBRG(document.getElementById('vgf-valor').value),grupo:document.getElementById('vgf-grupo').value,cota:document.getElementById('vgf-cota').value,data:document.getElementById('vgf-data').value,status:document.getElementById('vgf-fechada').checked?'fechada':'negociacao'};
+  if(selC&&selC.value)b.consultorEmail=selC.value;
   if(!b.nome||!b.valor){toast('Informe o cliente e o valor');return}
   let res;if(id){b.id=id;res=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});}else res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
   const j=await res.json();if(j.ok||j.venda){fecharPop();toast(id?'Venda atualizada ✓':'Venda cadastrada ✓');carregarVendasG()}else toast(j.erro||'Erro');
 }
 async function excluirVendaG(id){if(!confirm('Excluir esta venda?'))return;const res=await fetch('/api/vendas/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();if(j.ok){fecharPop();toast('Excluída ✓');carregarVendasG()}else toast(j.erro||'Erro');}
+async function abrirHistoricoVendas(){
+  abrirPop('🕘 Histórico de vendas','<div class="mut" style="padding:10px">Carregando…</div>');
+  const j=await(await fetch('/api/gestor/vendas-log?limite=100')).json();
+  const log=(j.log||[]);
+  const html=log.length?log.map(l=>{const dt=new Date(l.quando).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});const inc=l.acao==='incluiu';return `<div class="card" style="padding:9px 11px;margin-bottom:7px"><div class="row" style="align-items:center"><span style="display:flex;align-items:center;gap:6px;font-size:13px">${avatarHTML(l.por,'',22)}<b>${esc(l.por)}</b> <span class="badge ${inc?'b-ok':'b-no'}">${inc?'incluiu':'excluiu'}</span></span><span style="font-weight:700;color:${inc?'var(--ok)':'var(--no)'}">${moneyG(l.valor)}</span></div><div class="mut" style="font-size:12px;margin-top:3px">Cliente <b>${esc(l.cliente)||'—'}</b> · venda de ${esc(l.consultor)||'—'} · ${dt}</div></div>`;}).join(''):'<div class="mut" style="padding:14px;text-align:center">Nenhuma alteração registrada ainda.</div>';
+  const body=document.getElementById('modal-corpo');
+  if(body)body.innerHTML='<div style="max-height:60vh;overflow:auto">'+html+'</div>';
+}
 function abrirVendaG(id){const v=(window._vgAll||[]).find(x=>x.id===id);if(!v)return;const c=v.cliente||{};
   const minha=v.consultorEmail===window._meuEmail;
-  if(minha){abrirPop('Minha venda · '+moneyG(v.valor),formVendaG(v)+`<div style="display:flex;gap:6px;margin-top:6px"><button class="btn sec2" style="flex:1;color:var(--no)" onclick="excluirVendaG('${v.id}')">🗑 Excluir</button><button class="btn" style="flex:2" onclick="salvarVendaG('${v.id}')">Salvar</button></div>`);}
-  else abrirPop('Venda · '+moneyG(v.valor),`<div style="font-size:14px;line-height:2"><b>Vendedor:</b> ${esc(v.consultor)}<br><b>Cliente:</b> ${esc(c.nome)||'—'}<br><b>CPF:</b> ${fmtCpfG(c.cpf)||'—'}<br><b>Valor:</b> ${moneyG(v.valor)}<br><b>Grupo/Cota:</b> ${esc(v.grupo)||'—'}/${esc(v.cota)||'—'}<br><b>Fechamento:</b> ${(v.data||'').split('-').reverse().join('/')}<br><b>Status:</b> ${v.status==='fechada'?'✅ Fechada':'🤝 Em negociação'}</div>`);
+  // gestor pode editar/excluir qualquer venda do time
+  const titulo=(minha?'Minha venda · ':'Venda de '+esc(v.consultor)+' · ')+moneyG(v.valor);
+  const cab=minha?'':`<div class="mut" style="font-size:12px;margin-bottom:8px;display:flex;align-items:center;gap:6px">Vendedor: ${avatarHTML(v.consultor,'',22)}<b>${esc(v.consultor)}</b></div>`;
+  abrirPop(titulo,cab+formVendaG(v)+`<div style="display:flex;gap:6px;margin-top:6px"><button class="btn sec2" style="flex:1;color:var(--no)" onclick="excluirVendaG('${v.id}')">🗑 Excluir</button><button class="btn" style="flex:2" onclick="salvarVendaG('${v.id}')">Salvar</button></div>`);
 }
 async function carregarRanking(){
   const res=await fetch('/api/gestor/ranking');const r=await res.json();
@@ -709,15 +731,39 @@ function toggleChat(){const box=document.getElementById('chat-box');const abrir=
 async function abrirAviso(i){const a=_avisos[i];abrirPop(a.titulo,`<div style="font-size:14px;line-height:1.7">${a.texto}</div><div class="mut" style="margin-top:10px;font-size:12px">${new Date(a.data).toLocaleString('pt-BR')}</div><div style="text-align:right;margin-top:12px"><button class="btn sec2" style="padding:6px 12px" onclick="apagarAviso('${a.id}');fecharPop()">🗑 Apagar</button></div>`);if(!a.lida){await fetch('/api/avisos/ler',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id})});carregarAvisos()}}
 async function apagarAviso(id){await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});carregarAvisos()}
 async function apagarAvisos(){if(!confirm('Apagar todas as notificações?'))return;await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({todos:true})});carregarAvisos()}
-function subAcesso(n){document.querySelectorAll('#aba-acessos .sa').forEach(e=>e.style.display='none');const el=document.getElementById('sa-'+n);if(el)el.style.display='block';document.querySelectorAll('[data-sa]').forEach(c=>c.classList.toggle('on',c.dataset.sa===n));}
+function subAcesso(n){document.querySelectorAll('#aba-acessos .sa').forEach(e=>e.style.display='none');const el=document.getElementById('sa-'+n);if(el)el.style.display='block';document.querySelectorAll('[data-sa]').forEach(c=>c.classList.toggle('on',c.dataset.sa===n));if(n==='pedidos')carregarCadastros();}
 async function carregarUsuarios(){
   const res=await fetch('/api/gestor/usuarios');const j=await res.json();
   window._usuarios=j.usuarios||[];
+  // garante que a foto de cada acesso apareça em todo lugar (nome completo e primeiro nome)
+  window._fotos=window._fotos||{};
+  window._usuarios.forEach(u=>{if(u.foto){window._fotos[u.nome]=u.foto;window._fotos[u.nome.split(' ')[0]]=u.foto;}});
   renderUsuarios();
   await carregarTimes();
   preencherDestinoArq();
   carregarRotinasEdit();
   carregarArquivosG();
+  carregarCadastros();
+}
+async function carregarCadastros(){
+  try{
+    const j=await(await fetch('/api/gestor/cadastros')).json();
+    window._cadastros=j.cadastros||[];
+    const n=window._cadastros.length;
+    const bd=document.getElementById('cad-badge');if(bd){bd.textContent=n;bd.style.display=n?'inline-block':'none';}
+    renderCadastros();
+  }catch(e){}
+}
+function renderCadastros(){
+  const el=document.getElementById('lista-cadastros');if(!el)return;
+  const cs=window._cadastros||[];
+  el.innerHTML=cs.length?cs.map(c=>{const dt=new Date(c.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});return `<div class="card"><div class="row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,'',38)}<div><div class="titulo">${esc(c.nome)} <span class="badge b-ok" style="margin-left:2px">consultor</span></div><div class="mut" style="font-size:12px">usuário: ${esc(c.email)}${c.time?' · '+esc(c.time):''} · ${dt}</div></div></div></div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px"><button class="btn sec2" style="padding:6px 12px;color:var(--no)" onclick="decidirCadastro('${c.id}',false)">✕ Recusar</button><button class="btn" style="padding:6px 14px" onclick="decidirCadastro('${c.id}',true,'${esc((c.time||'').replace(/'/g,""))}')">✓ Aprovar</button></div></div>`;}).join(''):'<div class="mut" style="padding:14px;text-align:center">Nenhum pedido pendente.</div>';
+}
+async function decidirCadastro(id,aprovar,time){
+  if(!aprovar&&!confirm('Recusar este pedido de acesso?'))return;
+  const res=await fetch('/api/gestor/cadastros/decidir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,aprovar,time})});
+  const j=await res.json();
+  if(j.ok){toast(aprovar?'Acesso aprovado ✓':'Pedido recusado');carregarCadastros();if(aprovar)carregarUsuarios();}else toast(j.erro||'Erro');
 }
 function timesExistentes(){
   if(window._times)return window._times;
@@ -806,7 +852,7 @@ function renderUsuarios(){
   });
   const ativos=(window._usuarios||[]).filter(u=>u.ativo!==false).length;
   document.getElementById('lista-usuarios').innerHTML=`<div class="mut" style="font-size:12px;margin-bottom:6px">${ativos} ativos · ${(window._usuarios||[]).length-ativos} inativos</div>`+
-    lista.map(({u,i})=>`<div class="card" style="${u.ativo===false?'opacity:.55':''}"><div class="row"><div><div class="titulo">${u.nome} <span class="badge ${u.papel==='gestor'?'b-blue':'b-ok'}" style="margin-left:4px">${u.papel}</span>${u.ativo===false?' <span class="badge b-no">inativo</span>':''}</div><div class="mut" style="font-size:12px">usuário: ${u.email}${u.time?' · '+u.time:''}${u.calendarId?' · 📅 '+u.calendarId:''}</div></div></div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap"><button class="btn sec2" style="padding:5px 10px;font-size:12px;color:${u.ativo===false?'var(--ok)':'var(--warn)'}" onclick="toggleAtivo('${u.email}',${u.ativo===false})">${u.ativo===false?'✓ Ativar':'⏸ Desativar'}</button><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="editarUsuario(${i})">✏️ Editar</button><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="resetSenha('${u.email}')">🔑 Senha</button><button class="btn sec2" style="padding:5px 10px;font-size:12px;color:var(--no)" onclick="removerUsuario('${u.email}')">✕</button></div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum acesso</div>';
+    lista.map(({u,i})=>`<div class="card" style="${u.ativo===false?'opacity:.55':''}"><div class="row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(u.nome,u.cor,38)}<div><div class="titulo">${u.nome} <span class="badge ${u.papel==='gestor'?'b-blue':'b-ok'}" style="margin-left:4px">${u.papel}</span>${u.ativo===false?' <span class="badge b-no">inativo</span>':''}</div><div class="mut" style="font-size:12px">usuário: ${u.email}${u.time?' · '+u.time:''}${u.calendarId?' · 📅 '+u.calendarId:''}</div></div></div></div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap"><button class="btn sec2" style="padding:5px 10px;font-size:12px;color:${u.ativo===false?'var(--ok)':'var(--warn)'}" onclick="toggleAtivo('${u.email}',${u.ativo===false})">${u.ativo===false?'✓ Ativar':'⏸ Desativar'}</button><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="editarUsuario(${i})">✏️ Editar</button><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="resetSenha('${u.email}')">🔑 Senha</button><button class="btn sec2" style="padding:5px 10px;font-size:12px;color:var(--no)" onclick="removerUsuario('${u.email}')">✕</button></div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum acesso</div>';
 }
 async function toggleAtivo(email,ativo){await fetch('/api/gestor/usuarios/ativo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,ativo})});toast(ativo?'Acesso ativado ✓':'Acesso desativado');carregarUsuarios()}
 async function criarUsuario(){

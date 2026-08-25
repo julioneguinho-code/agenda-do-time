@@ -73,6 +73,10 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/logout' && req.method === 'POST') {
         return send(res, 200, { ok: true }, { 'Set-Cookie': auth.clearCookie() });
       }
+      // auto-cadastro de consultor (público, aguarda aprovação do gestor)
+      if (p === '/api/cadastro' && req.method === 'POST') {
+        return send(res, 200, await notion.solicitarCadastro(await readBody(req)));
+      }
       if (!session) return send(res, 401, { erro: 'Não autenticado' });
 
       if (p === '/api/me') return send(res, 200, session);
@@ -156,6 +160,15 @@ const server = http.createServer(async (req, res) => {
       }
       if (p === '/api/gestor/vendas-dash' && req.method === 'GET') {
         return send(res, 200, await notion.dashboardVendas(session, { mes: url.searchParams.get('mes') }));
+      }
+      if (p === '/api/gestor/vendas-log' && req.method === 'GET') {
+        return send(res, 200, await notion.listarVendasLog(session, { limite: url.searchParams.get('limite') }));
+      }
+      if (p === '/api/gestor/cadastros' && req.method === 'GET') {
+        return send(res, 200, await notion.listarCadastros(session));
+      }
+      if (p === '/api/gestor/cadastros/decidir' && req.method === 'POST') {
+        return send(res, 200, await notion.decidirCadastro(session, await readBody(req)));
       }
       if (p === '/api/gestor/contratacao' && req.method === 'GET') {
         return send(res, 200, await notion.listarContratacao(session));

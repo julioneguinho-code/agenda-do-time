@@ -37,8 +37,36 @@ button:active{transform:scale(.98)}
     <div class="erro" id="erro"></div>
     <button type="submit">Entrar</button>
   </form>
+  <div id="link-cad" style="text-align:center;margin-top:16px;font-size:13px"><a href="#" onclick="mostrarCad(true);return false" style="color:var(--acc);text-decoration:none;font-weight:600">Sou consultor — criar meu acesso</a></div>
+
+  <!-- FORM DE AUTO-CADASTRO (consultor) -->
+  <form id="fc" style="display:none">
+    <p class="sub" style="margin:6px 0 4px">Crie seu acesso de consultor. Ele passa pela aprovação do seu gestor antes de liberar.</p>
+    <label>Nome completo</label>
+    <input type="text" id="c-nome" placeholder="Seu nome" autocapitalize="words">
+    <label>Usuário (para login)</label>
+    <input type="text" id="c-email" placeholder="ex: joao.silva" autocapitalize="none">
+    <label>Time (opcional)</label>
+    <input type="text" id="c-time" placeholder="ex: Chama" autocapitalize="words">
+    <label>Senha</label>
+    <input type="password" id="c-senha" placeholder="mínimo 4 caracteres">
+    <div class="erro" id="c-erro"></div>
+    <div id="c-ok" style="display:none;background:rgba(62,142,110,.12);color:#2E6E54;font-size:13px;padding:10px 12px;border-radius:10px;margin-top:14px;text-align:center;border:1px solid rgba(62,142,110,.3)">✅ Pedido enviado! Aguarde a aprovação do gestor para entrar.</div>
+    <button type="submit">Enviar pedido de acesso</button>
+    <div style="text-align:center;margin-top:14px;font-size:13px"><a href="#" onclick="mostrarCad(false);return false" style="color:var(--mut);text-decoration:none">← Voltar ao login</a></div>
+  </form>
 </div>
 <script>
+function mostrarCad(v){document.getElementById('f').style.display=v?'none':'block';document.getElementById('link-cad').style.display=v?'none':'block';document.getElementById('fc').style.display=v?'block':'none';document.querySelector('p.sub').style.display=v?'none':'block';}
+document.getElementById('fc').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const er=document.getElementById('c-erro');er.style.display='none';document.getElementById('c-ok').style.display='none';
+  const b={nome:document.getElementById('c-nome').value,email:document.getElementById('c-email').value,time:document.getElementById('c-time').value,senha:document.getElementById('c-senha').value};
+  const res=await fetch('/api/cadastro',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  const j=await res.json();
+  if(j.ok){document.getElementById('c-ok').style.display='block';['c-nome','c-email','c-time','c-senha'].forEach(id=>document.getElementById(id).value='');}
+  else{er.textContent=j.erro||'Não foi possível enviar';er.style.display='block';}
+});
 document.getElementById('f').addEventListener('submit', async (e) => {
   e.preventDefault();
   const erro = document.getElementById('erro');
