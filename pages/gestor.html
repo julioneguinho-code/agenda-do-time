@@ -17,13 +17,11 @@ input,select,textarea{color:var(--txt)}
 .kpi{background:var(--card);border:1px solid var(--bord);border-radius:14px;padding:12px 8px;text-align:center}
 .kpi .l{font-size:11px;color:var(--mut)}.kpi .v{font-size:20px;font-weight:600}
 .card{background:var(--card);border:1px solid var(--bord);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-/* anel de fogo para quem bateu R$ 1 milhão */
-.fireav{position:relative;display:inline-block;border-radius:50%;isolation:isolate}
-.fireav::before{content:"";position:absolute;inset:-5px;border-radius:50%;z-index:-1;background:conic-gradient(from 0deg,#ff2d00,#ff8a00,#ffd200,#ff8a00,#ff2d00,#ff8a00,#ffd200,#ff2d00);filter:blur(5px);animation:fireSpin 2.6s linear infinite,fireFlick .45s ease-in-out infinite alternate}
-.fireav::after{content:"";position:absolute;inset:-9px;border-radius:50%;z-index:-2;background:radial-gradient(circle,rgba(255,120,0,.55),rgba(255,60,0,0) 70%);filter:blur(9px);animation:fireFlick .7s ease-in-out infinite alternate}
-.fireav>.flame{position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:15px;z-index:1;animation:fireFlick .35s ease-in-out infinite alternate;filter:drop-shadow(0 0 3px rgba(255,120,0,.8))}
-@keyframes fireSpin{to{transform:rotate(360deg)}}
-@keyframes fireFlick{0%{opacity:.65;filter:blur(5px) brightness(.95)}100%{opacity:1;filter:blur(6px) brightness(1.15)}}
+/* chama atrás da foto para quem bateu R$ 1 milhão */
+.fireav{position:relative;display:inline-block}
+.fireav>.flamebg{position:absolute;left:50%;bottom:-16%;width:195%;height:205%;transform:translateX(-50%);transform-origin:50% 90%;z-index:0;pointer-events:none;animation:flameFlick .5s ease-in-out infinite alternate;filter:drop-shadow(0 0 6px rgba(255,110,0,.55))}
+.fireav>:not(.flamebg){position:relative;z-index:1}
+@keyframes flameFlick{0%{transform:translateX(-50%) scale(1,1)}50%{transform:translateX(-50%) scale(1.05,1.09)}100%{transform:translateX(-50%) scale(.97,.95)}}
 .card.ia{background:var(--iabg);border-color:transparent}
 .h{font-size:13px;font-weight:600;color:var(--mut);margin:10px 0 8px}
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -725,7 +723,8 @@ async function carregarMural(mes){
 function muralMes(d){const [y,mm]=muralMesRef.split('-').map(Number);const dt=new Date(y,mm-1+d,1);muralMesRef=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');carregarMural(muralMesRef);}
 function medalhaCor(pos){return pos===1?'#E6B800':pos===2?'#9AA0A6':pos===3?'#B87333':'var(--mut)';}
 const MILHAO=1000000;
-function avFogo(inner,on){return on?`<div class="fireav"><span class="flame">🔥</span>${inner}</div>`:inner;}
+const FLAMA_SVG='<svg class="flamebg" viewBox="0 0 100 130"><path fill="#F1431C" d="M50 2C55 22 47 30 55 40c5-6 6-14 5-21 13 14 26 30 24 55-2 30-19 52-34 52S14 106 14 79c0-16 7-25 15-33-2 10 1 17 7 20-8-19 3-46 14-64z"/><path fill="#FF7A17" d="M50 34c4 14 15 22 12 44-3 24-16 40-25 40s-19-14-19-34c0-14 8-22 15-29-1 9 2 15 7 17-4-14 6-30 10-38z"/><path fill="#FFC518" d="M50 62c3 10 10 15 8 30-2 16-9 26-15 26s-12-10-12-24c0-11 6-16 11-21-1 7 2 10 5 11-2-10 3-18 5-22z"/></svg>';
+function avFogo(inner,on){return on?`<div class="fireav">${FLAMA_SVG}${inner}</div>`:inner;}
 function seloBadge(s){if(!s)return '';const c=s==='LENDÁRIO'?'#B23B3B':s==='CAMPEÃO'?'#2E7D50':'#7A6A1F';const bg=s==='LENDÁRIO'?'#F5E4E4':s==='CAMPEÃO'?'#E5F1EA':'#F3EFDD';return `<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:5px;background:${bg};color:${c}">${s}</span>`;}
 function muralChartSVG(meses,cfg){
   const W=720,H=150,pl=50,pr=12,pt=10,pb=20,iw=W-pl-pr,ih=H-pt-pb;
