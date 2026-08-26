@@ -350,7 +350,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-mural">
   <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="mrg" cx="50%" cy="50%" r="50%"><stop offset="40%" stop-color="#FF7A00" stop-opacity="0"/><stop offset="46%" stop-color="#FF7A00" stop-opacity=".85"/><stop offset="50%" stop-color="#FFE9A6"/><stop offset="54%" stop-color="#FF6A00" stop-opacity=".85"/><stop offset="64%" stop-color="#FF5A00" stop-opacity="0"/></radialGradient><filter id="mgl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.3"/></filter></defs></svg>
   <div class="sec">
-    <div class="row" style="align-items:center"><div class="h" style="margin:0">🏅 Mural <span class="mut" style="font-size:10px;font-weight:400">build 110 · anel SVG</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn sec2" id="mural-edit" style="padding:6px 12px;display:none" onclick="abrirEditMural()">✏️ Editar</button></div></div>
+    <div class="row" style="align-items:center"><div class="h" style="margin:0">🏅 Mural <span class="mut" style="font-size:10px;font-weight:400">build 111 · anel SVG</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn sec2" id="mural-edit" style="padding:6px 12px;display:none" onclick="abrirEditMural()">✏️ Editar</button></div></div>
     <div id="mural-nav" style="display:none;align-items:center;justify-content:center;gap:10px;margin:4px 0 10px"><button class="btn sec2" style="padding:5px 12px" onclick="muralMes(-1)">◀</button><div style="font-weight:700" id="mural-mes-lbl">—</div><button class="btn sec2" style="padding:5px 12px" onclick="muralMes(1)">▶</button></div>
     <div id="mural-recado"></div>
     <div id="mural-metas"></div>
@@ -589,8 +589,8 @@ async function carregarVendasG(){
   renderVgTimes();renderSelConsultor();
   const max=Math.max(1,...window._vgDash.map(c=>Math.max(c.total,c.meta||0)));
   document.getElementById('vg-bars').innerHTML=window._vgDash.map(c=>`<div onclick="selVgConsultor('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')" style="margin-bottom:10px;cursor:pointer;padding:6px;border-radius:10px;border:1px solid ${vgConsultor===c.email?'var(--acc)':'transparent'};${vgFiltroAtivo()&&!vgConsVisivel(c)?'opacity:.45':''}"><div class="row" style="font-size:12px"><span style="display:flex;align-items:center;gap:6px">${avatarHTML(c.nome,c.cor,22,c.foto)}${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}${c.papel==='gestor'?' <span class="mut" style="font-weight:400">(gestor)</span>':''}</span><span style="font-weight:700">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div>${c.negociando?`<div class="mut" style="font-size:11px;margin-top:3px">🤝 em negociação: <b style="color:var(--warn)">${moneyG(c.negociando)}</b></div>`:''}</div>`).join('')||'<div class="mut">Nenhum vendedor</div>';
-  const de=vgMesRef+'-01',ate=vgMesRef+'-31';
-  const vd=await (await fetch('/api/vendas?de='+de+'&ate='+ate)).json();window._vgAll=vd.vendas||[];
+  // busca TODAS as vendas do time (negociação aparece sempre; fechadas são filtradas pelo mês no render)
+  const vd=await (await fetch('/api/vendas')).json();window._vgAll=vd.vendas||[];
   renderVgKanban();
 }
 function vgFiltroAtivo(){return !!(vgTime||vgConsultor);}
@@ -625,15 +625,24 @@ function renderVgKanban(){
   let list=(window._vgAll||[]);
   if(vgConsultor)list=list.filter(v=>String(v.consultorEmail||'').toLowerCase()===vgConsultor.toLowerCase());
   else if(vgTime)list=list.filter(v=>(v.time||'')===vgTime);
-  const neg=list.filter(v=>v.status!=='fechada'),fec=list.filter(v=>v.status==='fechada');
+  // negociação = todas (independe do mês); fechadas = apenas do mês selecionado
+  const neg=list.filter(v=>v.status!=='fechada');
+  const fec=list.filter(v=>v.status==='fechada'&&String(v.data||'').slice(0,7)===vgMesRef);
   const totFec=fec.reduce((s,v)=>s+(+v.valor||0),0);
   document.getElementById('vg-total').textContent=moneyG(totFec);
-  document.getElementById('vg-neg-h').innerHTML=`🤝 Em negociação <span class="mut" style="font-weight:400">(${neg.length})</span>`;
-  document.getElementById('vg-fec-h').innerHTML=`✅ Fechadas <span class="mut" style="font-weight:400">(${fec.length})</span>`;
-  const card=v=>`<div class="card" style="padding:10px 11px;margin-bottom:8px;cursor:pointer" onclick="abrirVendaG('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px"><div style="min-width:0"><div style="font-size:16px;font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="titulo" style="font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(v.cliente&&v.cliente.nome)||''}</div></div><input type="checkbox" ${v.status==='fechada'?'checked':''} title="Marcar como fechada" onclick="event.stopPropagation();toggleFechadaG('${v.id}',this.checked)" style="width:22px;height:22px;accent-color:var(--ok);flex:none"></div><div class="mut" style="font-size:11px;margin-top:3px">${esc(v.consultor)} · ${(v.data||'').slice(8,10)}/${(v.data||'').slice(5,7)}</div>${v.tipo?`<div style="margin-top:5px">${tipoPill(v.tipo)}</div>`:''}</div>`;
-  document.getElementById('vg-neg').innerHTML=neg.map(card).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
-  document.getElementById('vg-fec').innerHTML=fec.map(card).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
+  // agrupa por cliente + segmento (tipo): mesmo cliente e tipo = 1 card; tipo diferente = cards separados
+  window._gruposVG=[];
+  const mk=arr=>{const gs=grupoKanbanG(arr);gs.forEach(g=>{g._i=window._gruposVG.length;window._gruposVG.push(g);});return gs;};
+  const gNeg=mk(neg), gFec=mk(fec);
+  document.getElementById('vg-neg-h').innerHTML=`🤝 Em negociação <span class="mut" style="font-weight:400">(${gNeg.length})</span>`;
+  document.getElementById('vg-fec-h').innerHTML=`✅ Fechadas <span class="mut" style="font-weight:400">(${gFec.length})</span>`;
+  document.getElementById('vg-neg').innerHTML=gNeg.map(cardGrupoG).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
+  document.getElementById('vg-fec').innerHTML=gFec.map(cardGrupoG).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
 }
+function grupoKanbanG(list){const map=new Map();list.forEach(v=>{const cpf=((v.cliente&&v.cliente.cpf)||'').replace(/\D/g,'');const ck=cpf||('n:'+(((v.cliente&&v.cliente.nome)||'').trim().toLowerCase()));const key=ck+'|'+(v.tipo||'')+'|'+(v.consultorEmail||'');if(!map.has(key))map.set(key,{key,cliente:v.cliente||{},tipo:v.tipo||'',status:v.status,consultor:v.consultor,vendas:[],total:0});const g=map.get(key);g.vendas.push(v);g.total+=(+v.valor||0);});return [...map.values()].sort((a,b)=>b.total-a.total);}
+function cardGrupoG(g){const n=g.vendas.length;const nome=(g.cliente&&g.cliente.nome)||'';const dt=g.vendas[0]?g.vendas[0].data:'';return `<div class="card" style="padding:10px 11px;margin-bottom:8px;cursor:pointer" onclick="abrirGrupoVG(${g._i})"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px"><div style="min-width:0"><div style="font-size:16px;font-weight:700;color:var(--ok)">${moneyG(g.total)}</div><div class="titulo" style="font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nome)}${n>1?` <span class="mut" style="font-weight:600;font-size:11px">· ${n} cotas</span>`:''}</div></div><input type="checkbox" ${g.status==='fechada'?'checked':''} title="Marcar como fechada" onclick="event.stopPropagation();toggleGrupoFechadaG(${g._i},this.checked)" style="width:22px;height:22px;accent-color:var(--ok);flex:none"></div><div class="mut" style="font-size:11px;margin-top:3px">${esc(g.consultor)} · ${(dt||'').slice(8,10)}/${(dt||'').slice(5,7)}</div>${g.tipo?`<div style="margin-top:5px">${tipoPill(g.tipo)}</div>`:''}</div>`;}
+function abrirGrupoVG(i){const g=(window._gruposVG||[])[i];if(!g)return;if(g.vendas.length===1)return abrirVendaG(g.vendas[0].id);const c=g.cliente||{};const linhas=g.vendas.map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="fecharPop();abrirVendaG('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${esc(v.consultor)} · ${(v.data||'').split('-').reverse().join('/')}</div></div><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅':'🤝'}</span></div></div>`).join('');abrirPop((c.nome||'Cliente')+(g.tipo?' · '+(tipoInfo(g.tipo)?tipoInfo(g.tipo).label:''):''),`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${g.vendas.length} cota(s) · total ${moneyG(g.total)}</div>${linhas}`);}
+async function toggleGrupoFechadaG(i,checked){const g=(window._gruposVG||[])[i];if(!g)return;const cpf=(g.cliente&&g.cliente.cpf)||'';if(checked&&!cpfValidoG(cpf)){toast('Para efetivar, informe um CPF válido do cliente');return abrirGrupoVG(i);}const st=checked?'fechada':'negociacao';for(const v of g.vendas){await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:v.id,status:st})});}toast(checked?'Fechada(s) ✅':'Voltou para negociação');carregarVendasG();}
 async function toggleFechadaG(id,checked){
   const v=(window._vgAll||[]).find(x=>x.id===id);
   // para efetivar exige CPF válido — se não tiver, abre a venda para preencher
