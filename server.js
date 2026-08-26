@@ -253,11 +253,11 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/app') {
       if (!session) return send(res, 302, '', { Location: '/login' });
-      return send(res, 200, fs.readFileSync(path.join(__dirname, 'pages/consultor.html'), 'utf8'));
+      return send(res, 200, fs.readFileSync(path.join(__dirname, 'pages/consultor.html'), 'utf8'), { 'Cache-Control': 'no-store, must-revalidate' });
     }
     if (p === '/gestor') {
       if (!session || session.papel !== 'gestor') return send(res, 302, '', { Location: '/login' });
-      return send(res, 200, fs.readFileSync(path.join(__dirname, 'pages/gestor.html'), 'utf8'));
+      return send(res, 200, fs.readFileSync(path.join(__dirname, 'pages/gestor.html'), 'utf8'), { 'Cache-Control': 'no-store, must-revalidate' });
     }
     send(res, 404, '<h1>404</h1>');
   } catch (e) {
