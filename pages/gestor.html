@@ -751,16 +751,18 @@ function renderMural(m){
   document.getElementById('mural-chart').innerHTML=`<div class="card" style="padding:10px 8px;text-align:center;margin-bottom:8px"><div style="font-size:18px">💰</div><div class="mut" style="font-size:11px;margin-top:2px">Vendido no ano ${m.ano}</div><div style="font-weight:800;font-size:16px;color:var(--ok);margin-top:2px">${moneyG(m.totalVendidoAno)}</div></div><div class="card" style="padding:8px 10px"><div class="mut" style="font-size:11px;margin:0 0 2px">📈 Evolução mensal de ${m.ano}</div>${muralChartSVG(m.meses,m.config)}</div>`;
   // pódio top3
   const p=m.top3;
-  const col=(r,ordem,alt)=>{if(!r)return '<div style="flex:1"></div>';const c=medalhaCor(r.pos);return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">
-    <div style="position:relative">${avFogo(avatarHTML(r.primeiro,r.cor,alt?64:52,r.foto),r.vendido>=MILHAO)}<div style="position:absolute;-webkit-text-stroke:0;top:-6px;right:-6px;background:${c};color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;border:2px solid #fff">${r.pos}</div></div>
-    <div style="font-weight:700;font-size:13px;margin-top:6px;text-align:center">${esc(r.primeiro)}${r.papel==='gestor'?' <span class="mut" style="font-size:9px">(gestor)</span>':''}</div>
-    <div class="mut" style="font-size:10px">${esc(r.time)}</div>
-    <div style="font-weight:800;color:var(--ok);font-size:13px;margin-top:2px">${moneyG(r.vendido)}</div>
-    <div class="mut" style="font-size:10px">${r.pct}% da meta · ${r.qtd} venda(s)</div>
-    <div style="margin-top:3px">${seloBadge(r.selo)}</div>
-    <div style="margin-top:6px;background:${alt?'#FBF3D6':'#F1F2F4'};border:1px solid ${alt?'#E7D28A':'var(--bord)'};border-radius:10px 10px 0 0;width:100%;text-align:center;padding:${alt?'12px':'8px'} 0;font-size:11px;font-weight:700;color:${c}">${ordem}º LUGAR</div>
+  const PODIO={1:{bg:'#FBF1CE',bd:'#E3C24E',ac:'#8A6300',lbl:'#B8860B'},2:{bg:'#ECEEF1',bd:'#BFC4CB',ac:'#565C63',lbl:'#8A9099'},3:{bg:'#F4E3D2',bd:'#CE9A6A',ac:'#8A5527',lbl:'#B07A45'}};
+  const col=(r,ordem,alt)=>{if(!r)return '<div style="flex:1"></div>';const p2=PODIO[ordem];return `<div style="flex:1;align-self:stretch;display:flex;flex-direction:column;align-items:center;background:${p2.bg};border:1.5px solid ${p2.bd};border-radius:14px;padding:${alt?'14px 6px 12px':'12px 5px 10px'};margin-top:${alt?'0':'16px'};box-shadow:0 2px 6px rgba(0,0,0,.06)">
+    <div style="background:${p2.ac};color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;margin-bottom:7px">${ordem}</div>
+    ${avFogo(avatarHTML(r.primeiro,r.cor,alt?60:46,r.foto),r.vendido>=MILHAO)}
+    <div style="font-weight:800;font-size:13px;margin-top:7px;text-align:center;color:${p2.ac};line-height:1.15">${esc(r.primeiro)}${r.papel==='gestor'?' <span style="font-size:9px;font-weight:600">(gestor)</span>':''}</div>
+    <div style="font-size:10px;color:${p2.ac};opacity:.75">${esc(r.time)}</div>
+    <div style="font-weight:800;color:${p2.ac};font-size:${alt?'15px':'13px'};margin-top:4px">${moneyG(r.vendido)}</div>
+    <div style="font-size:10px;color:${p2.ac};opacity:.85">${r.pct}% da meta · ${r.qtd} venda(s)</div>
+    <div style="margin-top:4px">${seloBadge(r.selo)}</div>
+    <div style="margin-top:7px;font-size:10px;font-weight:800;letter-spacing:.5px;color:${p2.lbl}">${ordem}º LUGAR</div>
   </div>`;};
-  document.getElementById('mural-podio').innerHTML=p.length?`<div class="h" style="text-align:center;margin-top:14px">🥇 Top 3 consultores</div><div style="display:flex;gap:8px;align-items:flex-end;margin-top:6px">${col(p[1],2,false)}${col(p[0],1,true)}${col(p[2],3,false)}</div>`:'';
+  document.getElementById('mural-podio').innerHTML=p.length?`<div class="h" style="text-align:center;margin-top:14px">🥇 Top 3 consultores</div><div style="display:flex;gap:8px;align-items:stretch;margin-top:6px">${col(p[1],2,false)}${col(p[0],1,true)}${col(p[2],3,false)}</div>`:'';
   // times
   document.getElementById('mural-times').innerHTML=m.times.length?`<div class="h" style="margin-top:16px">Por time</div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${m.times.map(t=>`<div class="card" style="padding:10px 12px"><div style="font-weight:700">${esc(t.time)}</div><div style="font-weight:800;color:var(--ok);margin:2px 0">${moneyG(t.vendido)}</div><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>${t.meta?('meta '+moneyG(t.meta)):'sem meta'}</span><span style="font-weight:700">${t.pct}%</span></div><div class="prog" style="margin-top:4px"><div style="width:${Math.min(100,t.pct)}%;height:100%;background:var(--acc)"></div></div><div class="mut" style="font-size:10px;margin-top:3px">${t.consultores} consultor(es)</div></div>`).join('')}</div>`:'';
   // ranking
