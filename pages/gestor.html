@@ -22,6 +22,15 @@ input,select,textarea{color:var(--txt)}
 .fireav>.flamebg{position:absolute;left:50%;bottom:-16%;width:195%;height:205%;transform:translateX(-50%);transform-origin:50% 90%;z-index:0;pointer-events:none;animation:flameFlick .5s ease-in-out infinite alternate;filter:drop-shadow(0 0 6px rgba(255,110,0,.55))}
 .fireav>:not(.flamebg){position:relative;z-index:1}
 @keyframes flameFlick{0%{transform:translateX(-50%) scale(1,1)}50%{transform:translateX(-50%) scale(1.05,1.09)}100%{transform:translateX(-50%) scale(.97,.95)}}
+/* anel de fogo giratório (pódio) */
+.ringfire{position:relative;display:inline-block;border-radius:50%}
+.ringfire>.rf-glow{position:absolute;inset:-22%;border-radius:50%;background:radial-gradient(circle,rgba(255,180,50,.55),rgba(255,90,0,0) 70%);filter:blur(9px);z-index:0;animation:rfPulse 1.1s ease-in-out infinite alternate;pointer-events:none}
+.ringfire>.rf-ring{position:absolute;inset:-13%;border-radius:50%;z-index:0;background:conic-gradient(from 0deg,#FFC24A,#FF6A00,#FFE59A,#FF7A00,#FFB43C,#FF5A00,#FFE08A,#FFC24A);-webkit-mask:radial-gradient(circle,transparent 57%,#000 60%);mask:radial-gradient(circle,transparent 57%,#000 60%);filter:blur(3px) brightness(1.15);animation:rfSpin 3.2s linear infinite;pointer-events:none}
+.ringfire>.rf-ring2{position:absolute;inset:-8%;border-radius:50%;z-index:0;background:conic-gradient(from 120deg,transparent,#FFE9A8,transparent 30%,#FFCB5A,transparent 60%,#FFF0C0,transparent);-webkit-mask:radial-gradient(circle,transparent 60%,#000 63%);mask:radial-gradient(circle,transparent 60%,#000 63%);filter:blur(1.2px);animation:rfSpin2 2.1s linear infinite;pointer-events:none}
+.ringfire>:not([class^=rf]){position:relative;z-index:1}
+@keyframes rfSpin{to{transform:rotate(360deg)}}
+@keyframes rfSpin2{to{transform:rotate(-360deg)}}
+@keyframes rfPulse{from{opacity:.55;transform:scale(.98)}to{opacity:1;transform:scale(1.03)}}
 .card.ia{background:var(--iabg);border-color:transparent}
 .h{font-size:13px;font-weight:600;color:var(--mut);margin:10px 0 8px}
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -725,6 +734,7 @@ function medalhaCor(pos){return pos===1?'#E6B800':pos===2?'#9AA0A6':pos===3?'#B8
 const MILHAO=1000000;
 const FLAMA_SVG='<svg class="flamebg" viewBox="0 0 100 130"><path fill="#F1431C" d="M50 2C55 22 47 30 55 40c5-6 6-14 5-21 13 14 26 30 24 55-2 30-19 52-34 52S14 106 14 79c0-16 7-25 15-33-2 10 1 17 7 20-8-19 3-46 14-64z"/><path fill="#FF7A17" d="M50 34c4 14 15 22 12 44-3 24-16 40-25 40s-19-14-19-34c0-14 8-22 15-29-1 9 2 15 7 17-4-14 6-30 10-38z"/><path fill="#FFC518" d="M50 62c3 10 10 15 8 30-2 16-9 26-15 26s-12-10-12-24c0-11 6-16 11-21-1 7 2 10 5 11-2-10 3-18 5-22z"/></svg>';
 function avFogo(inner,on){return on?`<div class="fireav">${FLAMA_SVG}${inner}</div>`:inner;}
+function avAnel(inner,on){return on?`<div class="ringfire"><span class="rf-glow"></span><span class="rf-ring"></span><span class="rf-ring2"></span>${inner}</div>`:inner;}
 function seloBadge(s){if(!s)return '';const c=s==='LENDÁRIO'?'#B23B3B':s==='CAMPEÃO'?'#2E7D50':'#7A6A1F';const bg=s==='LENDÁRIO'?'#F5E4E4':s==='CAMPEÃO'?'#E5F1EA':'#F3EFDD';return `<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:5px;background:${bg};color:${c}">${s}</span>`;}
 function muralChartSVG(meses,cfg){
   const W=720,H=150,pl=50,pr=12,pt=10,pb=20,iw=W-pl-pr,ih=H-pt-pb;
@@ -754,7 +764,7 @@ function renderMural(m){
   const sh='text-shadow:0 1px 0 rgba(255,255,255,.4)';
   const col=(r,ordem,alt)=>{if(!r)return '<div style="flex:1"></div>';const p2=PODIO[ordem];return `<div style="flex:1;min-height:${p2.mh}px;display:flex;flex-direction:column;align-items:center;background:${p2.grad};border:1.5px solid ${p2.bd};border-radius:14px;padding:12px 6px 10px;box-shadow:0 3px 9px rgba(0,0,0,.15)">
     <div style="background:${p2.ac};color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;margin-bottom:7px;box-shadow:0 1px 2px rgba(0,0,0,.25)">${ordem}</div>
-    ${avFogo(avatarHTML(r.primeiro,r.cor,alt?76:58,r.foto),r.vendido>=MILHAO)}
+    ${avAnel(avatarHTML(r.primeiro,r.cor,alt?76:58,r.foto),r.vendido>=MILHAO)}
     <div style="font-weight:800;font-size:${alt?'15px':'14px'};margin-top:8px;text-align:center;color:${p2.ac};${sh};line-height:1.15">${esc(r.primeiro)}${r.papel==='gestor'?' <span style="font-size:9px;font-weight:600">(gestor)</span>':''}</div>
     <div style="font-size:11px;color:${p2.ac};${sh}">${esc(r.time)}</div>
     <div style="font-weight:800;color:${p2.ac};${sh};font-size:${alt?'19px':'15px'};margin-top:5px">${moneyG(r.vendido)}</div>
