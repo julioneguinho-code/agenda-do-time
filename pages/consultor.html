@@ -27,7 +27,7 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 /* anel de fogo giratório (pódio) */
 .ringfire{position:relative;display:inline-block;border-radius:50%}
 .ringfire>.rf-glow{position:absolute;inset:-22%;border-radius:50%;background:radial-gradient(circle,rgba(255,180,50,.55),rgba(255,90,0,0) 70%);filter:blur(9px);z-index:0;animation:rfPulse 1.1s ease-in-out infinite alternate;pointer-events:none}
-.ringfire>.rf-ring{position:absolute;inset:-13%;border-radius:50%;z-index:0;background:conic-gradient(from 0deg,#FFC24A,#FF6A00,#FFE59A,#FF7A00,#FFB43C,#FF5A00,#FFE08A,#FFC24A);-webkit-mask:radial-gradient(circle,transparent 57%,#000 60%);mask:radial-gradient(circle,transparent 57%,#000 60%);filter:blur(3px) brightness(1.15);animation:rfSpin 3.2s linear infinite;pointer-events:none}
+.ringfire>.rf-ring{position:absolute;inset:-16%;border-radius:50%;z-index:0;background:conic-gradient(from 0deg,#FFC24A,#FF6A00,#FFE59A,#FF7A00,#FFB43C,#FF5A00,#FFE08A,#FFC24A);-webkit-mask:radial-gradient(circle,transparent 52%,#000 58%);mask:radial-gradient(circle,transparent 52%,#000 58%);filter:blur(3px) brightness(1.2);animation:rfSpin 3.2s linear infinite;pointer-events:none}
 .ringfire>.rf-ring2{position:absolute;inset:-8%;border-radius:50%;z-index:0;background:conic-gradient(from 120deg,transparent,#FFE9A8,transparent 30%,#FFCB5A,transparent 60%,#FFF0C0,transparent);-webkit-mask:radial-gradient(circle,transparent 60%,#000 63%);mask:radial-gradient(circle,transparent 60%,#000 63%);filter:blur(1.2px);animation:rfSpin2 2.1s linear infinite;pointer-events:none}
 .ringfire>:not([class^=rf]){position:relative;z-index:1}
 @keyframes rfSpin{to{transform:rotate(360deg)}}
