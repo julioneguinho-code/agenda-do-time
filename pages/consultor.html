@@ -191,7 +191,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-mural">
   <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="mrg" cx="50%" cy="50%" r="50%"><stop offset="40%" stop-color="#FF7A00" stop-opacity="0"/><stop offset="46%" stop-color="#FF7A00" stop-opacity=".85"/><stop offset="50%" stop-color="#FFE9A6"/><stop offset="54%" stop-color="#FF6A00" stop-opacity=".85"/><stop offset="64%" stop-color="#FF5A00" stop-opacity="0"/></radialGradient><filter id="mgl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.3"/></filter></defs></svg>
   <div class="sec">
-    <div class="h">🏅 Mural <span class="mut" style="font-size:10px;font-weight:400">build 113 · festa</span></div>
+    <div class="h">🏅 Mural <span class="mut" style="font-size:10px;font-weight:400">build 115 · reserva de horário</span></div>
     <div class="mut" id="mc-mes" style="font-size:12px;margin:2px 2px 8px">—</div>
     <div id="mc-recado"></div>
     <div id="mc-metas"></div>
@@ -244,15 +244,12 @@ async function carregarDispo(){
     const d=await r.json();
     document.getElementById('dispo-titulo').textContent='Disponibilidade da semana'+(d.gestor?(' · '+d.gestor):'');
     if(!d.ativo){
-      let msg;
-      if(d.motivo==='sem-calendario')msg='Agenda do gestor ainda não conectada (falta o e-mail da agenda no acesso do gestor).';
-      else if(d.motivo==='google-off')msg='A disponibilidade em tempo real aparece aqui quando a agenda do gestor está conectada.';
-      else msg='Não foi possível carregar a disponibilidade agora.'+(d.erro?('<br><span style="font-size:10px;opacity:.8">detalhe: '+String(d.erro).slice(0,180)+'</span>'):'');
-      el.innerHTML=`<div class="mut" style="font-size:12px">${msg}</div>`;return;
+      el.innerHTML='<div class="mut" style="font-size:12px">Você ainda não está vinculado a um gestor. Assim que o vínculo for feito, a disponibilidade aparece aqui.</div>';return;
     }
     const H0=8,H1=19,span=(H1-H0)*60,nh=H1-H0;
     const base=new Date(d.inicio);const nomesDia=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-    const ocup=(d.ocupados||[]).map(o=>({s:new Date(o.inicio),e:new Date(o.fim)}));
+    const ocup=(d.ocupados||[]).map(o=>({s:new Date(o.inicio),e:new Date(o.fim),tipo:o.tipo||'ocupado',meu:!!o.meu}));
+    window._ocupDispo=ocup;
     const p2=n=>String(n).padStart(2,'0');
     // régua de horas alinhada com as barras
     let ruler='<div style="position:relative;flex:1;height:12px">';
@@ -264,11 +261,12 @@ async function carregarDispo(){
       const y=dia.getFullYear(),m=dia.getMonth(),da=dia.getDate();
       const ini=new Date(y,m,da,H0,0),fimD=new Date(y,m,da,H1,0);
       let grid='';for(let k=1;k<nh;k++){grid+=`<div style="position:absolute;left:${k/nh*100}%;top:0;bottom:0;width:1px;background:rgba(0,0,0,.06)"></div>`;}
-      const segs=ocup.filter(o=>o.e>ini&&o.s<fimD).map(o=>{const s=new Date(Math.max(o.s,ini)),e=new Date(Math.min(o.e,fimD));return{left:(s-ini)/60000/span*100,w:(e-s)/60000/span*100,t:`${p2(s.getHours())}:${p2(s.getMinutes())}–${p2(e.getHours())}:${p2(e.getMinutes())}`};});
-      const barras=segs.map(g=>`<div title="Ocupado ${g.t}" style="position:absolute;left:${g.left}%;width:${g.w}%;top:0;bottom:0;background:var(--acc);opacity:.92;border-radius:3px"></div>`).join('');
+      const segs=ocup.filter(o=>o.e>ini&&o.s<fimD).map(o=>{const s=new Date(Math.max(o.s,ini)),e=new Date(Math.min(o.e,fimD));return{left:(s-ini)/60000/span*100,w:(e-s)/60000/span*100,tipo:o.tipo,meu:o.meu,t:`${p2(s.getHours())}:${p2(s.getMinutes())}–${p2(e.getHours())}:${p2(e.getMinutes())}`};});
+      const barras=segs.map(g=>{const res=g.tipo==='reservado';const cor=res?'#E8A317':'var(--acc)';const lbl=res?(g.meu?'Sua solicitação (aguardando aprovação)':'Reservado (aguardando aprovação)'):'Ocupado';return `<div title="${lbl} ${g.t}" style="position:absolute;left:${g.left}%;width:${g.w}%;top:0;bottom:0;background:${cor};opacity:${res?'.85':'.92'};border-radius:3px${res?';background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.35) 0 4px,transparent 4px 8px)':''}"></div>`;}).join('');
       html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:58px;font-size:11px;color:var(--mut)">${nomesDia[dia.getDay()]} ${p2(da)}/${p2(m+1)}</div><div style="position:relative;flex:1;height:22px;background:rgba(34,197,94,.15);border:1px solid var(--bord);border-radius:5px;overflow:hidden;cursor:pointer" onclick="escolherHorario(event,this,${y},${m},${da})">${grid}${barras}</div></div>`;
     }
-    html+='<div style="display:flex;gap:14px;margin-top:6px;font-size:10px;color:var(--mut)"><span>🟩 livre</span><span>🟥 ocupado</span><span>toque num horário livre p/ escolher</span></div>';
+    html+='<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;font-size:10px;color:var(--mut)"><span>🟩 livre</span><span>🟧 reservado (aguardando)</span><span>🟥 ocupado</span><span>toque num horário livre p/ escolher</span></div>';
+    if(!d.googleAtivo)html+='<div class="mut" style="font-size:10px;margin-top:4px;opacity:.8">A agenda externa do gestor ainda não está conectada — mostrando apenas as reservas do app.</div>';
     el.innerHTML=html;
   }catch(e){el.innerHTML='<div class="mut" style="font-size:12px">Não foi possível carregar a disponibilidade.</div>';}
 }
@@ -276,6 +274,10 @@ function escolherHorario(ev,bar,y,m,da){
   const rect=bar.getBoundingClientRect();const frac=Math.min(1,Math.max(0,(ev.clientX-rect.left)/rect.width));
   const H0=8,H1=19;let mins=Math.round((H0*60+frac*(H1-H0)*60)/15)*15;const hh=Math.floor(mins/60),mm=mins%60;
   const p=n=>String(n).padStart(2,'0');
+  const alvo=new Date(y,m,da,hh,mm);
+  // impede escolher um horário já reservado/ocupado
+  const conf=(window._ocupDispo||[]).find(o=>alvo>=o.s&&alvo<o.e);
+  if(conf){toast(conf.tipo==='reservado'?'⛔ Horário já reservado, aguardando aprovação do gestor. Escolha outro.':'⛔ Horário ocupado. Escolha outro.');return;}
   document.getElementById('s-inicio').value=`${y}-${p(m+1)}-${p(da)}T${p(hh)}:${p(mm)}`;
   toast('Horário escolhido: '+p(da)+'/'+p(m+1)+' '+p(hh)+':'+p(mm));
 }
