@@ -174,6 +174,9 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/vendas-log' && req.method === 'GET') {
         return send(res, 200, await notion.listarVendasLog(session, { limite: url.searchParams.get('limite') }));
       }
+      if (p === '/api/gestor/negociacoes-todas' && req.method === 'GET') {
+        return send(res, 200, await notion.negociacoesTodasEquipes(session));
+      }
       if (p === '/api/gestor/clientes' && req.method === 'GET') {
         return send(res, 200, await notion.listarClientes(session, { q: url.searchParams.get('q'), consultor: url.searchParams.get('consultor') }));
       }

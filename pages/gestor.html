@@ -225,7 +225,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <div><div class="h" id="vg-neg-h" style="margin-top:2px">🤝 Em negociação</div><div id="vg-neg"></div></div>
       <div><div class="h" id="vg-fec-h" style="margin-top:2px;color:var(--ok)">✅ Fechadas</div><div id="vg-fec"></div></div>
     </div>
-    <button class="btn sec2" style="width:100%;margin-top:12px" onclick="abrirHistoricoVendas()">🕘 Histórico de inclusões e exclusões</button>
+    <button class="btn sec2" style="width:100%;margin-top:12px" onclick="abrirNegTodasEquipes()">🌐 Negociações de todas as equipes</button>
+    <button class="btn sec2" style="width:100%;margin-top:8px" onclick="abrirHistoricoVendas()">🕘 Histórico de inclusões e exclusões</button>
     </div>
   </div>
 </div>
@@ -350,7 +351,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-mural">
   <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="mrg" cx="50%" cy="50%" r="50%"><stop offset="40%" stop-color="#FF7A00" stop-opacity="0"/><stop offset="46%" stop-color="#FF7A00" stop-opacity=".85"/><stop offset="50%" stop-color="#FFE9A6"/><stop offset="54%" stop-color="#FF6A00" stop-opacity=".85"/><stop offset="64%" stop-color="#FF5A00" stop-opacity="0"/></radialGradient><filter id="mgl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.3"/></filter></defs></svg>
   <div class="sec">
-    <div class="row" style="align-items:center"><div class="h" style="margin:0">🏅 Mural <span class="mut" style="font-size:10px;font-weight:400">build 112 · reatribuir venda</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn sec2" id="mural-edit" style="padding:6px 12px;display:none" onclick="abrirEditMural()">✏️ Editar</button></div></div>
+    <div class="row" style="align-items:center"><div class="h" style="margin:0">🏅 Mural <span class="mut" style="font-size:10px;font-weight:400">build 113 · festa + neg. equipes</span></div><div style="display:flex;gap:6px;align-items:center"><button class="btn sec2" id="mural-edit" style="padding:6px 12px;display:none" onclick="abrirEditMural()">✏️ Editar</button></div></div>
     <div id="mural-nav" style="display:none;align-items:center;justify-content:center;gap:10px;margin:4px 0 10px"><button class="btn sec2" style="padding:5px 12px" onclick="muralMes(-1)">◀</button><div style="font-weight:700" id="mural-mes-lbl">—</div><button class="btn sec2" style="padding:5px 12px" onclick="muralMes(1)">▶</button></div>
     <div id="mural-recado"></div>
     <div id="mural-metas"></div>
@@ -703,6 +704,13 @@ async function salvarVendaG(id){
   const j=await res.json();if(j.ok||j.venda){fecharPop();toast(id?'Venda atualizada ✓':'Venda cadastrada ✓');carregarVendasG()}else toast(j.erro||'Erro');
 }
 async function excluirVendaG(id){if(!confirm('Excluir esta venda?'))return;const res=await fetch('/api/vendas/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();if(j.ok){fecharPop();toast('Excluída ✓');carregarVendasG()}else toast(j.erro||'Erro');}
+async function abrirNegTodasEquipes(){
+  abrirPop('🌐 Negociações · todas as equipes','<div class="mut" style="padding:10px">Carregando…</div>');
+  const j=await(await fetch('/api/gestor/negociacoes-todas')).json();
+  const times=(j.times||[]);
+  const html=times.length?`<div class="mut" style="font-size:12px;margin-bottom:10px">Total em negociação: <b style="color:var(--warn)">${moneyG(j.total||0)}</b> · ${j.qtd||0} cota(s)</div>`+times.map(t=>`<div style="margin-bottom:12px"><div class="row" style="align-items:center;margin-bottom:5px"><b style="font-size:13px">${esc(t.time)}</b><span style="font-weight:800;color:var(--warn)">${moneyG(t.total)}</span></div>${t.itens.map(n=>`<div class="card" style="padding:8px 10px;margin-bottom:5px"><div class="row" style="align-items:center"><div style="display:flex;align-items:center;gap:8px;min-width:0">${avatarHTML(n.consultor,n.cor,26,n.foto)}<div style="min-width:0"><div class="titulo" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(n.cliente)||'—'}</div><div class="mut" style="font-size:10px">${esc(n.consultor)}${n.tipo&&tipoInfo(n.tipo)?(' · '+tipoInfo(n.tipo).label):''}${n.data?(' · '+(n.data||'').split('-').reverse().slice(0,2).join('/')):''}</div></div></div><div style="font-weight:700;color:var(--warn);flex:none">${moneyG(n.valor)}</div></div></div>`).join('')}</div>`).join(''):'<div class="mut" style="padding:14px;text-align:center">Nenhuma negociação aberta em nenhuma equipe.</div>';
+  const body=document.getElementById('modal-corpo');if(body)body.innerHTML='<div style="max-height:64vh;overflow:auto">'+html+'</div>';
+}
 async function abrirHistoricoVendas(){
   abrirPop('🕘 Histórico de vendas','<div class="mut" style="padding:10px">Carregando…</div>');
   const j=await(await fetch('/api/gestor/vendas-log?limite=100')).json();
@@ -987,12 +995,23 @@ async function confirmarTransfer(id){
 async function sair(){await fetch('/api/logout',{method:'POST'});location.href='/login'}
 function abrirPop(titulo,corpo){document.getElementById('modal-titulo').textContent=titulo;document.getElementById('modal-corpo').innerHTML=corpo;document.getElementById('modal').style.display='flex'}
 function fecharPop(){document.getElementById('modal').style.display='none'}
+function confetesCairG(){
+  if(!document.getElementById('kf-confete')){const st=document.createElement('style');st.id='kf-confete';st.textContent='@keyframes cair{0%{transform:translateY(-20px) rotate(0);opacity:0}10%{opacity:1}100%{transform:translateY(105vh) rotate(var(--r,360deg));opacity:.9}}';document.head.appendChild(st);}
+  const cont=document.createElement('div');cont.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:10001;overflow:hidden';const cores=['#E23B3B','#3E8E6E','#4F79A8','#E6B800','#B87333','#8E44AD','#E67E22'];
+  let levas=0;const iv=setInterval(()=>{for(let i=0;i<40;i++){const p=document.createElement('div');const sz=6+Math.random()*8;p.style.cssText=`position:absolute;left:${Math.random()*100}%;top:-10px;width:${sz}px;height:${sz*0.6}px;background:${cores[i%cores.length]};--r:${(Math.random()*720-360)}deg;border-radius:2px;animation:cair ${2.5+Math.random()*2}s linear ${Math.random()*0.8}s forwards`;cont.appendChild(p);setTimeout(()=>p.remove(),5200);}if(++levas>=4)clearInterval(iv);},700);
+  document.body.appendChild(cont);setTimeout(()=>cont.remove(),9500);
+}
+function festaVendaG(msg){
+  const ov=document.createElement('div');ov.className='cel-ov';ov.style.cssText='position:fixed;inset:0;z-index:10002;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.28);padding:20px';
+  ov.innerHTML=`<div style="background:#fff;border-radius:20px;padding:30px 24px;max-width:360px;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.3)"><div style="font-size:50px">🎉</div><div style="font-size:22px;font-weight:800;color:var(--ok);margin-top:4px">Venda fechada!</div><div style="font-size:15px;margin-top:8px;line-height:1.5">${esc(msg||'Sua equipe fechou mais uma venda!')}</div><button class="btn full" style="background:var(--ok);margin-top:16px" onclick="this.closest('.cel-ov').remove()">Vamos! 🔥</button></div>`;
+  document.body.appendChild(ov);confetesCairG();setTimeout(()=>{try{ov.remove()}catch(e){}},9500);
+}
 let _avisos=[];let _notifVistos=null;
 function iniciarNotif(){if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();if('serviceWorker'in navigator)navigator.serviceWorker.register('/public/sw.js').catch(()=>{});}
 function notificarNovos(avisos){
   const naoLidos=avisos.filter(a=>!a.lida);
   if(_notifVistos===null){_notifVistos=new Set(avisos.map(a=>a.id));return;}
-  naoLidos.forEach(a=>{if(!_notifVistos.has(a.id)){_notifVistos.add(a.id);if('Notification'in window&&Notification.permission==='granted'){try{new Notification(a.titulo,{body:a.texto,icon:'/public/icon.png',tag:a.id})}catch(e){}}}});
+  naoLidos.forEach(a=>{if(!_notifVistos.has(a.id)){_notifVistos.add(a.id);if('Notification'in window&&Notification.permission==='granted'){try{new Notification(a.titulo,{body:a.texto,icon:'/public/icon.png',tag:a.id})}catch(e){}}if((a.titulo||'').toLowerCase().includes('venda fechada'))festaVendaG(a.texto);}});
   avisos.forEach(a=>_notifVistos.add(a.id));
 }
 async function carregarAvisos(){

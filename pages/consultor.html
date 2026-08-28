@@ -191,7 +191,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-mural">
   <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="mrg" cx="50%" cy="50%" r="50%"><stop offset="40%" stop-color="#FF7A00" stop-opacity="0"/><stop offset="46%" stop-color="#FF7A00" stop-opacity=".85"/><stop offset="50%" stop-color="#FFE9A6"/><stop offset="54%" stop-color="#FF6A00" stop-opacity=".85"/><stop offset="64%" stop-color="#FF5A00" stop-opacity="0"/></radialGradient><filter id="mgl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.3"/></filter></defs></svg>
   <div class="sec">
-    <div class="h">🏅 Mural <span class="mut" style="font-size:10px;font-weight:400">build 111 · anel SVG</span></div>
+    <div class="h">🏅 Mural <span class="mut" style="font-size:10px;font-weight:400">build 113 · festa</span></div>
     <div class="mut" id="mc-mes" style="font-size:12px;margin:2px 2px 8px">—</div>
     <div id="mc-recado"></div>
     <div id="mc-metas"></div>
@@ -420,7 +420,18 @@ async function toggleFechada(id,checked){
   if(checked&&v&&!cpfValido((v.cliente&&v.cliente.cpf)||'')){toast('Para efetivar, informe um CPF válido do cliente');abrirVenda(id);return}
   if(v)v.status=checked?'fechada':'negociacao'; renderVendas();
   const r=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:checked?'fechada':'negociacao'})});
-  const j=await r.json(); if(j.ok){toast(checked?'Venda fechada ✅':'Voltou para negociação');}else{toast(j.erro||'Erro');carregarVendas();}
+  const j=await r.json(); if(j.ok){toast(checked?'Venda fechada ✅':'Voltou para negociação');if(j.festa)festaVenda(j.valor||(v&&v.valor));}else{toast(j.erro||'Erro');carregarVendas();}
+}
+function confetesCair(){
+  if(!document.getElementById('kf-confete')){const st=document.createElement('style');st.id='kf-confete';st.textContent='@keyframes cair{0%{transform:translateY(-20px) rotate(0);opacity:0}10%{opacity:1}100%{transform:translateY(105vh) rotate(var(--r,360deg));opacity:.9}}';document.head.appendChild(st);}
+  const cont=document.createElement('div');cont.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:10001;overflow:hidden';const cores=['#E23B3B','#3E8E6E','#4F79A8','#E6B800','#B87333','#8E44AD','#E67E22'];
+  let levas=0;const iv=setInterval(()=>{for(let i=0;i<40;i++){const p=document.createElement('div');const sz=6+Math.random()*8;p.style.cssText=`position:absolute;left:${Math.random()*100}%;top:-10px;width:${sz}px;height:${sz*0.6}px;background:${cores[i%cores.length]};--r:${(Math.random()*720-360)}deg;border-radius:2px;animation:cair ${2.5+Math.random()*2}s linear ${Math.random()*0.8}s forwards`;cont.appendChild(p);setTimeout(()=>p.remove(),5200);}if(++levas>=4)clearInterval(iv);},700);
+  document.body.appendChild(cont);setTimeout(()=>cont.remove(),9500);
+}
+function festaVenda(valor){
+  const ov=document.createElement('div');ov.className='cel-ov';ov.style.cssText='position:fixed;inset:0;z-index:10002;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.28);padding:20px';
+  ov.innerHTML=`<div style="background:#fff;border-radius:20px;padding:30px 24px;max-width:340px;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.3)"><div style="font-size:50px">🎉</div><div style="font-size:22px;font-weight:800;color:var(--ok);margin-top:4px">Parabéns!</div><div style="font-size:15px;margin-top:8px;line-height:1.5">Você realizou o sonho de mais um cliente!${valor?('<br><b style="font-size:18px;color:var(--ok)">'+money(valor)+'</b>'):''}</div><div class="mut" style="font-size:12px;margin-top:6px">Seu gestor já foi notificado! 🔔</div><button class="btn full" style="background:var(--ok);margin-top:16px" onclick="this.closest('.cel-ov').remove()">Obrigado! 🙌</button></div>`;
+  document.body.appendChild(ov);confetesCair();setTimeout(()=>{try{ov.remove()}catch(e){}},9500);
 }
 function formVenda(v){v=v||{};const c=v.cliente||{};return `
   <label>Cliente</label><input type="text" id="vf-nome" class="inp2" value="${esc(c.nome)}" placeholder="Nome do cliente">
@@ -453,9 +464,9 @@ async function salvarVendaMulti(){
   const tipo=(document.getElementById('vf-tipo')||{}).value||'';
   const rows=[...document.querySelectorAll('#vf-cotas .cota-row')].map(r=>({grupo:r.querySelector('.c-grupo').value.trim(),cota:r.querySelector('.c-cota').value.trim(),valor:parseBR(r.querySelector('.c-valor').value)})).filter(r=>r.valor>0);
   if(!rows.length){toast('Adicione ao menos uma cota com valor');return}
-  let ok=0,erro='';
-  for(const r of rows){const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,tipo,data,status})});const j=await res.json();if(j.ok||j.venda)ok++;else erro=j.erro||'Erro';}
-  if(ok){fecharPop();toast(ok+' cota(s) cadastrada(s) ✓'+(erro?' · '+erro:''));carregarVendas();}
+  let ok=0,erro='',festa=false,somaFesta=0;
+  for(const r of rows){const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,tipo,data,status})});const j=await res.json();if(j.ok||j.venda){ok++;if(j.festa){festa=true;somaFesta+=(+j.valor||0);}}else erro=j.erro||'Erro';}
+  if(ok){fecharPop();toast(ok+' cota(s) cadastrada(s) ✓'+(erro?' · '+erro:''));carregarVendas();if(festa)festaVenda(somaFesta);}
   else toast(erro||'Erro ao salvar');
 }
 function abrirVenda(id){const v=_vendas.find(x=>x.id===id);if(!v)return;const c=v.cliente||{};
@@ -469,7 +480,7 @@ async function salvarVenda(id){
   if(b.status==='fechada'&&!cpfValido(cpfDig)){toast('Para efetivar, informe um CPF válido do cliente');return}
   let res; if(id){b.id=id;res=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});}
   else res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
-  const j=await res.json(); if(j.ok||j.venda){fecharPop();toast(id?'Venda atualizada ✓':'Venda cadastrada ✓');carregarVendas()}else toast(j.erro||'Erro');
+  const j=await res.json(); if(j.ok||j.venda){fecharPop();toast(id?'Venda atualizada ✓':'Venda cadastrada ✓');carregarVendas();if(j.festa)festaVenda(j.valor||b.valor)}else toast(j.erro||'Erro');
 }
 async function excluirVendaF(id){if(!confirm('Excluir esta venda?'))return;const res=await fetch('/api/vendas/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();if(j.ok){fecharPop();toast('Excluída ✓');carregarVendas()}else toast(j.erro||'Erro');}
 function badge(s){return s==='Aprovada'?'b-ok':s==='Pendente'?'b-warn':s==='Recusada'?'b-no':'b-blue'}
