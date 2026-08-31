@@ -192,7 +192,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- VENDAS DO TIME (CRM gestor) -->
 <div class="aba" id="aba-vendasg">
   <div class="sec">
-    <div class="row"><div class="h">💰 Vendas do time</div><button class="btn" style="padding:6px 12px" onclick="novaVendaG()">+ Cadastro de cliente</button></div>
+    <div class="row"><div class="h">💰 Vendas do time</div><button class="btn" style="padding:6px 12px" onclick="novaVendaG()">+ Nova venda</button></div>
     <button class="btn sec2" style="width:100%;padding:10px;margin-bottom:10px;font-weight:600" onclick="abrirGestaoCliente()">👥 Gestão de cliente</button>
     <div id="vg-gestao" style="display:none">
       <div class="row" style="align-items:center;margin-bottom:10px"><button class="btn sec2" style="padding:6px 12px" onclick="fecharGestaoCliente()">← Voltar</button><div class="h" style="margin:0">👥 Gestão de cliente</div></div>
@@ -753,7 +753,7 @@ function formVendaGMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre
   <button class="btn sec2" style="width:100%;padding:8px" onclick="addCotaRowG()">➕ adicionar outra cota</button>
   <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-top:10px"><input type="checkbox" id="vgf-fechada" style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Já efetivada(s) — fechada(s)</label>`;}
 function addCotaRowG(g,co,val){const wrap=document.getElementById('vgf-cotas');if(!wrap)return;const inp='padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin:0;min-width:0';const div=document.createElement('div');div.className='cotaG-row';div.style.cssText='display:flex;gap:5px;margin-bottom:6px;align-items:center;width:100%';div.innerHTML=`<input class="cg-grupo" placeholder="Grupo" value="${esc(g||'')}" style="flex:1;${inp}"><input class="cg-cota" placeholder="Cota" value="${esc(co||'')}" style="flex:1;${inp}"><div style="display:flex;align-items:center;gap:2px;flex:1;min-width:0"><span class="mut" style="font-size:12px">R$</span><input class="cg-valor" inputmode="decimal" placeholder="0,00" value="${val?moneyG(val).replace('R$ ',''):''}" onblur="this.value=this.value?moneyG(parseBRG(this.value)).replace('R$ ',''):''" style="width:100%;${inp}"></div><button class="btn sec2" onclick="this.closest('.cotaG-row').remove()" style="padding:7px 9px;margin:0;color:var(--no);flex:none">✕</button>`;wrap.appendChild(div);}
-function novaVendaG(){abrirPop('Cadastro de cliente',formVendaGMulti()+`<button class="btn" style="width:100%;margin-top:10px" onclick="salvarVendaGMulti()">Salvar</button>`);addCotaRowG();}
+function novaVendaG(){abrirPop('Nova venda',formVendaGMulti()+`<button class="btn" style="width:100%;margin-top:10px" onclick="salvarVendaGMulti()">Salvar</button>`);addCotaRowG();}
 function mesAnteriorISOg(){const d=new Date();d.setDate(1);d.setDate(0);return d.toISOString().slice(0,10);}
 function novaClienteAntigoG(){abrirPop('➕ Cadastro de cliente',`<div class="mut" style="font-size:12px;margin-bottom:8px">Cadastre um cliente já existente para alimentar o sistema. A data vem do mês anterior — ajuste para o mês real do fechamento.</div>`+formVendaGMulti({dataPadrao:mesAnteriorISOg()})+`<button class="btn" style="width:100%;margin-top:10px" onclick="salvarVendaGMulti()">Salvar</button>`);addCotaRowG();}
 async function baixarModeloClientes(){const a=document.createElement('a');a.href='/api/clientes/modelo';a.download='';document.body.appendChild(a);a.click();a.remove();toast('Baixando modelo… ⬇️');}

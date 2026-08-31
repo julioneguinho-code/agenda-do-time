@@ -166,7 +166,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <!-- VENDAS (CRM) -->
 <div class="aba" id="aba-vendas">
   <div class="sec">
-    <div class="row"><div class="h">💼 Minhas vendas</div><button class="btn" style="padding:7px 12px" onclick="novaVenda()">+ Cadastro de cliente</button></div>
+    <div class="row"><div class="h">💼 Minhas vendas</div><button class="btn" style="padding:7px 12px" onclick="novaVenda()">+ Nova venda</button></div>
     <div style="display:flex;gap:6px;margin-bottom:10px">
       <button class="btn sec2 vv-tab on" id="vv-kanban" style="flex:1;padding:9px" onclick="setVendaView('kanban')">🗂 Vendas</button>
       <button class="btn sec2 vv-tab" id="vv-clientes" style="flex:1;padding:9px" onclick="setVendaView('clientes')">👥 Clientes</button>
@@ -487,7 +487,7 @@ function formVendaMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre.
   <button class="btn sec2" style="width:100%;padding:8px" onclick="addCotaRow()">➕ adicionar outra cota</button>
   <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:14px;color:var(--txt)"><input type="checkbox" id="vf-fechada" style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Já efetivada(s) — fechada(s)</label>`;}
 function addCotaRow(g,co,val){const wrap=document.getElementById('vf-cotas');if(!wrap)return;const div=document.createElement('div');div.className='cota-row';div.style.cssText='display:flex;gap:5px;margin-bottom:6px;align-items:center;width:100%';div.innerHTML=`<input class="inp2 c-grupo" placeholder="Grupo" value="${esc(g||'')}" style="flex:1;margin:0;min-width:0"><input class="inp2 c-cota" placeholder="Cota" value="${esc(co||'')}" style="flex:1;margin:0;min-width:0"><div style="display:flex;align-items:center;gap:2px;flex:1;min-width:0"><span class="mut" style="font-size:12px">R$</span><input class="inp2 c-valor" inputmode="decimal" placeholder="0,00" value="${val?fmtBR(val):''}" onblur="this.value=this.value?fmtBR(parseBR(this.value)):''" style="margin:0;min-width:0;width:100%"></div><button class="btn sec2" onclick="this.closest('.cota-row').remove()" style="padding:7px 9px;margin:0;color:var(--no);flex:none">✕</button>`;wrap.appendChild(div);}
-function novaVenda(){abrirPop('Cadastro de cliente',formVendaMulti()+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();}
+function novaVenda(){abrirPop('Nova venda',formVendaMulti()+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();}
 function mesAnteriorISOc(){const d=new Date();d.setDate(1);d.setDate(0);return d.toISOString().slice(0,10);}
 function novaClienteAntigo(){abrirPop('➕ Cadastro de cliente',`<div class="mut" style="font-size:12px;margin-bottom:8px">Cadastre um cliente já existente para alimentar o sistema. A data vem do mês anterior — ajuste para o mês real.</div>`+formVendaMulti({dataPadrao:mesAnteriorISOc()})+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();}
 async function baixarModeloClientesC(){const a=document.createElement('a');a.href='/api/clientes/modelo';a.download='';document.body.appendChild(a);a.click();a.remove();toast('Baixando modelo… ⬇️');}
