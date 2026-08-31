@@ -160,6 +160,14 @@ const server = http.createServer(async (req, res) => {
       // sorteio por proximidade — disponível para gestor E consultor (cada um vê as suas cotas)
       if (p === '/api/sorteio-grupos' && req.method === 'GET') return send(res, 200, await notion.gruposParaSorteio(session));
       if (p === '/api/sorteio' && req.method === 'POST') return send(res, 200, await notion.sortearProximidade(session, await readBody(req)));
+      // cadastro de clientes por planilha — gestor E consultor
+      if (p === '/api/clientes/modelo' && req.method === 'GET') {
+        const r = notion.modeloClientesXlsx();
+        if (!r || !r.ok) return send(res, 400, r || { erro: 'Falha ao gerar modelo' });
+        res.writeHead(200, { 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Content-Disposition': 'attachment; filename="' + r.filename + '"', 'Content-Length': r.buffer.length, 'Cache-Control': 'no-store' });
+        return res.end(r.buffer);
+      }
+      if (p === '/api/clientes/importar' && req.method === 'POST') return send(res, 200, await notion.importarClientesXlsx(session, await readBody(req)));
       // --- gestor
       if (session.papel !== 'gestor' && p.startsWith('/api/gestor')) return send(res, 403, { erro: 'Somente gestores' });
       if (p === '/api/gestor/painel') return send(res, 200, await notion.painelGestor(session));
