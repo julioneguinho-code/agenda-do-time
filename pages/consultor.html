@@ -190,9 +190,8 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <div class="card" style="padding:12px;margin-bottom:10px">
         <div class="mut" style="font-size:12px;margin-bottom:10px">Digite os números da <b>Loteria Federal</b> (5 prêmios) e escolha o grupo. Mostra <b>as suas cotas</b> por proximidade do número sorteado, indicando de qual prêmio cada uma está mais perto. <i>Não é contemplação oficial.</i></div>
         <div id="cs-premios"></div>
-        <label style="font-size:12px;color:var(--mut);display:block;margin-top:6px">Grupo</label>
-        <select id="cs-grupo" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:10px"></select>
-        <button class="btn full" onclick="calcularSorteioC()">🎯 Calcular proximidade</button>
+        <label style="font-size:12px;color:var(--mut);display:block;margin-top:6px">Grupos — toque num grupo para calcular</label>
+        <div id="cs-grupos-list"><div class="mut" style="font-size:12px;padding:8px">Carregando…</div></div>
       </div>
       <div id="cs-resultado"></div>
     </div>
@@ -384,13 +383,11 @@ function setVendaView(v){
   renderVendas();
 }
 function renderPremiosC(){const el=document.getElementById('cs-premios');if(!el||el.dataset.done)return;const ord=['1º','2º','3º','4º','5º'];el.innerHTML=ord.map(o=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="mut" style="width:26px;font-size:13px;font-weight:600">${o}</span><input type="text" class="cs-premio" inputmode="numeric" maxlength="5" placeholder="00000" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,5)" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:15px;letter-spacing:2px;background:var(--bg)"></div>`).join('');el.dataset.done='1';}
-async function carregarGruposSorteioC(){const sel=document.getElementById('cs-grupo');if(!sel)return;try{const j=await(await fetch('/api/sorteio-grupos')).json();const gs=j.grupos||[];sel.innerHTML=gs.length?('<option value="">— selecione o grupo —</option>'+gs.map(g=>`<option value="${esc(g.grupo)}" data-n="${g.tamanho}">Grupo ${esc(g.grupo)} · ${g.tamanho} part. · ${g.qtd} cota(s)</option>`).join('')):'<option value="">Você ainda não tem cota fechada com tamanho de grupo</option>';}catch(e){sel.innerHTML='<option value="">Erro ao carregar grupos</option>';}}
-async function calcularSorteioC(){
+async function carregarGruposSorteioC(){const el=document.getElementById('cs-grupos-list');if(!el)return;try{const j=await(await fetch('/api/sorteio-grupos')).json();const gs=j.grupos||[];el.innerHTML=gs.length?gs.map(g=>{const bar=`<div class="prog" style="margin-top:5px;height:6px"><div style="width:${g.pct}%;height:100%;background:${g.lotado?'#3E8E6E':'var(--acc)'}"></div></div>`;const badge=g.lotado?'<span class="badge b-ok" style="font-size:10px">LOTADO</span>':`<span class="mut" style="font-size:10px">${g.pct}%</span>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="calcularSorteioC('${esc(g.grupo)}',${g.tamanho})"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700;font-size:13px">Grupo ${esc(g.grupo)} <span class="mut" style="font-weight:400">· ${g.tamanho} part.</span></div><div style="text-align:right;flex:none">${badge}<div class="mut" style="font-size:10px">${g.qtd}/${g.tamanho} suas</div></div></div>${bar}</div>`;}).join(''):'<div class="mut" style="font-size:12px;padding:8px">Você ainda não tem cota fechada com tamanho de grupo.</div>';}catch(e){el.innerHTML='<div class="mut" style="font-size:12px;padding:8px">Erro ao carregar grupos</div>';}}
+async function calcularSorteioC(grupo,tamanho){
   const premios=[...document.querySelectorAll('.cs-premio')].map(i=>i.value.trim());
   if(!premios.some(p=>p.length)){toast('Digite ao menos um número da Federal');return;}
-  const sel=document.getElementById('cs-grupo');const grupo=sel.value;
-  if(!grupo){toast('Escolha o grupo');return;}
-  const tamanho=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].dataset.n:'';
+  if(!grupo){toast('Toque num grupo');return;}
   const res=document.getElementById('cs-resultado');res.innerHTML='<div class="mut" style="padding:10px">Calculando…</div>';
   const j=await(await fetch('/api/sorteio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({premios,grupo,tamanho})})).json();
   if(j.erro){res.innerHTML=`<div class="card" style="padding:12px;color:var(--no)">${esc(j.erro)}</div>`;return;}
