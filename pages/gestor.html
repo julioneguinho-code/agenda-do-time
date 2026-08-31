@@ -568,30 +568,39 @@ function tipoSelectorG(val){return `<div style="display:flex;gap:6px">`+Object.k
 function pickTipoG(btn){const wrap=btn.parentElement;const k=btn.dataset.tipo;const inp=document.getElementById('vgf-tipo');const atual=inp?inp.value:'';const novo=atual===k?'':k;if(inp)inp.value=novo;wrap.querySelectorAll('button[data-tipo]').forEach(b=>{const i=TIPOS_COTA[b.dataset.tipo];const on=b.dataset.tipo===novo;b.style.border='1.5px solid '+(on?i.dot:'var(--bord)');b.style.background=on?i.bg:'transparent';b.style.color=on?i.tx:'var(--txt)';});}
 let vgView='painel';
 function setVgView(v){vgView=v;document.getElementById('vgv-painel').classList.toggle('on',v==='painel');document.getElementById('vgv-clientes').classList.toggle('on',v==='clientes');document.getElementById('vg-painel-wrap').style.display=v==='painel'?'block':'none';document.getElementById('vg-clientes-wrap').style.display=v==='clientes'?'block':'none';if(v==='clientes')carregarClientesG();}
+let _gcExpand={};
 async function carregarClientesG(){
-  const consultor=vgConsultorParam();
-  const q=(document.getElementById('vgc-busca').value||'').trim();
-  const qs=[];if(q)qs.push('q='+encodeURIComponent(q));if(consultor)qs.push('consultor='+encodeURIComponent(consultor));
-  const j=await(await fetch('/api/gestor/clientes'+(qs.length?'?'+qs.join('&'):''))).json();
-  window._clientesG=j.clientes||[];
-  document.getElementById('vgc-total').innerHTML=`<b>${j.qtdClientes||0}</b> cliente(s) · <b>${j.qtdCotas||0}</b> cota(s)`;
+  const j=await(await fetch('/api/gestor/clientes-por-consultor')).json();
+  window._gcCons=j.consultores||[];
+  document.getElementById('vgc-total').innerHTML=`<b>${j.qtdConsultores||0}</b> pessoa(s) do time · <b>${j.qtdCotas||0}</b> cota(s)`;
   renderClientesGList();
 }
-function renderClientesG(){ // busca client-side rápida sobre o que já veio, e refaz no server
-  carregarClientesG();
-}
+function renderClientesG(){renderClientesGList();} // filtro client-side pela busca
 function renderClientesGList(){
-  const cs=window._clientesG||[];
-  document.getElementById('vgc-lista').innerHTML=cs.map((c,i)=>`<div class="card" style="cursor:pointer;padding:11px 12px;margin-bottom:8px" onclick="abrirClienteG(${i})">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-      <div style="min-width:0"><div class="titulo" style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:11px;margin-top:2px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s) · ${esc((c.consultores||[]).join(', '))}</div></div>
-      <div style="text-align:right;flex:none"><div style="font-weight:700;color:var(--ok)">${moneyG(c.total)}</div><div class="mut" style="font-size:11px">${c.negociacao?('🤝 '+moneyG(c.negociacao)):'—'}</div></div>
-    </div></div>`).join('')||'<div class="mut" style="padding:12px 2px">Nenhum cliente encontrado.</div>';
+  const cons=window._gcCons||[];
+  const q=(document.getElementById('vgc-busca').value||'').trim().toLowerCase();
+  const dq=q.replace(/\D/g,'');
+  const matchCli=c=>!q||((c.nome||'').toLowerCase().includes(q))||(dq&&(c.cpf||'').includes(dq));
+  const html=cons.map((p,ci)=>{
+    const clientes=(p.clientes||[]).filter(matchCli);
+    if(q&&!clientes.length)return '';
+    const aberto=q?true:!!_gcExpand[p.email];
+    const linhasCli=clientes.map((c,kj)=>{const kidx=(p.clientes||[]).indexOf(c);return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid var(--bord);cursor:pointer" onclick="abrirClienteGC(${ci},${kidx})"><div style="min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s)</div></div><div style="text-align:right;flex:none"><div style="font-weight:700;color:var(--ok);font-size:13px">${moneyG(c.total)}</div>${c.negociacao?`<div class="mut" style="font-size:10px">🤝 ${moneyG(c.negociacao)}</div>`:''}</div></div>`;}).join('');
+    return `<div class="card" style="padding:0;margin-bottom:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:#F7F8FA" onclick="toggleGcCons('${p.email}')">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0">${avatarHTML(p.nome,p.cor,28,p.foto)}<div style="min-width:0"><div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nome)}</div><div class="mut" style="font-size:10px">${p.qtdClientes} cliente(s) · ${p.qtdCotas} cota(s)</div></div></div>
+        <div style="text-align:right;flex:none"><div style="font-weight:700;color:var(--ok);font-size:13px">${moneyG(p.totalFechado)}</div><div class="mut" style="font-size:10px">${aberto?'▲':'▼'}${p.totalNeg?(' · 🤝 '+moneyG(p.totalNeg)):''}</div></div>
+      </div>
+      <div style="display:${aberto?'block':'none'}">${linhasCli||'<div class="mut" style="font-size:11px;padding:10px">Nenhum cliente</div>'}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('vgc-lista').innerHTML=html||'<div class="mut" style="padding:12px 2px">Nenhum cliente encontrado.</div>';
 }
-function abrirClienteG(i){
-  const c=(window._clientesG||[])[i];if(!c)return;
-  const linhas=(c.vendas||[]).map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="editarCotaCliente('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''}${v.tamanhoGrupo?(' · '+v.tamanhoGrupo+'p'):''} · ${esc(v.consultor)} · ${(v.data||'').split('-').reverse().join('/')}</div>${v.tipo?`<div style="margin-top:4px">${tipoPill(v.tipo)}</div>`:''}</div><div style="text-align:right;flex:none"><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅':'🤝'}</span><div class="mut" style="font-size:10px;margin-top:3px">✏️ editar</div></div></div></div>`).join('');
-  abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s) · Fechado ${moneyG(c.fechado)} · Negociação ${moneyG(c.negociacao)}</div><div class="mut" style="font-size:11px;margin-bottom:8px">Toque numa cota para editar.</div>${linhas}`);
+function toggleGcCons(email){_gcExpand[email]=!_gcExpand[email];renderClientesGList();}
+function abrirClienteGC(ci,kj){
+  const p=(window._gcCons||[])[ci];if(!p)return;const c=(p.clientes||[])[kj];if(!c)return;
+  const linhas=(c.vendas||[]).map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="editarCotaCliente('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''}${v.tamanhoGrupo?(' · '+v.tamanhoGrupo+'p'):''} · ${(v.data||'').split('-').reverse().join('/')}</div>${v.tipo?`<div style="margin-top:4px">${tipoPill(v.tipo)}</div>`:''}</div><div style="text-align:right;flex:none"><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅':'🤝'}</span><div class="mut" style="font-size:10px;margin-top:3px">✏️ editar</div></div></div></div>`).join('');
+  abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:4px">Consultor: ${esc(p.nome)}</div><div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s) · Fechado ${moneyG(c.fechado)} · Negociação ${moneyG(c.negociacao)}</div><div class="mut" style="font-size:11px;margin-bottom:8px">Toque numa cota para editar.</div>${linhas}`);
 }
 function editarCotaCliente(id){fecharPop();abrirVendaG(id);}
 function gestaoAberta(){const el=document.getElementById('vg-gestao');return el&&el.style.display!=='none';}

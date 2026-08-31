@@ -157,11 +157,15 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/atividade/cancelar' && req.method === 'POST') {
         return send(res, 200, await notion.cancelarAtividade(session, await readBody(req)));
       }
+      // sorteio por proximidade — disponível para gestor E consultor (cada um vê as suas cotas)
+      if (p === '/api/sorteio-grupos' && req.method === 'GET') return send(res, 200, await notion.gruposParaSorteio(session));
+      if (p === '/api/sorteio' && req.method === 'POST') return send(res, 200, await notion.sortearProximidade(session, await readBody(req)));
       // --- gestor
       if (session.papel !== 'gestor' && p.startsWith('/api/gestor')) return send(res, 403, { erro: 'Somente gestores' });
       if (p === '/api/gestor/painel') return send(res, 200, await notion.painelGestor(session));
       if (p === '/api/gestor/sorteio-grupos') return send(res, 200, await notion.gruposParaSorteio(session));
       if (p === '/api/gestor/sorteio' && req.method === 'POST') return send(res, 200, await notion.sortearProximidade(session, await readBody(req)));
+      if (p === '/api/gestor/clientes-por-consultor') return send(res, 200, await notion.clientesPorConsultor(session));
       if (p === '/api/gestor/consultor') return send(res, 200, await notion.perfilConsultor(session, url.searchParams.get('email') || url.searchParams.get('nome')));
       if (p === '/api/gestor/controle') return send(res, 200, await notion.controleGestor(session));
       if (p === '/api/gestor/ranking') return send(res, 200, await notion.rankingGestor(session));

@@ -170,8 +170,9 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
     <div style="display:flex;gap:6px;margin-bottom:10px">
       <button class="btn sec2 vv-tab on" id="vv-kanban" style="flex:1;padding:9px" onclick="setVendaView('kanban')">🗂 Vendas</button>
       <button class="btn sec2 vv-tab" id="vv-clientes" style="flex:1;padding:9px" onclick="setVendaView('clientes')">👥 Clientes</button>
+      <button class="btn sec2 vv-tab" id="vv-sorteio" style="flex:1;padding:9px" onclick="setVendaView('sorteio')">🎯 Sorteio</button>
     </div>
-    <div class="card" style="padding:10px 12px">
+    <div class="card" id="vd-filtro-card" style="padding:10px 12px">
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         <input type="text" id="vd-busca" placeholder="🔎 Cliente ou CPF" oninput="renderVendas()" style="flex:1;min-width:120px">
         <input type="date" id="vd-de" onchange="carregarVendas()" title="Data inicial">
@@ -185,6 +186,16 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <div><div class="h" id="col-fec-h" style="margin-top:2px;color:var(--ok)">✅ Fechadas</div><div id="vd-fec"></div></div>
     </div>
     <div id="vd-clientes-wrap" style="display:none"><div id="vd-clientes"></div></div>
+    <div id="vd-sorteio-wrap" style="display:none">
+      <div class="card" style="padding:12px;margin-bottom:10px">
+        <div class="mut" style="font-size:12px;margin-bottom:10px">Digite os números da <b>Loteria Federal</b> (5 prêmios) e escolha o grupo. Mostra <b>as suas cotas</b> por proximidade do número sorteado, indicando de qual prêmio cada uma está mais perto. <i>Não é contemplação oficial.</i></div>
+        <div id="cs-premios"></div>
+        <label style="font-size:12px;color:var(--mut);display:block;margin-top:6px">Grupo</label>
+        <select id="cs-grupo" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:10px"></select>
+        <button class="btn full" onclick="calcularSorteioC()">🎯 Calcular proximidade</button>
+      </div>
+      <div id="cs-resultado"></div>
+    </div>
   </div>
 </div>
 
@@ -364,9 +375,30 @@ function setVendaView(v){
   vendaView=v;
   document.getElementById('vv-kanban').classList.toggle('on',v==='kanban');
   document.getElementById('vv-clientes').classList.toggle('on',v==='clientes');
+  document.getElementById('vv-sorteio').classList.toggle('on',v==='sorteio');
   document.getElementById('vd-kanban-wrap').style.display=v==='kanban'?'grid':'none';
   document.getElementById('vd-clientes-wrap').style.display=v==='clientes'?'block':'none';
+  document.getElementById('vd-sorteio-wrap').style.display=v==='sorteio'?'block':'none';
+  document.getElementById('vd-filtro-card').style.display=v==='sorteio'?'none':'block';
+  if(v==='sorteio'){renderPremiosC();carregarGruposSorteioC();return;}
   renderVendas();
+}
+function renderPremiosC(){const el=document.getElementById('cs-premios');if(!el||el.dataset.done)return;const ord=['1º','2º','3º','4º','5º'];el.innerHTML=ord.map(o=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="mut" style="width:26px;font-size:13px;font-weight:600">${o}</span><input type="text" class="cs-premio" inputmode="numeric" maxlength="5" placeholder="00000" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,5)" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:15px;letter-spacing:2px;background:var(--bg)"></div>`).join('');el.dataset.done='1';}
+async function carregarGruposSorteioC(){const sel=document.getElementById('cs-grupo');if(!sel)return;try{const j=await(await fetch('/api/sorteio-grupos')).json();const gs=j.grupos||[];sel.innerHTML=gs.length?('<option value="">— selecione o grupo —</option>'+gs.map(g=>`<option value="${esc(g.grupo)}" data-n="${g.tamanho}">Grupo ${esc(g.grupo)} · ${g.tamanho} part. · ${g.qtd} cota(s)</option>`).join('')):'<option value="">Você ainda não tem cota fechada com tamanho de grupo</option>';}catch(e){sel.innerHTML='<option value="">Erro ao carregar grupos</option>';}}
+async function calcularSorteioC(){
+  const premios=[...document.querySelectorAll('.cs-premio')].map(i=>i.value.trim());
+  if(!premios.some(p=>p.length)){toast('Digite ao menos um número da Federal');return;}
+  const sel=document.getElementById('cs-grupo');const grupo=sel.value;
+  if(!grupo){toast('Escolha o grupo');return;}
+  const tamanho=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].dataset.n:'';
+  const res=document.getElementById('cs-resultado');res.innerHTML='<div class="mut" style="padding:10px">Calculando…</div>';
+  const j=await(await fetch('/api/sorteio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({premios,grupo,tamanho})})).json();
+  if(j.erro){res.innerHTML=`<div class="card" style="padding:12px;color:var(--no)">${esc(j.erro)}</div>`;return;}
+  const chips=(j.sorteados||[]).map(s=>`<span class="badge b-blue" style="font-size:11px">${s.premio}º → nº <b>${s.numero}</b></span>`).join(' ');
+  let html=`<div class="card" style="padding:12px;margin-bottom:10px"><div style="font-weight:700;margin-bottom:4px">Grupo ${esc(j.grupo)} · ${j.tamanho} participantes</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">${chips}</div><div class="mut" style="font-size:11px">Suas cotas, da mais próxima para a mais distante. O número são as "casas" de distância.</div></div>`;
+  if(!(j.itens||[]).length){html+='<div class="mut" style="padding:10px">Nenhuma cota sua nesse grupo.</div>';}
+  else{html+=(j.itens).map((it,i)=>{const top=i===0;return `<div class="card" style="padding:10px 12px;margin-bottom:7px;${top?'border:1.5px solid var(--acc)':''}"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div style="min-width:0"><div style="font-weight:700;font-size:14px">${i+1}º ${top?'🎯 ':''}${esc(it.cliente)}</div><div class="mut" style="font-size:12px;margin-top:2px">Grupo ${esc(it.grupo)} · Cota <b>${it.cota}</b></div><div class="mut" style="font-size:11px;margin-top:2px">${it.tipo?esc(it.tipo)+' · ':''}${money(it.valor)}</div></div><div style="text-align:right;flex:none"><div class="badge b-blue" style="font-size:11px">${it.premio}º prêmio</div><div style="font-weight:800;font-size:15px;margin-top:3px">${it.casa} <span class="mut" style="font-size:10px;font-weight:600">casas</span></div><div class="mut" style="font-size:10px">sorteado ${it.sorteado}</div></div></div></div>`;}).join('');}
+  res.innerHTML=html;
 }
 function clienteKey(v){const cpf=((v.cliente&&v.cliente.cpf)||'').replace(/\D/g,'');return cpf?('cpf:'+cpf):('nome:'+(((v.cliente&&v.cliente.nome)||'').trim().toLowerCase()));}
 function agruparClientes(list){
@@ -378,7 +410,7 @@ function agruparClientes(list){
 }
 function renderClientes(){
   const q=(document.getElementById('vd-busca').value||'').toLowerCase();
-  let list=(_vendas||[]).slice();
+  let list=(_vendas||[]).filter(v=>v.status==='fechada'); // clientes = só vendas fechadas
   if(q)list=list.filter(v=>((v.cliente&&v.cliente.nome)||'').toLowerCase().includes(q)||((v.cliente&&v.cliente.cpf)||'').includes(q.replace(/\D/g,'')));
   const clientes=agruparClientes(list);window._clientesG=clientes;
   document.getElementById('vd-total').innerHTML=`<b>${clientes.length}</b> cliente(s) · <b>${list.length}</b> cota(s)`;
@@ -422,7 +454,7 @@ async function toggleFechada(id,checked){
   if(checked&&v&&!cpfValido((v.cliente&&v.cliente.cpf)||'')){toast('Para efetivar, informe um CPF válido do cliente');abrirVenda(id);return}
   if(v)v.status=checked?'fechada':'negociacao'; renderVendas();
   const r=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:checked?'fechada':'negociacao'})});
-  const j=await r.json(); if(j.ok){toast(checked?'Venda fechada ✅':'Voltou para negociação');if(j.festa)festaVenda(j.valor||(v&&v.valor));}else{toast(j.erro||'Erro');carregarVendas();}
+  const j=await r.json(); if(j.ok){toast(checked?'Venda fechada ✅':'Voltou para negociação');if(j.festa)festaVenda(j.valor||(v&&v.valor));}else{toast(j.erro||'Erro');if(checked&&/grupo|cota|tamanho/i.test(j.erro||'')){abrirVenda(id);}else carregarVendas();}
 }
 function confetesCair(){
   if(!document.getElementById('kf-confete')){const st=document.createElement('style');st.id='kf-confete';st.textContent='@keyframes cair{0%{transform:translateY(-20px) rotate(0);opacity:0}10%{opacity:1}100%{transform:translateY(105vh) rotate(var(--r,360deg));opacity:.9}}';document.head.appendChild(st);}
@@ -435,11 +467,14 @@ function festaVenda(valor){
   ov.innerHTML=`<div style="background:#fff;border-radius:20px;padding:30px 24px;max-width:340px;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.3)"><div style="font-size:50px">🎉</div><div style="font-size:22px;font-weight:800;color:var(--ok);margin-top:4px">Parabéns!</div><div style="font-size:15px;margin-top:8px;line-height:1.5">Você realizou o sonho de mais um cliente!${valor?('<br><b style="font-size:18px;color:var(--ok)">'+money(valor)+'</b>'):''}</div><div class="mut" style="font-size:12px;margin-top:6px">Seu gestor já foi notificado! 🔔</div><button class="btn full" style="background:var(--ok);margin-top:16px" onclick="this.closest('.cel-ov').remove()">Obrigado! 🙌</button></div>`;
   document.body.appendChild(ov);confetesCair();setTimeout(()=>{try{ov.remove()}catch(e){}},9500);
 }
+const TAMS_GRUPO_C=[500,1000,2000,3333,5000,9999];
+function selTamGrupoC(sel){const ops=TAMS_GRUPO_C.map(n=>`<option value="${n}" ${(+sel===n)?'selected':''}>${n} participantes</option>`).join('');return `<label>Tamanho do grupo <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><select id="vf-tamanho" class="inp2"><option value="">— selecione —</option>${ops}</select>`;}
 function formVenda(v){v=v||{};const c=v.cliente||{};return `
   <label>Cliente</label><input type="text" id="vf-nome" class="inp2" value="${esc(c.nome)}" placeholder="Nome do cliente">
   <label>CPF <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf))}" placeholder="000.000.000-00" oninput="this.value=fmtCpf(this.value);checaCpf(this,'vf-cpf-msg')"><div id="vf-cpf-msg" style="font-size:11px;margin-top:2px"></div>
   <label>Valor da venda</label><div style="display:flex;align-items:center;gap:6px"><span class="mut" style="font-size:13px">R$</span><input type="text" inputmode="decimal" id="vf-valor" class="inp2" value="${v.valor?fmtBR(v.valor):''}" placeholder="0,00" onblur="this.value=this.value?fmtBR(parseBR(this.value)):''"></div>
   <div style="display:flex;gap:8px"><div style="flex:1"><label>Grupo</label><input type="text" id="vf-grupo" class="inp2" value="${esc(v.grupo)}"></div><div style="flex:1"><label>Cota</label><input type="text" id="vf-cota" class="inp2" value="${esc(v.cota)}"></div></div>
+  ${selTamGrupoC(v.tamanhoGrupo||'')}
   <label>Tipo da cota</label>${tipoSelector(v.tipo||'')}
   <label style="margin-top:8px;display:block">Data do fechamento</label><input type="date" id="vf-data" class="inp2" value="${v.data||new Date().toISOString().slice(0,10)}">
   <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:14px;color:var(--txt)"><input type="checkbox" id="vf-fechada" ${v.status==='fechada'?'checked':''} style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Venda fechada</label>`;}
@@ -448,6 +483,7 @@ function formVendaMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre.
   <label>Cliente</label><input type="text" id="vf-nome" class="inp2" value="${esc(c.nome||'')}" placeholder="Nome do cliente" ${lock?'readonly style="background:#eef0f3"':''}>
   <label>CPF <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf||''))}" placeholder="000.000.000-00" oninput="this.value=fmtCpf(this.value);checaCpf(this,'vf-cpf-msg')" ${lock&&c.cpf?'readonly style="background:#eef0f3"':''}><div id="vf-cpf-msg" style="font-size:11px;margin-top:2px"></div>
   <label>Data do fechamento</label><input type="date" id="vf-data" class="inp2" value="${new Date().toISOString().slice(0,10)}">
+  ${selTamGrupoC(pre.tamanhoGrupo||'')}
   <label>Tipo da cota</label>${tipoSelector(pre.tipo||'')}
   <div class="h" style="margin:12px 0 6px">Cotas</div>
   <div id="vf-cotas"></div>
@@ -464,10 +500,12 @@ async function salvarVendaMulti(){
   if(cpfDig&&!cpfValido(cpfDig)){toast('CPF inválido — confira os números');return}
   if(status==='fechada'&&!cpfValido(cpfDig)){toast('Para efetivar, informe um CPF válido do cliente');return}
   const tipo=(document.getElementById('vf-tipo')||{}).value||'';
+  const tamanho=(document.getElementById('vf-tamanho')||{}).value||'';
   const rows=[...document.querySelectorAll('#vf-cotas .cota-row')].map(r=>({grupo:r.querySelector('.c-grupo').value.trim(),cota:r.querySelector('.c-cota').value.trim(),valor:parseBR(r.querySelector('.c-valor').value)})).filter(r=>r.valor>0);
   if(!rows.length){toast('Adicione ao menos uma cota com valor');return}
+  if(status==='fechada'){ if(!tamanho){toast('Para efetivar, selecione o tamanho do grupo');return} if(rows.some(r=>!r.grupo||!r.cota)){toast('Para efetivar, preencha grupo e cota de todas as cotas');return} }
   let ok=0,erro='',festa=false,somaFesta=0;
-  for(const r of rows){const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,tipo,data,status})});const j=await res.json();if(j.ok||j.venda){ok++;if(j.festa){festa=true;somaFesta+=(+j.valor||0);}}else erro=j.erro||'Erro';}
+  for(const r of rows){const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,tamanhoGrupo:tamanho,tipo,data,status})});const j=await res.json();if(j.ok||j.venda){ok++;if(j.festa){festa=true;somaFesta+=(+j.valor||0);}}else erro=j.erro||'Erro';}
   if(ok){fecharPop();toast(ok+' cota(s) cadastrada(s) ✓'+(erro?' · '+erro:''));carregarVendas();if(festa)festaVenda(somaFesta);}
   else toast(erro||'Erro ao salvar');
 }
@@ -475,11 +513,13 @@ function abrirVenda(id){const v=_vendas.find(x=>x.id===id);if(!v)return;const c=
   const btnCota=(c.cpf||c.nome)?`<button class="btn sec2" style="width:100%;margin-top:8px" onclick="novaVendaCliente('${encodeURIComponent(c.nome||'')}','${(c.cpf||'')}')">➕ Nova cota deste cliente</button>`:'';
   abrirPop('Venda · '+money(v.valor),formVenda(v)+`<div style="display:flex;gap:6px;margin-top:6px"><button class="btn sec2" style="flex:1;color:var(--no)" onclick="excluirVendaF('${v.id}')">🗑 Excluir</button><button class="btn" style="flex:2;background:var(--ok)" onclick="salvarVenda('${v.id}')">Salvar alterações</button></div>${btnCota}`);}
 async function salvarVenda(id){
-  const b={nome:document.getElementById('vf-nome').value.trim(),cpf:document.getElementById('vf-cpf').value,valor:parseBR(document.getElementById('vf-valor').value),grupo:document.getElementById('vf-grupo').value,cota:document.getElementById('vf-cota').value,tipo:(document.getElementById('vf-tipo')||{}).value||'',data:document.getElementById('vf-data').value,status:(document.getElementById('vf-fechada')&&document.getElementById('vf-fechada').checked)?'fechada':'negociacao'};
+  const tamanho=(document.getElementById('vf-tamanho')||{}).value||'';
+  const b={nome:document.getElementById('vf-nome').value.trim(),cpf:document.getElementById('vf-cpf').value,valor:parseBR(document.getElementById('vf-valor').value),grupo:document.getElementById('vf-grupo').value,cota:document.getElementById('vf-cota').value,tamanhoGrupo:tamanho,tipo:(document.getElementById('vf-tipo')||{}).value||'',data:document.getElementById('vf-data').value,status:(document.getElementById('vf-fechada')&&document.getElementById('vf-fechada').checked)?'fechada':'negociacao'};
   if(!b.nome||!b.valor){toast('Informe o cliente e o valor');return}
   const cpfDig=(b.cpf||'').replace(/\D/g,'');
   if(cpfDig&&!cpfValido(cpfDig)){toast('CPF inválido — confira os números');return}
   if(b.status==='fechada'&&!cpfValido(cpfDig)){toast('Para efetivar, informe um CPF válido do cliente');return}
+  if(b.status==='fechada'&&(!b.grupo.trim()||!b.cota.trim()||!tamanho)){toast('Para efetivar, informe grupo, cota e tamanho do grupo');return}
   let res; if(id){b.id=id;res=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});}
   else res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
   const j=await res.json(); if(j.ok||j.venda){fecharPop();toast(id?'Venda atualizada ✓':'Venda cadastrada ✓');carregarVendas();if(j.festa)festaVenda(j.valor||b.valor)}else toast(j.erro||'Erro');
