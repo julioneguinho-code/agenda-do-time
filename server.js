@@ -127,6 +127,18 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/vendas' && req.method === 'GET') {
         return send(res, 200, await notion.listarVendas(session, { de: url.searchParams.get('de'), ate: url.searchParams.get('ate'), q: url.searchParams.get('q'), consultor: url.searchParams.get('consultor') }));
       }
+      if (p === '/api/vendas/export' && req.method === 'GET') {
+        if (session.papel !== 'gestor') return send(res, 403, { erro: 'Somente gestores' });
+        const r = await notion.exportarVendasXlsx(session, { de: url.searchParams.get('de'), ate: url.searchParams.get('ate'), q: url.searchParams.get('q'), consultor: url.searchParams.get('consultor') });
+        if (!r || !r.ok) return send(res, 400, r || { erro: 'Falha ao gerar planilha' });
+        res.writeHead(200, {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': 'attachment; filename="' + (r.filename || 'vendas.xlsx') + '"',
+          'Content-Length': r.buffer.length,
+          'Cache-Control': 'no-store',
+        });
+        return res.end(r.buffer);
+      }
       if (p === '/api/vendas' && req.method === 'POST') {
         return send(res, 200, await notion.criarVenda(session, await readBody(req)));
       }
