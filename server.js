@@ -42,21 +42,25 @@ const server = http.createServer(async (req, res) => {
     // ---- API FINANÇAS (módulo pessoal, cookie próprio)
     if (p.startsWith('/api/fin/')) {
       if (p === '/api/fin/login' && req.method === 'POST') {
-        const { senha } = await readBody(req);
-        const r = fin.login(senha);
-        if (!r) return send(res, 401, { erro: 'Senha incorreta' });
-        return send(res, 200, { ok: true }, { 'Set-Cookie': r.cookie });
+        const { usuario, senha } = await readBody(req);
+        const r = fin.login(usuario, senha);
+        if (!r) return send(res, 401, { erro: 'Usuário ou senha incorretos' });
+        return send(res, 200, { ok: true, usuario: r.usuario, nome: r.nome }, { 'Set-Cookie': r.cookie });
       }
       if (p === '/api/fin/logout' && req.method === 'POST') return send(res, 200, { ok: true }, { 'Set-Cookie': fin.clearCookie() });
       const fs2 = fin.sessao(req);
       if (!fs2) return send(res, 401, { erro: 'Não autenticado' });
-      if (p === '/api/fin/mes' && req.method === 'GET') return send(res, 200, fin.getMes(url.searchParams.get('m')));
-      if (p === '/api/fin/mes' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.salvarMes(b.mes, b.renda, b.despesa)); }
-      if (p === '/api/fin/metas' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.salvarMetas(b.metas)); }
-      if (p === '/api/fin/ano' && req.method === 'GET') return send(res, 200, fin.resumoAno(url.searchParams.get('y')));
-      if (p === '/api/fin/investimentos' && req.method === 'GET') return send(res, 200, fin.investimentos(url.searchParams.get('y')));
-      if (p === '/api/fin/parcela' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.propagarParcela(b.mes, b.despesa)); }
-      if (p === '/api/fin/senha' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.trocarSenha(b.atual, b.nova)); }
+      const fu = fs2.u; // usuário do perfil logado (julio/ana)
+      if (p === '/api/fin/perfil' && req.method === 'GET') return send(res, 200, fin.perfilInfo(fu));
+      if (p === '/api/fin/mes' && req.method === 'GET') return send(res, 200, fin.getMes(fu, url.searchParams.get('m')));
+      if (p === '/api/fin/mes' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.salvarMes(fu, b.mes, b.renda, b.despesa)); }
+      if (p === '/api/fin/metas' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.salvarMetas(fu, b.metas)); }
+      if (p === '/api/fin/ano' && req.method === 'GET') return send(res, 200, fin.resumoAno(fu, url.searchParams.get('y')));
+      if (p === '/api/fin/investimentos' && req.method === 'GET') return send(res, 200, fin.investimentos(fu, url.searchParams.get('y')));
+      if (p === '/api/fin/investimento' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.addInvest(fu, b)); }
+      if (p === '/api/fin/investimento/remover' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.removerInvest(fu, b.id, b.ano)); }
+      if (p === '/api/fin/parcela' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.propagarParcela(fu, b.mes, b.despesa)); }
+      if (p === '/api/fin/senha' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.trocarSenha(fu, b.atual, b.nova)); }
       return send(res, 404, { erro: 'Rota não encontrada' });
     }
 

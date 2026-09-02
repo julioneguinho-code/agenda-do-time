@@ -40,7 +40,11 @@ input,select{color:var(--txt);font-family:inherit}
   <div class="card" style="max-width:360px;width:100%;text-align:center;padding:30px 24px">
     <div style="width:54px;height:54px;border-radius:15px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">💰</div>
     <h1 style="font-size:20px;font-weight:700">Orçamento pessoal</h1>
-    <p class="mut" style="margin:5px 0 20px">Acesso privado</p>
+    <p class="mut" style="margin:5px 0 16px">Escolha o perfil e entre</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button type="button" id="perf-julio" class="btn sec2" style="flex:1" onclick="selPerfil('julio')">👤 Julio</button>
+      <button type="button" id="perf-ana" class="btn sec2" style="flex:1" onclick="selPerfil('ana')">👤 Ana</button>
+    </div>
     <input type="password" id="login-senha" class="inp" placeholder="Senha" onkeydown="if(event.key==='Enter')entrar()" style="text-align:center">
     <div id="login-erro" class="mut" style="color:var(--no);display:none;margin-top:10px"></div>
     <button class="btn" style="width:100%;margin-top:16px" onclick="entrar()">Entrar</button>
@@ -50,7 +54,7 @@ input,select{color:var(--txt);font-family:inherit}
 <!-- APP -->
 <div id="tela-app" class="wrap" style="display:none">
   <div class="top">
-    <div><div class="mut">Orçamento pessoal</div><div style="font-size:20px;font-weight:700">💰 Finanças</div></div>
+    <div><div class="mut" id="app-perfil">Orçamento pessoal</div><div style="font-size:20px;font-weight:700">💰 Finanças</div></div>
     <div style="display:flex;gap:6px">
       <button class="btn sec2 sm" onclick="abrirSenha()">⚙️</button>
       <button class="btn sec2 sm" onclick="sair()">Sair</button>
@@ -93,16 +97,23 @@ input,select{color:var(--txt);font-family:inherit}
   </div><!-- /view-orc -->
 
   <div id="view-inv" style="display:none">
-    <div class="kpi" style="grid-template-columns:1fr">
-      <div class="b"><div class="l">Total investido no ano</div><div class="v" style="color:var(--ok)" id="inv-total">—</div></div>
+    <div class="kpi" style="grid-template-columns:1fr 1fr">
+      <div class="b"><div class="l">Saldo da carteira</div><div class="v" style="color:var(--ok)" id="inv-saldo">—</div></div>
+      <div class="b"><div class="l">Movimento no ano</div><div class="v" id="inv-total">—</div></div>
     </div>
+    <div style="display:flex;gap:8px;margin:8px 0">
+      <button class="btn" style="flex:1;background:var(--ok)" onclick="abrirInvest('aporte')">➕ Adicionar (aporte)</button>
+      <button class="btn sec2" style="flex:1;color:var(--no);border-color:var(--no)" onclick="abrirInvest('retirada')">➖ Retirar</button>
+    </div>
+    <div class="h">🧾 Movimentos da carteira</div>
+    <div class="card"><div id="inv-movs"></div></div>
     <div class="h">💹 Investimento por mês</div>
     <div class="card"><div id="inv-chart"></div></div>
     <div class="h">📦 Por tipo de investimento</div>
     <div class="card"><div id="inv-itens"></div></div>
-    <div class="h">🧾 Lançamentos</div>
+    <div class="h">🧾 Lançamentos (todos)</div>
     <div class="card"><div id="inv-lancs"></div></div>
-    <div class="mut" style="text-align:center;margin-top:6px">Marque uma despesa como investimento pelo botão 💹 na aba Orçamento.</div>
+    <div class="mut" style="text-align:center;margin-top:6px">Você também pode marcar uma despesa como investimento pelo botão 💹 na aba Orçamento.</div>
   </div>
 
   <div id="view-son" style="display:none">
@@ -137,12 +148,15 @@ function toast(m){const t=document.getElementById('toast');t.textContent=m;t.sty
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 let _mes=new Date().toISOString().slice(0,7), _dados=null, _salvarTimer=null;
 
+let _perfil='julio';
+function selPerfil(u){_perfil=u;document.getElementById('perf-julio').classList.toggle('on',u==='julio');document.getElementById('perf-ana').classList.toggle('on',u==='ana');document.getElementById('login-senha').focus();}
 async function entrar(){
   const senha=document.getElementById('login-senha').value;
-  const res=await fetch('/api/fin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({senha})});
-  if(res.ok){document.getElementById('tela-login').style.display='none';document.getElementById('tela-app').style.display='block';carregar();}
-  else{const e=document.getElementById('login-erro');e.textContent='Senha incorreta';e.style.display='block';}
+  const res=await fetch('/api/fin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usuario:_perfil,senha})});
+  if(res.ok){const j=await res.json();window._finNome=j.nome||'';document.getElementById('tela-login').style.display='none';document.getElementById('tela-app').style.display='block';marcarPerfilApp();carregar();}
+  else{const e=document.getElementById('login-erro');e.textContent='Usuário ou senha incorretos';e.style.display='block';}
 }
+function marcarPerfilApp(){const el=document.getElementById('app-perfil');if(el&&window._finNome)el.textContent='👤 '+window._finNome;}
 async function sair(){await fetch('/api/fin/logout',{method:'POST'});location.reload();}
 function fmtMesLabel(m){const [y,mm]=m.split('-');return MESES[+mm-1]+' '+y;}
 function mudarMes(dir){const [y,mm]=_mes.split('-').map(Number);const d=new Date(y,mm-1+dir,1);_mes=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');carregar();}
@@ -252,19 +266,35 @@ async function propagarParcela(i){
 }
 async function carregarInvest(){
   const y=_mes.slice(0,4);const res=await fetch('/api/fin/investimentos?y='+y);const d=await res.json();
-  document.getElementById('inv-total').textContent=money(d.total);
-  document.getElementById('inv-chart').innerHTML=chartBarras(d.meses,'#3E8E6E');
-  const maxi=Math.max(1,...d.itens.map(x=>x.valor));
-  document.getElementById('inv-itens').innerHTML=(d.itens||[]).map(x=>`<div style="padding:6px 0;border-bottom:1px solid var(--bord)"><div class="lin" style="border:none;padding:0"><span style="font-size:14px">${esc(x.nome)}</span><b>${money(x.valor)}</b></div><div class="prog"><div style="width:${Math.round(100*x.valor/maxi)}%;background:var(--ok)"></div></div></div>`).join('')||'<div class="mut">Nenhum investimento marcado ainda</div>';
-  document.getElementById('inv-lancs').innerHTML=(d.lancamentos||[]).map(l=>{const mm=+l.mes.slice(5)-1;return `<div class="lin"><span style="flex:1;font-size:13px">${esc(l.item)} <span class="mut">· ${MESES[mm].slice(0,3)}${l.meta?' · 🎯'+esc(l.meta):''}</span></span><b>${money(l.valor)}</b></div>`}).join('')||'<div class="mut">Nenhum lançamento</div>';
+  renderInvest(d);
 }
+function renderInvest(d){
+  const cart=d.carteira||{saldo:0,aportes:0,retiradas:0};
+  document.getElementById('inv-saldo').textContent=money(cart.saldo);
+  document.getElementById('inv-total').textContent=money(d.total);
+  document.getElementById('inv-chart').innerHTML=chartBarras((d.meses||[]).map(m=>({mes:m.mes,total:Math.max(0,m.total)})),'#3E8E6E');
+  const maxi=Math.max(1,...(d.itens||[]).map(x=>Math.abs(x.valor)));
+  document.getElementById('inv-itens').innerHTML=(d.itens||[]).map(x=>`<div style="padding:6px 0;border-bottom:1px solid var(--bord)"><div class="lin" style="border:none;padding:0"><span style="font-size:14px">${esc(x.nome)}</span><b style="color:${x.valor<0?'var(--no)':'var(--ok)'}">${money(x.valor)}</b></div><div class="prog"><div style="width:${Math.round(100*Math.abs(x.valor)/maxi)}%;background:${x.valor<0?'var(--no)':'var(--ok)'}"></div></div></div>`).join('')||'<div class="mut">Nenhum investimento ainda</div>';
+  document.getElementById('inv-movs').innerHTML=(d.movimentos||[]).map(m=>{const ap=m.tipo==='aporte';return `<div class="lin"><span style="flex:1;font-size:13px">${ap?'➕':'➖'} ${esc(m.categoria)} <span class="mut">· ${fmtDataBRc(m.data)}${m.obs?' · '+esc(m.obs):''}</span></span><b style="color:${ap?'var(--ok)':'var(--no)'}">${ap?'':'-'}${money(m.valor)}</b><button class="btn sec2 sm" style="color:var(--no);margin-left:6px" onclick="removerInvest('${m.id}')">✕</button></div>`}).join('')||'<div class="mut">Nenhum movimento na carteira. Use ➕ Adicionar ou ➖ Retirar.</div>';
+  document.getElementById('inv-lancs').innerHTML=(d.lancamentos||[]).map(l=>{const mm=+l.mes.slice(5)-1;const neg=l.valor<0;return `<div class="lin"><span style="flex:1;font-size:13px">${esc(l.item)} <span class="mut">· ${MESES[mm].slice(0,3)}${l.meta?' · 🎯'+esc(l.meta):''}</span></span><b style="color:${neg?'var(--no)':''}">${money(l.valor)}</b></div>`}).join('')||'<div class="mut">Nenhum lançamento</div>';
+}
+function fmtDataBRc(iso){if(!iso)return '';const p=String(iso).split('-');return p.length===3?(p[2]+'/'+p[1]+'/'+p[0].slice(2)):iso;}
+function abrirInvest(tipo){const hoje=new Date().toISOString().slice(0,10);const ret=tipo==='retirada';abrirPop(ret?'➖ Retirar investimento':'➕ Adicionar investimento (aporte)',`
+  <label class="mut" style="font-size:12px">Categoria / onde</label><input id="iv-cat" class="inp" placeholder="Ex: Tesouro, Ações, Cripto, Poupança" style="margin-bottom:8px">
+  <label class="mut" style="font-size:12px">Valor</label><div style="display:flex;align-items:center;gap:6px;margin-bottom:8px"><span class="mut">R$</span><input id="iv-val" class="inp" inputmode="decimal" placeholder="0,00" style="flex:1"></div>
+  <label class="mut" style="font-size:12px">Data</label><input id="iv-data" type="date" class="inp" value="${hoje}" style="margin-bottom:8px">
+  <label class="mut" style="font-size:12px">Observação (opcional)</label><input id="iv-obs" class="inp" placeholder="anotação" style="margin-bottom:10px">
+  <button class="btn" style="width:100%;background:${ret?'var(--no)':'var(--ok)'}" onclick="salvarInvest('${ret?'retirada':'aporte'}')">${ret?'Retirar':'Adicionar'}</button>`);}
+async function salvarInvest(tipo){const categoria=document.getElementById('iv-cat').value.trim();const valor=parseBR(document.getElementById('iv-val').value);const data=document.getElementById('iv-data').value;const obs=document.getElementById('iv-obs').value.trim();if(!(valor>0)){toast('Informe um valor');return}const r=await fetch('/api/fin/investimento',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo,valor,categoria,data,obs})});const j=await r.json();if(j.ok){fecharPop();toast(tipo==='retirada'?'Retirada registrada ✓':'Aporte registrado ✓');renderInvest(j);}else toast(j.erro||'Erro');}
+async function removerInvest(id){if(!confirm('Remover este movimento da carteira?'))return;const y=_mes.slice(0,4);const r=await fetch('/api/fin/investimento/remover',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,ano:y})});const j=await r.json();if(j.ok){toast('Removido ✓');renderInvest(j);}else toast(j.erro||'Erro');}
 function abrirPop(t,c){document.getElementById('modal-titulo').textContent=t;document.getElementById('modal-corpo').innerHTML=c;document.getElementById('modal').style.display='flex';}
 function fecharPop(){document.getElementById('modal').style.display='none';}
 function abrirSenha(){abrirPop('Trocar senha',`<input id="s-atual" type="password" class="inp" placeholder="Senha atual" style="margin-bottom:8px"><input id="s-nova" type="password" class="inp" placeholder="Nova senha" style="margin-bottom:8px"><button class="btn" style="width:100%" onclick="salvarSenha()">Salvar</button>`);}
 async function salvarSenha(){const atual=document.getElementById('s-atual').value,nova=document.getElementById('s-nova').value;const r=await fetch('/api/fin/senha',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({atual,nova})});const j=await r.json();if(j.ok){fecharPop();toast('Senha alterada ✓')}else toast(j.erro||'Erro');}
 
 // já logado?
-fetch('/api/fin/mes?m='+_mes).then(r=>{if(r.ok){document.getElementById('tela-login').style.display='none';document.getElementById('tela-app').style.display='block';carregar();}});
+selPerfil('julio');
+fetch('/api/fin/mes?m='+_mes).then(async r=>{if(r.ok){try{const pf=await(await fetch('/api/fin/perfil')).json();window._finNome=pf.nome||'';}catch(e){}document.getElementById('tela-login').style.display='none';document.getElementById('tela-app').style.display='block';marcarPerfilApp();carregar();}});
 </script>
 </body>
 </html>
