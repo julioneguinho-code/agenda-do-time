@@ -184,6 +184,12 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/comissoes/fechamentos' && req.method === 'GET') return send(res, 200, notion.comListarFechamentos(session));
       if (p === '/api/gestor/comissoes/fechamento' && req.method === 'GET') return send(res, 200, notion.comFechamento(session, { id: url.searchParams.get('id'), consultor: url.searchParams.get('consultor') }));
       if (p === '/api/gestor/comissoes/excluir' && req.method === 'POST') return send(res, 200, notion.comExcluirFechamento(session, await readBody(req)));
+      if (p === '/api/gestor/comissoes/exportar' && req.method === 'GET') {
+        const r = notion.comExportarXlsx(session, { id: url.searchParams.get('id') });
+        if (!r || !r.ok) return send(res, 400, r || { erro: 'Falha ao gerar relatório' });
+        res.writeHead(200, { 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Content-Disposition': 'attachment; filename="' + r.filename + '"', 'Content-Length': r.buffer.length, 'Cache-Control': 'no-store' });
+        return res.end(r.buffer);
+      }
       if (p === '/api/gestor/consultor') return send(res, 200, await notion.perfilConsultor(session, url.searchParams.get('email') || url.searchParams.get('nome')));
       if (p === '/api/gestor/controle') return send(res, 200, await notion.controleGestor(session));
       if (p === '/api/gestor/ranking') return send(res, 200, await notion.rankingGestor(session));

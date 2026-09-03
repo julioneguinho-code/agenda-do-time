@@ -91,6 +91,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <div onclick="irControleFiltro('abertas')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--warn)" id="t-pen">0</div><div style="font-size:12px;color:var(--warn)">Pendentes</div></div>
       <div onclick="irControleFiltro('feitas')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--ok)" id="t-fin">0</div><div style="font-size:12px;color:var(--ok)">Finalizadas</div></div>
     </div>
+    <button class="btn sec2" style="width:100%;padding:10px;margin-bottom:10px" onclick="irAba('controle');carregarControle()">📋 Abrir Controle (check-in do time)</button>
     <div class="h" id="h-minhas-tarefas" style="display:none">📥 Tarefas enviadas para mim</div>
     <div id="minhas-tarefas"></div>
     <div class="h">Execução por consultor · semana</div>
@@ -146,6 +147,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- CONTROLE -->
 <div class="aba" id="aba-controle">
   <div class="sec">
+    <div class="row" style="align-items:center;margin-bottom:8px"><button class="btn sec2" style="padding:6px 12px" onclick="irAba('painel')">← Voltar ao painel</button><div class="h" style="margin:0">📋 Controle</div></div>
     <div class="h">Envio do check-in · últimos 7 dias</div>
     <div class="card" style="overflow-x:auto;padding:12px">
       <table style="width:100%;border-collapse:collapse;font-size:12px" id="ctrl-tabela"></table>
@@ -193,35 +195,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-vendasg">
   <div class="sec">
     <div class="row"><div class="h">💰 Vendas do time</div><button class="btn" style="padding:6px 12px" onclick="novaVendaG()">+ Nova venda</button></div>
-    <button class="btn sec2" style="width:100%;padding:10px;margin-bottom:10px;font-weight:600" onclick="abrirGestaoCliente()">👥 Gestão de cliente</button>
-    <div id="vg-gestao" style="display:none">
-      <div class="row" style="align-items:center;margin-bottom:10px"><button class="btn sec2" style="padding:6px 12px" onclick="fecharGestaoCliente()">← Voltar</button><div class="h" style="margin:0">👥 Gestão de cliente</div></div>
-      <div style="display:flex;gap:6px;margin-bottom:10px">
-        <button class="chip on" id="gc-tab-cliente" style="flex:1;text-align:center" onclick="setGcTab('cliente')">👥 Cliente</button>
-        <button class="chip" id="gc-tab-sorteio" style="flex:1;text-align:center" onclick="setGcTab('sorteio')">🎯 Sorteio</button>
-      </div>
-      <div id="gc-cliente">
-        <button class="btn" style="width:100%;padding:10px;margin-bottom:8px" onclick="novaClienteAntigoG()">➕ Cadastro de cliente</button>
-        <label style="font-size:12px;color:var(--mut)">Atribuir a carteira ao consultor</label>
-        <select id="gc-cons-import" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:6px"><option value="">— usar a coluna Consultor da planilha —</option></select>
-        <div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sec2" style="flex:1;padding:9px" onclick="baixarModeloClientes()">⬇️ Baixar planilha modelo</button><button class="btn sec2" style="flex:1;padding:9px" onclick="document.getElementById('gc-upload').click()">⬆️ Subir planilha</button></div>
-        <input type="file" id="gc-upload" accept=".xlsx" style="display:none" onchange="subirPlanilhaClientes(this)">
-        <div class="card" style="padding:10px 12px;margin-bottom:10px">
-          <input type="text" id="vgc-busca" placeholder="🔎 Buscar cliente por nome ou CPF" oninput="renderClientesG()" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
-          <div class="mut" id="vgc-total" style="margin-top:8px;font-size:12px">—</div>
-        </div>
-        <div id="vgc-lista"></div>
-      </div>
-      <div id="gc-sorteio" style="display:none">
-        <div class="card" style="padding:12px;margin-bottom:10px">
-          <div class="mut" style="font-size:12px;margin-bottom:10px">Digite os números da <b>Loteria Federal</b> (5 prêmios) e escolha o grupo. O sistema lista <b>as nossas cotas</b> por proximidade do número sorteado, indicando de qual prêmio cada uma está mais perto. <i>Não é contemplação oficial — mostra só a nossa parte do grupo.</i></div>
-          <div id="srt-premios"></div>
-          <label style="font-size:12px;color:var(--mut);display:block;margin-top:6px">Grupos — toque num grupo para calcular</label>
-          <div id="srt-grupos-list"><div class="mut" style="font-size:12px;padding:8px">Carregando…</div></div>
-        </div>
-        <div id="srt-resultado"></div>
-      </div>
-    </div>
     <div id="vg-painel-wrap">
     <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px">
       <button class="btn sec2" style="padding:5px 12px" onclick="vgMes(-1)">◀</button>
@@ -418,12 +391,42 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
+<div class="aba" id="aba-gestcli">
+  <div class="sec">
+    <div class="h">👥 Gestão de cliente</div>
+    <div style="display:flex;gap:6px;margin:8px 0 10px">
+      <button class="chip on" id="gc-tab-cliente" style="flex:1;text-align:center" onclick="setGcTab('cliente')">👥 Cliente</button>
+      <button class="chip" id="gc-tab-sorteio" style="flex:1;text-align:center" onclick="setGcTab('sorteio')">🎯 Sorteio</button>
+    </div>
+    <div id="gc-cliente">
+      <button class="btn" style="width:100%;padding:10px;margin-bottom:8px" onclick="novaClienteAntigoG()">➕ Cadastro de cliente</button>
+      <label style="font-size:12px;color:var(--mut)">Atribuir a carteira ao consultor</label>
+      <select id="gc-cons-import" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:6px"><option value="">— usar a coluna Consultor da planilha —</option></select>
+      <div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sec2" style="flex:1;padding:9px" onclick="baixarModeloClientes()">⬇️ Baixar planilha modelo</button><button class="btn sec2" style="flex:1;padding:9px" onclick="document.getElementById('gc-upload').click()">⬆️ Subir planilha</button></div>
+      <input type="file" id="gc-upload" accept=".xlsx" style="display:none" onchange="subirPlanilhaClientes(this)">
+      <div class="card" style="padding:10px 12px;margin-bottom:10px">
+        <input type="text" id="vgc-busca" placeholder="🔎 Buscar cliente por nome ou CPF" oninput="renderClientesG()" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
+        <div class="mut" id="vgc-total" style="margin-top:8px;font-size:12px">—</div>
+      </div>
+      <div id="vgc-lista"></div>
+    </div>
+    <div id="gc-sorteio" style="display:none">
+      <div class="card" style="padding:12px;margin-bottom:10px">
+        <div class="mut" style="font-size:12px;margin-bottom:10px">Digite os números da <b>Loteria Federal</b> (5 prêmios) e escolha o grupo. O sistema lista <b>as nossas cotas</b> por proximidade do número sorteado, indicando de qual prêmio cada uma está mais perto. <i>Não é contemplação oficial — mostra só a nossa parte do grupo.</i></div>
+        <div id="srt-premios"></div>
+        <label style="font-size:12px;color:var(--mut);display:block;margin-top:6px">Grupos — toque num grupo para calcular</label>
+        <div id="srt-grupos-list"><div class="mut" style="font-size:12px;padding:8px">Carregando…</div></div>
+      </div>
+      <div id="srt-resultado"></div>
+    </div>
+  </div>
+</div>
+
 <div class="nav">
   <a href="#" class="on" data-aba="painel" onclick="irAba('painel');return false"><span class="ic">📊</span>Painel</a>
-  <a href="#" data-aba="controle" onclick="irAba('controle');carregarControle();return false"><span class="ic">📋</span>Controle</a>
-  <a href="#" data-aba="consultores" onclick="irAba('consultores');carregarConsultores();return false"><span class="ic">👥</span>Consultores</a>
   <a href="#" data-aba="agenda" onclick="irAba('agenda');return false"><span class="ic">📅</span>Agenda</a>
   <a href="#" data-aba="vendasg" onclick="irAba('vendasg');carregarVendasG();return false"><span class="ic">💰</span>Vendas</a>
+  <a href="#" data-aba="gestcli" onclick="irAba('gestcli');carregarGestCli();return false"><span class="ic">👥</span>Clientes</a>
   <a href="#" data-aba="comissoes" onclick="irAba('comissoes');carregarComissoes();return false"><span class="ic">💸</span>Comissões</a>
   <a href="#" data-aba="ranking" onclick="irAba('ranking');carregarRanking();return false"><span class="ic">🏆</span>Ranking</a>
   <a href="#" data-aba="mural" onclick="irAba('mural');carregarMural();return false"><span class="ic">🏅</span>Mural</a>
@@ -469,13 +472,14 @@ function cmFechHTML(f){
   const comp=(f.competencia||'').split('-');const compL=comp.length===2?comp[1]+'/'+comp[0]:f.competencia;
   const impL=(f.impostos||[]).map(im=>`${esc(im.nome)} ${im.tipo==='fixo'?moneyG(im.valor):im.valor+'%'}`).join(' · ')||'sem imposto';
   const g=f.gestor||{cheio:0,imposto:0,liquido:0,qtdCotas:0,cotas:[]};
-  let h=`<div class="card" style="padding:12px;margin-bottom:10px"><div style="font-weight:700;margin-bottom:4px">Competência ${compL}${f.gestorNome?(' · '+esc(f.gestorNome)):''}</div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Cheio total</div><div class="v">${moneyG(f.totalCheio)}</div></div><div class="kpi"><div class="l">Imposto</div><div class="v" style="color:var(--no)">${moneyG(f.totalImposto)}</div></div></div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Seu (licenciado)</div><div class="v" style="color:var(--acc)">${moneyG(g.liquido)}</div></div><div class="kpi"><div class="l">A repassar (consultores)</div><div class="v" style="color:var(--ok)">${moneyG(f.totalRepasse!=null?f.totalRepasse:f.totalLiquido)}</div></div></div><div class="mut" style="font-size:11px">Impostos: ${impL} · ${f.qtdCotas} cota(s)</div></div>`;
+  let h=`<div class="card" style="padding:12px;margin-bottom:10px"><div style="font-weight:700;margin-bottom:4px">Competência ${compL}${f.gestorNome?(' · '+esc(f.gestorNome)):''}</div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Cheio total</div><div class="v">${moneyG(f.totalCheio)}</div></div><div class="kpi"><div class="l">Imposto</div><div class="v" style="color:var(--no)">${moneyG(f.totalImposto)}</div></div></div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Seu (licenciado)</div><div class="v" style="color:var(--acc)">${moneyG(g.liquido)}</div></div><div class="kpi"><div class="l">A repassar (consultores)</div><div class="v" style="color:var(--ok)">${moneyG(f.totalRepasse!=null?f.totalRepasse:f.totalLiquido)}</div></div></div><div class="mut" style="font-size:11px">Impostos: ${impL} · ${f.qtdCotas} cota(s)</div>${f.id?`<button class="btn sec2" style="width:100%;padding:9px;margin-top:8px" onclick="baixarRelatorioComissao('${f.id}')">⬇️ Retirar relatório (Excel)</button>`:''}</div>`;
   // card do gestor (LICENCIADO)
   {const key=(f.id||'x')+'_gestor';const ab=_cmExpand[key];const cotas=(g.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border:1.5px solid var(--acc)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:700;font-size:14px">🏅 ${esc(g.nome||'Gestor')} <span class="mut" style="font-weight:400">(licenciado)</span></div><div class="mut" style="font-size:11px">${g.qtdCotas} cota(s) · cheio ${moneyG(g.cheio)} · imp ${moneyG(g.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:var(--acc)">${moneyG(g.liquido)}</div><div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;}
   h+=(f.porConsultor||[]).map((pc,i)=>{const key=(f.id||'x')+'_'+i;const ab=_cmExpand[key];const cotas=(pc.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');return `<div class="card" style="padding:10px 12px;margin-bottom:7px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:700;font-size:14px">${esc(pc.nome)}</div><div class="mut" style="font-size:11px">${pc.qtdCotas} cota(s) · cheio ${moneyG(pc.cheio)} · imp ${moneyG(pc.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:var(--ok)">${moneyG(pc.liquido)}</div><div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;}).join('')||'<div class="mut" style="padding:8px">Nenhuma comissão casou com a carteira.</div>';
   if((f.naoBateram||[]).length){const nb=f.naoBateram.map(n=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(n.grupo)} · Cota ${esc(n.cota)}${n.cliente?' · '+esc(n.cliente):''}</span><b style="font-size:12px;color:var(--no)">${moneyG(n.valor)}</b></div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border:1px solid var(--no)"><div style="font-weight:700;color:var(--no)">⚠️ Não bateram com a carteira (${f.naoBateram.length}) · ${moneyG(f.naoBateuTotal)}</div><div class="mut" style="font-size:11px;margin-bottom:4px">Cotas do relatório que não achei na carteira — confira grupo/cota.</div>${nb}</div>`;}
   return h;
 }
+function baixarRelatorioComissao(id){const a=document.createElement('a');a.href='/api/gestor/comissoes/exportar?id='+encodeURIComponent(id);a.download='';document.body.appendChild(a);a.click();a.remove();toast('Gerando relatório… ⬇️');}
 let _cmFechAtual=null,_cmFechContainer='cm-resultado';
 function rerenderFech(){if(_cmFechAtual){const el=document.getElementById(_cmFechContainer);if(el)el.innerHTML=cmFechHTML(_cmFechAtual);}}
 async function carregarHistComissao(){const el=document.getElementById('cm-hist-lista');if(!el)return;try{const j=await(await fetch('/api/gestor/comissoes/fechamentos')).json();const fs=j.fechamentos||[];el.innerHTML=fs.length?fs.map(f=>{const c=(f.competencia||'').split('-');const cl=c.length===2?c[1]+'/'+c[0]:f.competencia;const d=new Date(f.criadoEm);return `<div class="card" style="padding:10px 12px;margin-bottom:7px;cursor:pointer" onclick="abrirFechamento('${f.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-weight:700">${cl}${j.master&&f.gestorNome?(' · '+esc(f.gestorNome)):''}</div><div class="mut" style="font-size:11px">${f.qtdCotas} cota(s)${f.naoBateu?(' · ⚠️ '+f.naoBateu+' s/ match'):''} · ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:var(--ok)">${moneyG(f.totalRepasse!=null?f.totalRepasse:f.totalLiquido)}<span class="mut" style="font-size:9px;font-weight:600"> repassar</span></div><div class="mut" style="font-size:10px;color:var(--acc)">seu ${moneyG(f.seuLiquido||0)}</div><button class="btn sec2 sm" style="color:var(--no);margin-top:3px" onclick="event.stopPropagation();excluirFechamento('${f.id}')">🗑</button></div></div></div>`;}).join(''):'<div class="mut" style="padding:10px">Nenhuma importação salva ainda.</div>';}catch(e){el.innerHTML='<div class="mut" style="padding:10px">Erro ao carregar histórico</div>';}}
@@ -671,7 +675,7 @@ function abrirClienteGC(ci,kj){
   abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:4px">Consultor: ${esc(p.nome)}</div><div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s) · Fechado ${moneyG(c.fechado)} · Negociação ${moneyG(c.negociacao)}</div><div class="mut" style="font-size:11px;margin-bottom:8px">Toque numa cota para editar.</div>${linhas}`);
 }
 function editarCotaCliente(id){fecharPop();abrirVendaG(id);}
-function gestaoAberta(){const el=document.getElementById('vg-gestao');return el&&el.style.display!=='none';}
+function gestaoAberta(){const el=document.getElementById('aba-gestcli');return el&&el.classList.contains('on');}
 function parseBRG(s){s=String(s).replace(/[^\d.,-]/g,'');if(s.includes(',')){s=s.replace(/\./g,'').replace(',','.');}return parseFloat(s)||0;}
 function vgMes(d){const [y,m]=vgMesRef.split('-').map(Number);const dt=new Date(y,m-1+d,1);vgMesRef=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');carregarVendasG();}
 function abrirExportVendasG(){
@@ -701,8 +705,11 @@ function baixarVendasG(){
   toast('Gerando planilha… ⬇️');fecharPop();
 }
 // ===== GESTÃO DE CLIENTE (abas Cliente + Sorteio) =====
-function abrirGestaoCliente(){document.getElementById('vg-painel-wrap').style.display='none';document.getElementById('vg-gestao').style.display='block';setGcTab('cliente');carregarClientesG();carregarGruposSorteio();renderPremiosInputs();popularConsImport();window.scrollTo(0,0);}
-function fecharGestaoCliente(){document.getElementById('vg-gestao').style.display='none';document.getElementById('vg-painel-wrap').style.display='block';window.scrollTo(0,0);}
+async function carregarGestCli(){setGcTab('cliente');carregarClientesG();carregarGruposSorteio();renderPremiosInputs();popularConsImport();
+  // carrega vendas/consultores em memória p/ permitir editar cota e o seletor de consultor
+  try{if(!(window._vgAll||[]).length){const vd=await(await fetch('/api/vendas')).json();window._vgAll=vd.vendas||[];}}catch(e){}
+  try{if(!(window._vgDash||[]).length){const dash=await(await fetch('/api/gestor/vendas-dash?mes='+(new Date().toISOString().slice(0,7)))).json();window._vgDash=dash.consultores||[];}}catch(e){}
+}
 function setGcTab(t){document.getElementById('gc-tab-cliente').classList.toggle('on',t==='cliente');document.getElementById('gc-tab-sorteio').classList.toggle('on',t==='sorteio');document.getElementById('gc-cliente').style.display=t==='cliente'?'block':'none';document.getElementById('gc-sorteio').style.display=t==='sorteio'?'block':'none';}
 function renderPremiosInputs(){const el=document.getElementById('srt-premios');if(!el||el.dataset.done)return;const ord=['1º','2º','3º','4º','5º'];el.innerHTML=ord.map((o,i)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="mut" style="width:26px;font-size:13px;font-weight:600">${o}</span><input type="text" class="srt-premio" inputmode="numeric" maxlength="5" placeholder="00000" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,5)" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:15px;letter-spacing:2px;background:var(--bg)"></div>`).join('');el.dataset.done='1';}
 async function carregarGruposSorteio(){const el=document.getElementById('srt-grupos-list');if(!el)return;try{const j=await(await fetch('/api/gestor/sorteio-grupos')).json();const gs=j.grupos||[];window._srtGrupos=gs;el.innerHTML=gs.length?gs.map(g=>{const bar=`<div class="prog" style="margin-top:5px;height:6px"><div style="width:${g.pct}%;height:100%;background:${g.lotado?'#3E8E6E':'var(--acc)'}"></div></div>`;const badge=g.lotado?'<span class="badge b-ok" style="font-size:10px">LOTADO</span>':`<span class="mut" style="font-size:10px">${g.pct}%</span>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="calcularSorteio('${esc(g.grupo)}',${g.tamanho})"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700;font-size:13px">Grupo ${esc(g.grupo)} <span class="mut" style="font-weight:400">· ${g.tamanho} part.</span></div><div style="text-align:right;flex:none">${badge}<div class="mut" style="font-size:10px">${g.qtd}/${g.tamanho} nossas</div></div></div>${bar}</div>`;}).join(''):'<div class="mut" style="font-size:12px;padding:8px">Nenhum grupo com cota fechada + tamanho definido.</div>';}catch(e){el.innerHTML='<div class="mut" style="font-size:12px;padding:8px">Erro ao carregar grupos</div>';}}
@@ -823,7 +830,7 @@ function novaVendaG(){abrirPop('Nova venda',formVendaGMulti()+`<button class="bt
 function mesAnteriorISOg(){const d=new Date();d.setDate(1);d.setDate(0);return d.toISOString().slice(0,10);}
 function novaClienteAntigoG(){abrirPop('➕ Cadastro de cliente',`<div class="mut" style="font-size:12px;margin-bottom:8px">Cadastre um cliente já existente para alimentar o sistema. A data vem do mês anterior — ajuste para o mês real do fechamento.</div>`+formVendaGMulti({dataPadrao:mesAnteriorISOg()})+`<button class="btn" style="width:100%;margin-top:10px" onclick="salvarVendaGMulti()">Salvar</button>`);addCotaRowG();}
 async function baixarModeloClientes(){const a=document.createElement('a');a.href='/api/clientes/modelo';a.download='';document.body.appendChild(a);a.click();a.remove();toast('Baixando modelo… ⬇️');}
-function popularConsImport(){const sel=document.getElementById('gc-cons-import');if(!sel)return;const ops=(window._vgDash||[]).filter(c=>c.email).map(c=>`<option value="${esc(c.email)}">${esc(c.nome)}${c.papel==='gestor'?' (você/gestor)':''}</option>`).join('');sel.innerHTML='<option value="">— usar a coluna Consultor da planilha —</option>'+ops;}
+async function popularConsImport(){const sel=document.getElementById('gc-cons-import');if(!sel)return;if(!(window._vgDash||[]).length){try{const dash=await(await fetch('/api/gestor/vendas-dash?mes='+(new Date().toISOString().slice(0,7)))).json();window._vgDash=dash.consultores||[];}catch(e){}}const ops=(window._vgDash||[]).filter(c=>c.email).map(c=>`<option value="${esc(c.email)}">${esc(c.nome)}${c.papel==='gestor'?' (você/gestor)':''}</option>`).join('');sel.innerHTML='<option value="">— usar a coluna Consultor da planilha —</option>'+ops;}
 async function subirPlanilhaClientes(input){const f=input.files&&input.files[0];if(!f)return;input.value='';const sel=document.getElementById('gc-cons-import');const consultorEmail=sel&&sel.value?sel.value:undefined;toast('Lendo planilha…');const rd=new FileReader();rd.onload=async()=>{const b64=String(rd.result).split(',')[1]||'';const r=await fetch('/api/clientes/importar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({arquivo:b64,consultorEmail})});const j=await r.json();mostrarResultadoImport(j);if(gestaoAberta())carregarClientesG();};rd.readAsDataURL(f);}
 function mostrarResultadoImport(j){if(j.erro){abrirPop('Importação',`<div style="color:var(--no)">${esc(j.erro)}</div>`);return;}const errs=(j.erros||[]).map(e=>`<div class="mut" style="font-size:11px">Linha ${e.linha}: ${esc(e.erro)}</div>`).join('');abrirPop('📥 Importação concluída',`<div style="margin-bottom:8px"><b>${j.importados||0}</b> cota(s) importada(s)${j.falhas?` · <b style="color:var(--no)">${j.falhas}</b> com erro`:''}.</div>${errs?`<div style="margin-top:6px">${errs}</div>`:''}`);}
 function novaCotaClienteG(nomeEnc,cpf,consultorEmail){const nome=decodeURIComponent(nomeEnc);abrirPop('Novas cotas · '+nome,formVendaGMulti({cliente:{nome,cpf},lock:true,consultorEmail:consultorEmail||''})+`<button class="btn" style="width:100%;margin-top:10px" onclick="salvarVendaGMulti()">Salvar</button>`);addCotaRowG();}
