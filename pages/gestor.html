@@ -824,11 +824,12 @@ function formVendaGMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre
   <div style="font-weight:700;font-size:13px;margin:10px 0 6px">Cotas</div>
   <div id="vgf-cotas"></div>
   <button class="btn sec2" style="width:100%;padding:8px" onclick="addCotaRowG()">➕ adicionar outra cota</button>
-  <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-top:10px"><input type="checkbox" id="vgf-fechada" style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Já efetivada(s) — fechada(s)</label>`;}
+  ${pre.carteira?'<div class="mut" style="font-size:12px;margin-top:10px">✅ Cliente cadastrado já entra como <b>venda fechada</b>.</div>':'<label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-top:10px"><input type="checkbox" id="vgf-fechada" style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Já efetivada(s) — fechada(s)</label>'}`;}
 function addCotaRowG(g,co,val){const wrap=document.getElementById('vgf-cotas');if(!wrap)return;const inp='padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin:0;min-width:0';const div=document.createElement('div');div.className='cotaG-row';div.style.cssText='display:flex;gap:5px;margin-bottom:6px;align-items:center;width:100%';div.innerHTML=`<input class="cg-grupo" placeholder="Grupo" value="${esc(g||'')}" style="flex:1;${inp}"><input class="cg-cota" placeholder="Cota" value="${esc(co||'')}" style="flex:1;${inp}"><div style="display:flex;align-items:center;gap:2px;flex:1;min-width:0"><span class="mut" style="font-size:12px">R$</span><input class="cg-valor" inputmode="decimal" placeholder="0,00" value="${val?moneyG(val).replace('R$ ',''):''}" onblur="this.value=this.value?moneyG(parseBRG(this.value)).replace('R$ ',''):''" style="width:100%;${inp}"></div><button class="btn sec2" onclick="this.closest('.cotaG-row').remove()" style="padding:7px 9px;margin:0;color:var(--no);flex:none">✕</button>`;wrap.appendChild(div);}
-function novaVendaG(){abrirPop('Nova venda',formVendaGMulti()+`<button class="btn" style="width:100%;margin-top:10px" onclick="salvarVendaGMulti()">Salvar</button>`);addCotaRowG();}
+let _gcCadCliente=false;
+function novaVendaG(){_gcCadCliente=false;abrirPop('Nova venda',formVendaGMulti()+`<button class="btn" style="width:100%;margin-top:10px" onclick="salvarVendaGMulti()">Salvar</button>`);addCotaRowG();}
 function mesAnteriorISOg(){const d=new Date();d.setDate(1);d.setDate(0);return d.toISOString().slice(0,10);}
-function novaClienteAntigoG(){abrirPop('➕ Cadastro de cliente',`<div class="mut" style="font-size:12px;margin-bottom:8px">Cadastre um cliente já existente para alimentar o sistema. A data vem do mês anterior — ajuste para o mês real do fechamento.</div>`+formVendaGMulti({dataPadrao:mesAnteriorISOg()})+`<button class="btn" style="width:100%;margin-top:10px" onclick="salvarVendaGMulti()">Salvar</button>`);addCotaRowG();}
+function novaClienteAntigoG(){_gcCadCliente=true;abrirPop('➕ Cadastro de cliente',`<div class="mut" style="font-size:12px;margin-bottom:8px">Cadastre um cliente já existente para alimentar o sistema. A data vem do mês anterior — ajuste para o mês real do fechamento.</div>`+formVendaGMulti({dataPadrao:mesAnteriorISOg(),carteira:true})+`<button class="btn" style="width:100%;margin-top:10px" onclick="salvarVendaGMulti()">Salvar</button>`);addCotaRowG();}
 async function baixarModeloClientes(){const a=document.createElement('a');a.href='/api/clientes/modelo';a.download='';document.body.appendChild(a);a.click();a.remove();toast('Baixando modelo… ⬇️');}
 async function popularConsImport(){const sel=document.getElementById('gc-cons-import');if(!sel)return;if(!(window._vgDash||[]).length){try{const dash=await(await fetch('/api/gestor/vendas-dash?mes='+(new Date().toISOString().slice(0,7)))).json();window._vgDash=dash.consultores||[];}catch(e){}}const ops=(window._vgDash||[]).filter(c=>c.email).map(c=>`<option value="${esc(c.email)}">${esc(c.nome)}${c.papel==='gestor'?' (você/gestor)':''}</option>`).join('');sel.innerHTML='<option value="">— usar a coluna Consultor da planilha —</option>'+ops;}
 async function subirPlanilhaClientes(input){const f=input.files&&input.files[0];if(!f)return;input.value='';const sel=document.getElementById('gc-cons-import');const consultorEmail=sel&&sel.value?sel.value:undefined;toast('Lendo planilha…');const rd=new FileReader();rd.onload=async()=>{const b64=String(rd.result).split(',')[1]||'';const r=await fetch('/api/clientes/importar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({arquivo:b64,consultorEmail})});const j=await r.json();mostrarResultadoImport(j);if(gestaoAberta())carregarClientesG();};rd.readAsDataURL(f);}
@@ -839,19 +840,22 @@ async function salvarVendaGMulti(){
   const nome=document.getElementById('vgf-nome').value.trim();
   const cpf=document.getElementById('vgf-cpf').value, cpfDig=cpf.replace(/\D/g,'');
   const data=document.getElementById('vgf-data').value;
-  const status=document.getElementById('vgf-fechada').checked?'fechada':'negociacao';
+  const cadCli=_gcCadCliente===true; // cadastro de cliente = sempre fechada, é carteira e tolerante
+  const chk=document.getElementById('vgf-fechada');
+  const status=cadCli?'fechada':(chk&&chk.checked?'fechada':'negociacao');
   if(!nome){toast('Informe o nome do cliente');return}
-  if(cpfDig&&!cpfValidoG(cpfDig)){toast('CPF inválido — confira os números');return}
-  if(status==='fechada'&&!cpfValidoG(cpfDig)){toast('Para efetivar, informe um CPF válido do cliente');return}
+  if(!cadCli&&cpfDig&&!cpfValidoG(cpfDig)){toast('CPF/CNPJ inválido — confira os números');return}
+  if(!cadCli&&status==='fechada'&&!cpfValidoG(cpfDig)){toast('Para efetivar, informe um CPF/CNPJ válido do cliente');return}
   const tipo=(document.getElementById('vgf-tipo')||{}).value||'';
   const tamanho=(document.getElementById('vgf-tamanho')||{}).value||'';
   const rows=[...document.querySelectorAll('#vgf-cotas .cotaG-row')].map(r=>({grupo:r.querySelector('.cg-grupo').value.trim(),cota:r.querySelector('.cg-cota').value.trim(),valor:parseBRG(r.querySelector('.cg-valor').value)})).filter(r=>r.valor>0);
   if(!rows.length){toast('Adicione ao menos uma cota com valor');return}
-  if(status==='fechada'){ if(!tamanho){toast('Para efetivar, selecione o tamanho do grupo');return} if(rows.some(r=>!r.grupo||!r.cota)){toast('Para efetivar, preencha grupo e cota de todas as cotas');return} }
+  if(!cadCli&&status==='fechada'){ if(!tamanho){toast('Para efetivar, selecione o tamanho do grupo');return} if(rows.some(r=>!r.grupo||!r.cota)){toast('Para efetivar, preencha grupo e cota de todas as cotas');return} }
   const consultorEmail=selC&&selC.value?selC.value:undefined;
   let ok=0,erro='',festa=false,somaFesta=0;
-  for(const r of rows){const body={nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,tipo,data,status};if(consultorEmail)body.consultorEmail=consultorEmail;if(tamanho)body.tamanhoGrupo=tamanho;const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await res.json();if(j.ok||j.venda){ok++;if(j.festa){festa=true;somaFesta+=(+j.valor||0);}}else erro=j.erro||'Erro';}
-  if(ok){fecharPop();toast(ok+' cota(s) cadastrada(s) ✓'+(erro?' · '+erro:''));carregarVendasG();if(gestaoAberta())carregarClientesG();if(festa)festaVendaG('Você fechou '+moneyG(somaFesta)+' em vendas! 🔥');}else toast(erro||'Erro ao salvar');
+  for(const r of rows){const body={nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,tipo,data,status};if(consultorEmail)body.consultorEmail=consultorEmail;if(tamanho)body.tamanhoGrupo=tamanho;if(cadCli){body.carteira=true;body._import=true;}const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await res.json();if(j.ok||j.venda){ok++;if(j.festa){festa=true;somaFesta+=(+j.valor||0);}}else erro=j.erro||'Erro';}
+  const _cad=cadCli;_gcCadCliente=false;
+  if(ok){fecharPop();toast(ok+(_cad?' cliente(s)/cota(s) cadastrado(s) ✓':' cota(s) cadastrada(s) ✓')+(erro?' · '+erro:''));carregarVendasG();if(gestaoAberta())carregarClientesG();if(festa)festaVendaG('Você fechou '+moneyG(somaFesta)+' em vendas! 🔥');}else toast(erro||'Erro ao salvar');
 }
 async function salvarVendaG(id){
   const selC=document.getElementById('vgf-consultor');

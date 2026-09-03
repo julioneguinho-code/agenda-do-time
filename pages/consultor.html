@@ -487,29 +487,33 @@ function formVendaMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre.
   <div class="h" style="margin:12px 0 6px">Cotas</div>
   <div id="vf-cotas"></div>
   <button class="btn sec2" style="width:100%;padding:8px" onclick="addCotaRow()">➕ adicionar outra cota</button>
-  <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:14px;color:var(--txt)"><input type="checkbox" id="vf-fechada" style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Já efetivada(s) — fechada(s)</label>`;}
+  ${pre.carteira?'<div class="mut" style="font-size:12px;margin-top:12px">✅ Cliente cadastrado já entra como <b>venda fechada</b>.</div>':'<label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:14px;color:var(--txt)"><input type="checkbox" id="vf-fechada" style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Já efetivada(s) — fechada(s)</label>'}`;}
 function addCotaRow(g,co,val){const wrap=document.getElementById('vf-cotas');if(!wrap)return;const div=document.createElement('div');div.className='cota-row';div.style.cssText='display:flex;gap:5px;margin-bottom:6px;align-items:center;width:100%';div.innerHTML=`<input class="inp2 c-grupo" placeholder="Grupo" value="${esc(g||'')}" style="flex:1;margin:0;min-width:0"><input class="inp2 c-cota" placeholder="Cota" value="${esc(co||'')}" style="flex:1;margin:0;min-width:0"><div style="display:flex;align-items:center;gap:2px;flex:1;min-width:0"><span class="mut" style="font-size:12px">R$</span><input class="inp2 c-valor" inputmode="decimal" placeholder="0,00" value="${val?fmtBR(val):''}" onblur="this.value=this.value?fmtBR(parseBR(this.value)):''" style="margin:0;min-width:0;width:100%"></div><button class="btn sec2" onclick="this.closest('.cota-row').remove()" style="padding:7px 9px;margin:0;color:var(--no);flex:none">✕</button>`;wrap.appendChild(div);}
-function novaVenda(){abrirPop('Nova venda',formVendaMulti()+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();}
+let _cCadCliente=false;
+function novaVenda(){_cCadCliente=false;abrirPop('Nova venda',formVendaMulti()+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();}
 function mesAnteriorISOc(){const d=new Date();d.setDate(1);d.setDate(0);return d.toISOString().slice(0,10);}
-function novaClienteAntigo(){abrirPop('➕ Cadastro de cliente',`<div class="mut" style="font-size:12px;margin-bottom:8px">Cadastre um cliente já existente para alimentar o sistema. A data vem do mês anterior — ajuste para o mês real.</div>`+formVendaMulti({dataPadrao:mesAnteriorISOc()})+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();}
+function novaClienteAntigo(){_cCadCliente=true;abrirPop('➕ Cadastro de cliente',`<div class="mut" style="font-size:12px;margin-bottom:8px">Cadastre um cliente já existente para alimentar o sistema. A data vem do mês anterior — ajuste para o mês real.</div>`+formVendaMulti({dataPadrao:mesAnteriorISOc(),carteira:true})+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();}
 async function baixarModeloClientesC(){const a=document.createElement('a');a.href='/api/clientes/modelo';a.download='';document.body.appendChild(a);a.click();a.remove();toast('Baixando modelo… ⬇️');}
 async function subirPlanilhaClientesC(input){const f=input.files&&input.files[0];if(!f)return;input.value='';toast('Lendo planilha…');const rd=new FileReader();rd.onload=async()=>{const b64=String(rd.result).split(',')[1]||'';const r=await fetch('/api/clientes/importar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({arquivo:b64})});const j=await r.json();if(j.erro){abrirPop('Importação',`<div style="color:var(--no)">${esc(j.erro)}</div>`);}else{const errs=(j.erros||[]).map(e=>`<div class="mut" style="font-size:11px">Linha ${e.linha}: ${esc(e.erro)}</div>`).join('');abrirPop('📥 Importação concluída',`<div style="margin-bottom:8px"><b>${j.importados||0}</b> nova(s)${j.atualizados?` · <b style="color:var(--acc)">${j.atualizados}</b> atualizada(s)`:''}${j.falhas?` · <b style="color:var(--no)">${j.falhas}</b> com erro`:''}.</div>${errs}`);}carregarVendas();};rd.readAsDataURL(f);}
 async function salvarVendaMulti(){
   const nome=document.getElementById('vf-nome').value.trim();
   const cpf=document.getElementById('vf-cpf').value, cpfDig=cpf.replace(/\D/g,'');
   const data=document.getElementById('vf-data').value;
-  const status=document.getElementById('vf-fechada').checked?'fechada':'negociacao';
+  const cadCli=_cCadCliente===true;
+  const chk=document.getElementById('vf-fechada');
+  const status=cadCli?'fechada':(chk&&chk.checked?'fechada':'negociacao');
   if(!nome){toast('Informe o nome do cliente');return}
-  if(cpfDig&&!cpfValido(cpfDig)){toast('CPF inválido — confira os números');return}
-  if(status==='fechada'&&!cpfValido(cpfDig)){toast('Para efetivar, informe um CPF válido do cliente');return}
+  if(!cadCli&&cpfDig&&!cpfValido(cpfDig)){toast('CPF/CNPJ inválido — confira os números');return}
+  if(!cadCli&&status==='fechada'&&!cpfValido(cpfDig)){toast('Para efetivar, informe um CPF/CNPJ válido do cliente');return}
   const tipo=(document.getElementById('vf-tipo')||{}).value||'';
   const tamanho=(document.getElementById('vf-tamanho')||{}).value||'';
   const rows=[...document.querySelectorAll('#vf-cotas .cota-row')].map(r=>({grupo:r.querySelector('.c-grupo').value.trim(),cota:r.querySelector('.c-cota').value.trim(),valor:parseBR(r.querySelector('.c-valor').value)})).filter(r=>r.valor>0);
   if(!rows.length){toast('Adicione ao menos uma cota com valor');return}
-  if(status==='fechada'){ if(!tamanho){toast('Para efetivar, selecione o tamanho do grupo');return} if(rows.some(r=>!r.grupo||!r.cota)){toast('Para efetivar, preencha grupo e cota de todas as cotas');return} }
+  if(!cadCli&&status==='fechada'){ if(!tamanho){toast('Para efetivar, selecione o tamanho do grupo');return} if(rows.some(r=>!r.grupo||!r.cota)){toast('Para efetivar, preencha grupo e cota de todas as cotas');return} }
   let ok=0,erro='',festa=false,somaFesta=0;
-  for(const r of rows){const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,tamanhoGrupo:tamanho,tipo,data,status})});const j=await res.json();if(j.ok||j.venda){ok++;if(j.festa){festa=true;somaFesta+=(+j.valor||0);}}else erro=j.erro||'Erro';}
-  if(ok){fecharPop();toast(ok+' cota(s) cadastrada(s) ✓'+(erro?' · '+erro:''));carregarVendas();if(festa)festaVenda(somaFesta);}
+  for(const r of rows){const body={nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,tamanhoGrupo:tamanho,tipo,data,status};if(cadCli){body.carteira=true;body._import=true;}const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await res.json();if(j.ok||j.venda){ok++;if(j.festa){festa=true;somaFesta+=(+j.valor||0);}}else erro=j.erro||'Erro';}
+  _cCadCliente=false;
+  if(ok){fecharPop();toast(ok+' cadastrado(s) ✓'+(erro?' · '+erro:''));carregarVendas();if(festa)festaVenda(somaFesta);}
   else toast(erro||'Erro ao salvar');
 }
 function abrirVenda(id){const v=_vendas.find(x=>x.id===id);if(!v)return;const c=v.cliente||{};
