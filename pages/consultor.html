@@ -335,8 +335,10 @@ function atualizarGamif(){
     document.getElementById('gl-check').title='Check-in da semana: '+mc.atual+' de '+mc.alvo+' rotinas';
   }catch(e){}
 }
-function fmtCpf(c){c=String(c||'').replace(/\D/g,'');if(c.length!==11)return c;return c.slice(0,3)+'.'+c.slice(3,6)+'.'+c.slice(6,9)+'-'+c.slice(9)}
-function cpfValido(cpf){cpf=String(cpf||'').replace(/\D/g,'');if(cpf.length!==11)return false;if(/^(\d)\1{10}$/.test(cpf))return false;let s=0;for(let i=0;i<9;i++)s+=parseInt(cpf[i])*(10-i);let d1=11-(s%11);if(d1>=10)d1=0;if(d1!==parseInt(cpf[9]))return false;s=0;for(let i=0;i<10;i++)s+=parseInt(cpf[i])*(11-i);let d2=11-(s%11);if(d2>=10)d2=0;return d2===parseInt(cpf[10]);}
+function fmtCpf(c){var d=String(c||'').replace(/\D/g,'').slice(0,14);if(d.length<=11){if(d.length!==11)return d;return d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);}return d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8,12)+'-'+d.slice(12,14);}
+function cpfValidoBase(cpf){cpf=String(cpf||'').replace(/\D/g,'');if(cpf.length!==11)return false;if(/^(\d)\1{10}$/.test(cpf))return false;let s=0;for(let i=0;i<9;i++)s+=parseInt(cpf[i])*(10-i);let d1=11-(s%11);if(d1>=10)d1=0;if(d1!==parseInt(cpf[9]))return false;s=0;for(let i=0;i<10;i++)s+=parseInt(cpf[i])*(11-i);let d2=11-(s%11);if(d2>=10)d2=0;return d2===parseInt(cpf[10]);}
+function cnpjValidoC(v){var c=String(v||'').replace(/\D/g,'');if(c.length!==14)return false;if(/^(\d)\1{13}$/.test(c))return false;const calc=b=>{let s=0,p=b.length-7;for(let i=0;i<b.length;i++){s+=parseInt(b[i])*p;p--;if(p<2)p=9;}const r=s%11;return r<2?0:11-r;};if(calc(c.slice(0,12))!==parseInt(c[12]))return false;return calc(c.slice(0,13))===parseInt(c[13]);}
+function cpfValido(v){var d=String(v||'').replace(/\D/g,'');return d.length===14?cnpjValidoC(d):cpfValidoBase(d);}
 // tipo da cota (cores suaves) — usado aqui e reaproveitável em outros projetos
 const TIPOS_COTA={veiculo:{label:'Veículo',emoji:'🚗',bg:'#E4ECF5',bd:'#9BB6D4',tx:'#3E5F86',dot:'#5E82AC'},imovel:{label:'Imóvel',emoji:'🏠',bg:'#F4E7E5',bd:'#D6A8A2',tx:'#8C463F',dot:'#B5645C'},servicos:{label:'Serviços',emoji:'🛠️',bg:'#F5EFDC',bd:'#D9C58C',tx:'#7E661E',dot:'#C6A24A'}};
 function tipoInfo(t){return TIPOS_COTA[String(t||'').toLowerCase()]||null;}
@@ -468,7 +470,7 @@ const TAMS_GRUPO_C=[500,1000,2000,3333,5000,9999];
 function selTamGrupoC(sel){const ops=TAMS_GRUPO_C.map(n=>`<option value="${n}" ${(+sel===n)?'selected':''}>${n} participantes</option>`).join('');return `<label>Tamanho do grupo <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><select id="vf-tamanho" class="inp2"><option value="">— selecione —</option>${ops}</select>`;}
 function formVenda(v){v=v||{};const c=v.cliente||{};return `
   <label>Cliente</label><input type="text" id="vf-nome" class="inp2" value="${esc(c.nome)}" placeholder="Nome do cliente">
-  <label>CPF <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf))}" placeholder="000.000.000-00" oninput="this.value=fmtCpf(this.value);checaCpf(this,'vf-cpf-msg')"><div id="vf-cpf-msg" style="font-size:11px;margin-top:2px"></div>
+  <label>CPF / CNPJ <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf))}" placeholder="CPF ou CNPJ" oninput="this.value=fmtCpf(this.value);checaCpf(this,'vf-cpf-msg')"><div id="vf-cpf-msg" style="font-size:11px;margin-top:2px"></div>
   <label>Valor da venda</label><div style="display:flex;align-items:center;gap:6px"><span class="mut" style="font-size:13px">R$</span><input type="text" inputmode="decimal" id="vf-valor" class="inp2" value="${v.valor?fmtBR(v.valor):''}" placeholder="0,00" onblur="this.value=this.value?fmtBR(parseBR(this.value)):''"></div>
   <div style="display:flex;gap:8px"><div style="flex:1"><label>Grupo</label><input type="text" id="vf-grupo" class="inp2" value="${esc(v.grupo)}"></div><div style="flex:1"><label>Cota</label><input type="text" id="vf-cota" class="inp2" value="${esc(v.cota)}"></div></div>
   ${selTamGrupoC(v.tamanhoGrupo||'')}
@@ -478,7 +480,7 @@ function formVenda(v){v=v||{};const c=v.cliente||{};return `
 function checaCpf(inp,msgId){const el=document.getElementById(msgId);if(!el)return;const d=(inp.value||'').replace(/\D/g,'');if(!d){el.textContent='';return}if(d.length<11){el.textContent='';return}if(cpfValido(d)){el.textContent='✓ CPF válido';el.style.color='var(--ok)';}else{el.textContent='✗ CPF inválido';el.style.color='var(--no)';}}
 function formVendaMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre.lock;return `
   <label>Cliente</label><input type="text" id="vf-nome" class="inp2" value="${esc(c.nome||'')}" placeholder="Nome do cliente" ${lock?'readonly style="background:#eef0f3"':''}>
-  <label>CPF <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf||''))}" placeholder="000.000.000-00" oninput="this.value=fmtCpf(this.value);checaCpf(this,'vf-cpf-msg')" ${lock&&c.cpf?'readonly style="background:#eef0f3"':''}><div id="vf-cpf-msg" style="font-size:11px;margin-top:2px"></div>
+  <label>CPF / CNPJ <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf||''))}" placeholder="CPF ou CNPJ" oninput="this.value=fmtCpf(this.value);checaCpf(this,'vf-cpf-msg')" ${lock&&c.cpf?'readonly style="background:#eef0f3"':''}><div id="vf-cpf-msg" style="font-size:11px;margin-top:2px"></div>
   <label>Data do fechamento ${pre.dataPadrao?'<span class="mut" style="font-weight:400">(cliente antigo — ajuste o mês)</span>':''}</label><input type="date" id="vf-data" class="inp2" value="${pre.dataPadrao||new Date().toISOString().slice(0,10)}">
   ${selTamGrupoC(pre.tamanhoGrupo||'')}
   <label>Tipo da cota</label>${tipoSelector(pre.tipo||'')}
