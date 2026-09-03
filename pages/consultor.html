@@ -409,7 +409,7 @@ function agruparClientes(list){
 }
 function renderClientes(){
   const q=(document.getElementById('vd-busca').value||'').toLowerCase();
-  let list=(_vendas||[]).filter(v=>v.status==='fechada'); // clientes = só vendas fechadas
+  let list=(_vendas||[]).filter(v=>v.carteira||v.status==='fechada'); // clientes = carteira + vendas fechadas
   if(q)list=list.filter(v=>((v.cliente&&v.cliente.nome)||'').toLowerCase().includes(q)||((v.cliente&&v.cliente.cpf)||'').includes(q.replace(/\D/g,'')));
   const clientes=agruparClientes(list);window._clientesG=clientes;
   document.getElementById('vd-total').innerHTML=`<b>${clientes.length}</b> cliente(s) · <b>${list.length}</b> cota(s)`;
@@ -434,7 +434,7 @@ function novaVendaCliente(nomeEnc,cpf){
 function renderVendas(){
   if(vendaView==='clientes'){renderClientes();return;}
   const q=(document.getElementById('vd-busca').value||'').toLowerCase();
-  let list=(_vendas||[]).slice();
+  let list=(_vendas||[]).filter(v=>!v.carteira); // carteira não aparece no kanban de vendas
   if(q)list=list.filter(v=>((v.cliente&&v.cliente.nome)||'').toLowerCase().includes(q)||((v.cliente&&v.cliente.cpf)||'').includes(q.replace(/\D/g,'')));
   const neg=list.filter(v=>v.status!=='fechada'), fec=list.filter(v=>v.status==='fechada');
   const somaN=neg.reduce((s,v)=>s+(+v.valor||0),0), somaF=fec.reduce((s,v)=>s+(+v.valor||0),0);
@@ -493,7 +493,7 @@ function novaVenda(){abrirPop('Nova venda',formVendaMulti()+`<button class="btn 
 function mesAnteriorISOc(){const d=new Date();d.setDate(1);d.setDate(0);return d.toISOString().slice(0,10);}
 function novaClienteAntigo(){abrirPop('➕ Cadastro de cliente',`<div class="mut" style="font-size:12px;margin-bottom:8px">Cadastre um cliente já existente para alimentar o sistema. A data vem do mês anterior — ajuste para o mês real.</div>`+formVendaMulti({dataPadrao:mesAnteriorISOc()})+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();}
 async function baixarModeloClientesC(){const a=document.createElement('a');a.href='/api/clientes/modelo';a.download='';document.body.appendChild(a);a.click();a.remove();toast('Baixando modelo… ⬇️');}
-async function subirPlanilhaClientesC(input){const f=input.files&&input.files[0];if(!f)return;input.value='';toast('Lendo planilha…');const rd=new FileReader();rd.onload=async()=>{const b64=String(rd.result).split(',')[1]||'';const r=await fetch('/api/clientes/importar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({arquivo:b64})});const j=await r.json();if(j.erro){abrirPop('Importação',`<div style="color:var(--no)">${esc(j.erro)}</div>`);}else{const errs=(j.erros||[]).map(e=>`<div class="mut" style="font-size:11px">Linha ${e.linha}: ${esc(e.erro)}</div>`).join('');abrirPop('📥 Importação concluída',`<div style="margin-bottom:8px"><b>${j.importados||0}</b> cota(s) importada(s)${j.falhas?` · <b style="color:var(--no)">${j.falhas}</b> com erro`:''}.</div>${errs}`);}carregarVendas();};rd.readAsDataURL(f);}
+async function subirPlanilhaClientesC(input){const f=input.files&&input.files[0];if(!f)return;input.value='';toast('Lendo planilha…');const rd=new FileReader();rd.onload=async()=>{const b64=String(rd.result).split(',')[1]||'';const r=await fetch('/api/clientes/importar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({arquivo:b64})});const j=await r.json();if(j.erro){abrirPop('Importação',`<div style="color:var(--no)">${esc(j.erro)}</div>`);}else{const errs=(j.erros||[]).map(e=>`<div class="mut" style="font-size:11px">Linha ${e.linha}: ${esc(e.erro)}</div>`).join('');abrirPop('📥 Importação concluída',`<div style="margin-bottom:8px"><b>${j.importados||0}</b> nova(s)${j.atualizados?` · <b style="color:var(--acc)">${j.atualizados}</b> atualizada(s)`:''}${j.falhas?` · <b style="color:var(--no)">${j.falhas}</b> com erro`:''}.</div>${errs}`);}carregarVendas();};rd.readAsDataURL(f);}
 async function salvarVendaMulti(){
   const nome=document.getElementById('vf-nome').value.trim();
   const cpf=document.getElementById('vf-cpf').value, cpfDig=cpf.replace(/\D/g,'');
