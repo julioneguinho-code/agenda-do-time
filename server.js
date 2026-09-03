@@ -178,6 +178,12 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/sorteio-grupos') return send(res, 200, await notion.gruposParaSorteio(session));
       if (p === '/api/gestor/sorteio' && req.method === 'POST') return send(res, 200, await notion.sortearProximidade(session, await readBody(req)));
       if (p === '/api/gestor/clientes-por-consultor') return send(res, 200, await notion.clientesPorConsultor(session));
+      if (p === '/api/gestor/comissoes/impostos' && req.method === 'GET') return send(res, 200, notion.comImpostosGet(session));
+      if (p === '/api/gestor/comissoes/impostos' && req.method === 'POST') return send(res, 200, notion.comImpostosSalvar(session, await readBody(req)));
+      if (p === '/api/gestor/comissoes/importar' && req.method === 'POST') return send(res, 200, await notion.comImportar(session, await readBody(req)));
+      if (p === '/api/gestor/comissoes/fechamentos' && req.method === 'GET') return send(res, 200, notion.comListarFechamentos(session));
+      if (p === '/api/gestor/comissoes/fechamento' && req.method === 'GET') return send(res, 200, notion.comFechamento(session, { id: url.searchParams.get('id'), consultor: url.searchParams.get('consultor') }));
+      if (p === '/api/gestor/comissoes/excluir' && req.method === 'POST') return send(res, 200, notion.comExcluirFechamento(session, await readBody(req)));
       if (p === '/api/gestor/consultor') return send(res, 200, await notion.perfilConsultor(session, url.searchParams.get('email') || url.searchParams.get('nome')));
       if (p === '/api/gestor/controle') return send(res, 200, await notion.controleGestor(session));
       if (p === '/api/gestor/ranking') return send(res, 200, await notion.rankingGestor(session));

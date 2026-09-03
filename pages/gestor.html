@@ -380,12 +380,49 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
+<div class="aba" id="aba-comissoes">
+  <div class="sec">
+    <div class="row"><div class="h">💸 Comissões / Repasse</div></div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button class="chip on" id="cm-tab-novo" style="flex:1;text-align:center" onclick="setCmTab('novo')">📥 Importar</button>
+      <button class="chip" id="cm-tab-hist" style="flex:1;text-align:center" onclick="setCmTab('hist')">🗂 Histórico</button>
+      <button class="chip" id="cm-tab-imp" style="flex:1;text-align:center" onclick="setCmTab('imp')">🧮 Impostos</button>
+    </div>
+
+    <div id="cm-novo">
+      <div class="card" style="padding:12px;margin-bottom:10px">
+        <div class="mut" style="font-size:12px;margin-bottom:10px">Suba o relatório da <b>Ademicon</b> (.xlsx). O sistema cruza por <b>grupo + cota</b> com a carteira, aplica os impostos cadastrados sobre o valor cheio e mostra o <b>líquido a repassar por consultor</b>.</div>
+        <label style="font-size:12px;color:var(--mut)">Competência (mês de referência)</label>
+        <input type="month" id="cm-comp" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:10px">
+        <button class="btn" style="width:100%;padding:11px" onclick="document.getElementById('cm-file').click()">📥 Escolher relatório (.xlsx)</button>
+        <input type="file" id="cm-file" accept=".xlsx" style="display:none" onchange="importarComissao(this)">
+      </div>
+      <div id="cm-resultado"></div>
+    </div>
+
+    <div id="cm-hist" style="display:none">
+      <div id="cm-hist-lista"><div class="mut" style="padding:10px">Carregando…</div></div>
+      <div id="cm-hist-detalhe"></div>
+    </div>
+
+    <div id="cm-imp" style="display:none">
+      <div class="card" style="padding:12px;margin-bottom:10px">
+        <div class="mut" style="font-size:12px;margin-bottom:10px">Cadastre os impostos descontados do valor cheio. <b>%</b> incide sobre o valor da comissão; <b>fixo</b> é rateado entre os consultores.</div>
+        <div id="cm-imp-lista"></div>
+        <button class="btn sec2" style="width:100%;padding:8px;margin-top:6px" onclick="addImpostoRow()">➕ adicionar imposto</button>
+        <button class="btn" style="width:100%;padding:11px;margin-top:8px" onclick="salvarImpostos()">Salvar impostos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="nav">
   <a href="#" class="on" data-aba="painel" onclick="irAba('painel');return false"><span class="ic">📊</span>Painel</a>
   <a href="#" data-aba="controle" onclick="irAba('controle');carregarControle();return false"><span class="ic">📋</span>Controle</a>
   <a href="#" data-aba="consultores" onclick="irAba('consultores');carregarConsultores();return false"><span class="ic">👥</span>Consultores</a>
   <a href="#" data-aba="agenda" onclick="irAba('agenda');return false"><span class="ic">📅</span>Agenda</a>
   <a href="#" data-aba="vendasg" onclick="irAba('vendasg');carregarVendasG();return false"><span class="ic">💰</span>Vendas</a>
+  <a href="#" data-aba="comissoes" onclick="irAba('comissoes');carregarComissoes();return false"><span class="ic">💸</span>Comissões</a>
   <a href="#" data-aba="ranking" onclick="irAba('ranking');carregarRanking();return false"><span class="ic">🏆</span>Ranking</a>
   <a href="#" data-aba="mural" onclick="irAba('mural');carregarMural();return false"><span class="ic">🏅</span>Mural</a>
 </div>
@@ -417,6 +454,31 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 let painel=null;let semanaOffset=0;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
 function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n))}
+// ===== COMISSÕES / REPASSE =====
+let _cmImp=[],_cmExpand={};
+function carregarComissoes(){const c=document.getElementById('cm-comp');if(c&&!c.value)c.value=new Date().toISOString().slice(0,7);setCmTab('novo');carregarImpostos();carregarHistComissao();}
+function setCmTab(t){['novo','hist','imp'].forEach(x=>{document.getElementById('cm-tab-'+x).classList.toggle('on',x===t);document.getElementById('cm-'+x).style.display=x===t?'block':'none';});if(t==='hist')carregarHistComissao();}
+async function carregarImpostos(){try{const j=await(await fetch('/api/gestor/comissoes/impostos')).json();_cmImp=j.impostos||[];renderImpostosRows();}catch(e){}}
+function renderImpostosRows(){const el=document.getElementById('cm-imp-lista');if(!el)return;el.innerHTML=_cmImp.map((im,i)=>`<div style="display:flex;gap:5px;margin-bottom:6px;align-items:center"><input value="${esc(im.nome)}" placeholder="Nome (ISS, IR...)" oninput="_cmImp[${i}].nome=this.value" style="flex:2;padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);min-width:0"><select onchange="_cmImp[${i}].tipo=this.value" style="width:70px;padding:9px;border:1px solid var(--bord);border-radius:10px;background:var(--bg)"><option value="pct" ${im.tipo!=='fixo'?'selected':''}>%</option><option value="fixo" ${im.tipo==='fixo'?'selected':''}>R$</option></select><input inputmode="decimal" value="${im.valor}" oninput="_cmImp[${i}].valor=parseBRG(this.value)" style="width:80px;padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"><button class="btn sec2 sm" style="color:var(--no)" onclick="_cmImp.splice(${i},1);renderImpostosRows()">✕</button></div>`).join('')||'<div class="mut" style="font-size:12px">Nenhum imposto cadastrado.</div>';}
+function addImpostoRow(){_cmImp.push({nome:'',tipo:'pct',valor:0});renderImpostosRows();}
+async function salvarImpostos(){const r=await fetch('/api/gestor/comissoes/impostos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({impostos:_cmImp})});const j=await r.json();if(j.ok){_cmImp=j.impostos||[];renderImpostosRows();toast('Impostos salvos ✓');}else toast(j.erro||'Erro');}
+async function importarComissao(input){const f=input.files&&input.files[0];if(!f)return;input.value='';const comp=document.getElementById('cm-comp').value;document.getElementById('cm-resultado').innerHTML='<div class="mut" style="padding:10px">Lendo e cruzando o relatório…</div>';const rd=new FileReader();rd.onload=async()=>{const b64=String(rd.result).split(',')[1]||'';const r=await fetch('/api/gestor/comissoes/importar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({arquivo:b64,competencia:comp})});const j=await r.json();if(j.erro){document.getElementById('cm-resultado').innerHTML=`<div class="card" style="padding:12px;color:var(--no)">${esc(j.erro)}</div>`;return;}_cmFechAtual=j.fechamento;_cmFechContainer='cm-resultado';document.getElementById('cm-resultado').innerHTML='<div class="card" style="padding:10px;color:var(--ok);margin-bottom:8px">✓ Importado e salvo no histórico.</div>'+cmFechHTML(j.fechamento);carregarHistComissao();};rd.readAsDataURL(f);}
+function cmFechHTML(f){
+  const comp=(f.competencia||'').split('-');const compL=comp.length===2?comp[1]+'/'+comp[0]:f.competencia;
+  const impL=(f.impostos||[]).map(im=>`${esc(im.nome)} ${im.tipo==='fixo'?moneyG(im.valor):im.valor+'%'}`).join(' · ')||'sem imposto';
+  const g=f.gestor||{cheio:0,imposto:0,liquido:0,qtdCotas:0,cotas:[]};
+  let h=`<div class="card" style="padding:12px;margin-bottom:10px"><div style="font-weight:700;margin-bottom:4px">Competência ${compL}${f.gestorNome?(' · '+esc(f.gestorNome)):''}</div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Cheio total</div><div class="v">${moneyG(f.totalCheio)}</div></div><div class="kpi"><div class="l">Imposto</div><div class="v" style="color:var(--no)">${moneyG(f.totalImposto)}</div></div></div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Seu (licenciado)</div><div class="v" style="color:var(--acc)">${moneyG(g.liquido)}</div></div><div class="kpi"><div class="l">A repassar (consultores)</div><div class="v" style="color:var(--ok)">${moneyG(f.totalRepasse!=null?f.totalRepasse:f.totalLiquido)}</div></div></div><div class="mut" style="font-size:11px">Impostos: ${impL} · ${f.qtdCotas} cota(s)</div></div>`;
+  // card do gestor (LICENCIADO)
+  {const key=(f.id||'x')+'_gestor';const ab=_cmExpand[key];const cotas=(g.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border:1.5px solid var(--acc)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:700;font-size:14px">🏅 ${esc(g.nome||'Gestor')} <span class="mut" style="font-weight:400">(licenciado)</span></div><div class="mut" style="font-size:11px">${g.qtdCotas} cota(s) · cheio ${moneyG(g.cheio)} · imp ${moneyG(g.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:var(--acc)">${moneyG(g.liquido)}</div><div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;}
+  h+=(f.porConsultor||[]).map((pc,i)=>{const key=(f.id||'x')+'_'+i;const ab=_cmExpand[key];const cotas=(pc.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');return `<div class="card" style="padding:10px 12px;margin-bottom:7px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:700;font-size:14px">${esc(pc.nome)}</div><div class="mut" style="font-size:11px">${pc.qtdCotas} cota(s) · cheio ${moneyG(pc.cheio)} · imp ${moneyG(pc.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:var(--ok)">${moneyG(pc.liquido)}</div><div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;}).join('')||'<div class="mut" style="padding:8px">Nenhuma comissão casou com a carteira.</div>';
+  if((f.naoBateram||[]).length){const nb=f.naoBateram.map(n=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(n.grupo)} · Cota ${esc(n.cota)}${n.cliente?' · '+esc(n.cliente):''}</span><b style="font-size:12px;color:var(--no)">${moneyG(n.valor)}</b></div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border:1px solid var(--no)"><div style="font-weight:700;color:var(--no)">⚠️ Não bateram com a carteira (${f.naoBateram.length}) · ${moneyG(f.naoBateuTotal)}</div><div class="mut" style="font-size:11px;margin-bottom:4px">Cotas do relatório que não achei na carteira — confira grupo/cota.</div>${nb}</div>`;}
+  return h;
+}
+let _cmFechAtual=null,_cmFechContainer='cm-resultado';
+function rerenderFech(){if(_cmFechAtual){const el=document.getElementById(_cmFechContainer);if(el)el.innerHTML=cmFechHTML(_cmFechAtual);}}
+async function carregarHistComissao(){const el=document.getElementById('cm-hist-lista');if(!el)return;try{const j=await(await fetch('/api/gestor/comissoes/fechamentos')).json();const fs=j.fechamentos||[];el.innerHTML=fs.length?fs.map(f=>{const c=(f.competencia||'').split('-');const cl=c.length===2?c[1]+'/'+c[0]:f.competencia;const d=new Date(f.criadoEm);return `<div class="card" style="padding:10px 12px;margin-bottom:7px;cursor:pointer" onclick="abrirFechamento('${f.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-weight:700">${cl}${j.master&&f.gestorNome?(' · '+esc(f.gestorNome)):''}</div><div class="mut" style="font-size:11px">${f.qtdCotas} cota(s)${f.naoBateu?(' · ⚠️ '+f.naoBateu+' s/ match'):''} · ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:var(--ok)">${moneyG(f.totalRepasse!=null?f.totalRepasse:f.totalLiquido)}<span class="mut" style="font-size:9px;font-weight:600"> repassar</span></div><div class="mut" style="font-size:10px;color:var(--acc)">seu ${moneyG(f.seuLiquido||0)}</div><button class="btn sec2 sm" style="color:var(--no);margin-top:3px" onclick="event.stopPropagation();excluirFechamento('${f.id}')">🗑</button></div></div></div>`;}).join(''):'<div class="mut" style="padding:10px">Nenhuma importação salva ainda.</div>';}catch(e){el.innerHTML='<div class="mut" style="padding:10px">Erro ao carregar histórico</div>';}}
+async function abrirFechamento(id){const j=await(await fetch('/api/gestor/comissoes/fechamento?id='+encodeURIComponent(id))).json();if(j.erro){toast(j.erro);return;}_cmFechAtual=j;document.getElementById('cm-hist-detalhe').innerHTML=cmFechHTML(j);document.getElementById('cm-hist-detalhe').scrollIntoView({behavior:'smooth',block:'start'});}
+async function excluirFechamento(id){if(!confirm('Excluir este fechamento do histórico?'))return;const r=await fetch('/api/gestor/comissoes/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await r.json();if(j.ok){toast('Excluído ✓');document.getElementById('cm-hist-detalhe').innerHTML='';carregarHistComissao();}else toast(j.erro||'Erro');}
 function fmtData(iso){const d=new Date(iso);const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];return `${dias[d.getDay()]} ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
 function corPct(p){return p>=70?'#1D9E75':p>=40?'#EF9F27':'#E24B4A'}
 function estiloCor(cor){
