@@ -185,7 +185,9 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <div><div class="h" id="col-neg-h" style="margin-top:2px">🤝 Em negociação</div><div id="vd-neg"></div></div>
       <div><div class="h" id="col-fec-h" style="margin-top:2px;color:var(--ok)">✅ Fechadas</div><div id="vd-fec"></div></div>
     </div>
-    <div id="vd-clientes-wrap" style="display:none"><button class="btn full" style="background:var(--ok);margin-bottom:8px" onclick="novaClienteAntigo()">➕ Cadastro de cliente</button><div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sec2" style="flex:1;padding:9px" onclick="baixarModeloClientesC()">⬇️ Baixar modelo</button><button class="btn sec2" style="flex:1;padding:9px" onclick="document.getElementById('cs-upload').click()">⬆️ Subir planilha</button></div><input type="file" id="cs-upload" accept=".xlsx" style="display:none" onchange="subirPlanilhaClientesC(this)"><div id="vd-clientes"></div></div>
+    <div id="vd-clientes-wrap" style="display:none"><button class="btn full" style="background:var(--ok);margin-bottom:8px" onclick="novaClienteAntigo()">➕ Cadastro de cliente</button><div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sec2" style="flex:1;padding:9px" onclick="baixarModeloClientesC()">⬇️ Baixar modelo</button><button class="btn sec2" style="flex:1;padding:9px" onclick="document.getElementById('cs-upload').click()">⬆️ Subir planilha</button></div><input type="file" id="cs-upload" accept=".xlsx" style="display:none" onchange="subirPlanilhaClientesC(this)"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><button class="btn sec2 sm csit on" id="csit-todos" onclick="setSitFiltroC('todos')">Todos</button><button class="btn sec2 sm csit" id="csit-ativo" onclick="setSitFiltroC('ativo')">🟢 Ativas</button><button class="btn sec2 sm csit" id="csit-contemplado" onclick="setSitFiltroC('contemplado')">🏆 Contempladas</button><button class="btn sec2 sm csit" id="csit-cancelado" onclick="setSitFiltroC('cancelado')">❌ Canceladas</button></div>
+      <div class="card" style="padding:12px;margin-bottom:10px;background:linear-gradient(135deg,#0f8a5f,#0b6e4c);color:#fff"><div style="font-size:12px;opacity:.9">💼 Carteira total <span style="opacity:.8">(sem canceladas)</span></div><div id="vd-carteira-total" style="font-size:22px;font-weight:800;margin-top:2px">—</div><div id="vd-carteira-sub" class="mut" style="color:rgba(255,255,255,.85);font-size:11px;margin-top:2px"></div></div>
+      <div id="vd-clientes"></div></div>
     <div id="vd-sorteio-wrap" style="display:none">
       <div class="card" style="padding:12px;margin-bottom:10px">
         <div class="mut" style="font-size:12px;margin-bottom:10px">Digite os números da <b>Loteria Federal</b> (5 prêmios) e escolha o grupo. Mostra <b>as suas cotas</b> por proximidade do número sorteado, indicando de qual prêmio cada uma está mais perto. <i>Não é contemplação oficial.</i></div>
@@ -407,26 +409,40 @@ function agruparClientes(list){
   arr.sort((a,b)=>b.total-a.total);
   return arr;
 }
+let _cSitFiltro='todos';
+function sitDeC(v){return v.situacao||'ativo';}
+function sitBadgeC(s){if(s==='cancelado')return '<span class="badge b-warn" style="background:#F6D5D5;color:#B23B3B">❌ Cancelada</span>';if(s==='contemplado')return '<span class="badge" style="background:#FBE7C0;color:#8A6D1F">🏆 Contemplada</span>';return '<span class="badge b-ok">🟢 Ativa</span>';}
+function setSitFiltroC(s){_cSitFiltro=s;['todos','ativo','contemplado','cancelado'].forEach(x=>document.getElementById('csit-'+x).classList.toggle('on',x===s));renderClientes();}
 function renderClientes(){
   const q=(document.getElementById('vd-busca').value||'').toLowerCase();
   let list=(_vendas||[]).filter(v=>v.carteira||v.status==='fechada'); // clientes = carteira + vendas fechadas
   if(q)list=list.filter(v=>((v.cliente&&v.cliente.nome)||'').toLowerCase().includes(q)||((v.cliente&&v.cliente.cpf)||'').includes(q.replace(/\D/g,'')));
-  const clientes=agruparClientes(list);window._clientesG=clientes;
-  document.getElementById('vd-total').innerHTML=`<b>${clientes.length}</b> cliente(s) · <b>${list.length}</b> cota(s)`;
-  document.getElementById('vd-clientes').innerHTML=clientes.map((c,i)=>`<div class="card" style="cursor:pointer;padding:11px 12px;margin-bottom:8px" onclick="abrirCliente(${i})">
+  const matchSit=v=>_cSitFiltro==='todos'||sitDeC(v)===_cSitFiltro;
+  // informativo: soma da carteira inteira (todas as cotas, exceto canceladas) — não depende do filtro
+  const carteira=(_vendas||[]).filter(v=>(v.carteira||v.status==='fechada')&&sitDeC(v)!=='cancelado');
+  const somaCart=carteira.reduce((s,v)=>s+(+v.valor||0),0);
+  const nContempl=carteira.filter(v=>sitDeC(v)==='contemplado').length;
+  const elCt=document.getElementById('vd-carteira-total'); if(elCt)elCt.textContent=money(somaCart);
+  const elSub=document.getElementById('vd-carteira-sub'); if(elSub)elSub.textContent=`${carteira.length} cota(s) ativa(s)/contemplada(s)${nContempl?' · 🏆 '+nContempl+' contemplada(s)':''}`;
+  let clientes=agruparClientes(list).filter(c=>(c.vendas||[]).some(matchSit));window._clientesG=clientes;
+  const totCotas=clientes.reduce((s,c)=>s+(c.vendas||[]).filter(matchSit).length,0);
+  document.getElementById('vd-total').innerHTML=`<b>${clientes.length}</b> cliente(s) · <b>${totCotas}</b> cota(s)`;
+  document.getElementById('vd-clientes').innerHTML=clientes.map((c,i)=>{const cot=(c.vendas||[]).filter(matchSit);const tot=cot.reduce((s,v)=>s+(+v.valor||0),0);return `<div class="card" style="cursor:pointer;padding:11px 12px;margin-bottom:8px" onclick="abrirCliente(${i})">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-      <div style="min-width:0"><div class="titulo" style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:11px;margin-top:2px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${c.qtd} cota(s)</div></div>
-      <div style="text-align:right;flex:none"><div style="font-weight:700;color:var(--ok)">${money(c.total)}</div><div class="mut" style="font-size:11px">${c.neg?('🤝 '+money(c.neg)):'—'}</div></div>
-    </div></div>`).join('')||'<div class="mut" style="padding:10px 2px;font-size:13px">Nenhum cliente ainda. Cadastre uma venda para começar.</div>';
+      <div style="min-width:0"><div class="titulo" style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:11px;margin-top:2px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${cot.length} cota(s)</div></div>
+      <div style="text-align:right;flex:none"><div style="font-weight:700;color:var(--ok)">${money(tot)}</div></div>
+    </div></div>`;}).join('')||'<div class="mut" style="padding:10px 2px;font-size:13px">Nenhum cliente ainda. Cadastre uma venda para começar.</div>';
 }
 function abrirCliente(i){
   const grp=(window._clientesG||[])[i];if(!grp)return;
   const list=grp.vendas||[];
   if(!list.length)return;
+  window._cCliAtual=i;
   const c={nome:grp.nome||'—',cpf:grp.cpf||''};
-  const linhas=list.map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="fecharPop();abrirVenda('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:700;color:var(--ok)">${money(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${fmtDataBR(v.data)}</div>${v.tipo?`<div style="margin-top:4px">${tipoPill(v.tipo)}</div>`:''}</div><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅ Fechada':'🤝 Negociação'}</span></div></div>`).join('');
+  const linhas=list.map(v=>{const s=sitDeC(v);const btn=(k,lbl)=>`<button class="btn sec2 sm" style="padding:4px 8px;font-size:11px;${s===k?'border-color:var(--acc);font-weight:700':''}" onclick="setSituacaoC('${v.id}','${k}')">${lbl}</button>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div style="cursor:pointer" onclick="fecharPop();abrirVenda('${v.id}')"><div style="font-weight:700;color:var(--ok)">${money(v.valor)} <span style="font-weight:400">✏️</span></div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${fmtDataBR(v.data)}</div>${v.tipo?`<div style="margin-top:4px">${tipoPill(v.tipo)}</div>`:''}</div><div style="flex:none">${sitBadgeC(s)}</div></div><div style="display:flex;gap:5px;margin-top:7px">${btn('ativo','🟢 Ativa')}${btn('contemplado','🏆 Contemplada')}${btn('cancelado','❌ Cancelada')}</div></div>`;}).join('');
   abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${list.length} cota(s)</div>${linhas}<button class="btn full" style="background:var(--ok);margin-top:8px" onclick="novaVendaCliente('${encodeURIComponent(c.nome)}','${c.cpf}')">+ Nova cota para este cliente</button>`);
 }
+async function setSituacaoC(id,sit){const r=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,situacao:sit})});const j=await r.json();if(j.ok){toast('Situação atualizada ✓');await carregarVendas();const i=window._cCliAtual;if(i!=null)abrirCliente(i);}else toast(j.erro||'Erro');}
 function novaVendaCliente(nomeEnc,cpf){
   const nome=decodeURIComponent(nomeEnc);
   abrirPop('Novas cotas · '+nome,formVendaMulti({cliente:{nome,cpf},lock:true})+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();
