@@ -122,6 +122,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <input type="text" id="s-assunto" placeholder="Ex: dúvidas sobre proposta, alinhamento…">
       <label>Data e horário</label>
       <input type="datetime-local" id="s-inicio">
+      <div class="mut" style="font-size:11px;margin-top:3px">Escolha qualquer data e horário — o gestor confirma na aprovação.</div>
       <label>Duração</label>
       <select id="s-dur"><option value="60">1 hora</option><option value="45">45 min</option><option value="30">30 min</option><option value="15">15 min</option></select>
       <label>Local</label>
@@ -167,11 +168,6 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-vendas">
   <div class="sec">
     <div class="row"><div class="h">💼 Minhas vendas</div><button class="btn" style="padding:7px 12px" onclick="novaVenda()">+ Nova venda</button></div>
-    <div style="display:flex;gap:6px;margin-bottom:10px">
-      <button class="btn sec2 vv-tab on" id="vv-kanban" style="flex:1;padding:9px" onclick="setVendaView('kanban')">🗂 Vendas</button>
-      <button class="btn sec2 vv-tab" id="vv-clientes" style="flex:1;padding:9px" onclick="setVendaView('clientes')">👥 Clientes</button>
-      <button class="btn sec2 vv-tab" id="vv-sorteio" style="flex:1;padding:9px" onclick="setVendaView('sorteio')">🎯 Sorteio</button>
-    </div>
     <div class="card" id="vd-filtro-card" style="padding:10px 12px">
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         <input type="text" id="vd-busca" placeholder="🔎 Cliente ou CPF" oninput="renderVendas()" style="flex:1;min-width:120px">
@@ -185,10 +181,27 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <div><div class="h" id="col-neg-h" style="margin-top:2px">🤝 Em negociação</div><div id="vd-neg"></div></div>
       <div><div class="h" id="col-fec-h" style="margin-top:2px;color:var(--ok)">✅ Fechadas</div><div id="vd-fec"></div></div>
     </div>
-    <div id="vd-clientes-wrap" style="display:none"><button class="btn full" style="background:var(--ok);margin-bottom:8px" onclick="novaClienteAntigo()">➕ Cadastro de cliente</button><div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sec2" style="flex:1;padding:9px" onclick="baixarModeloClientesC()">⬇️ Baixar modelo</button><button class="btn sec2" style="flex:1;padding:9px" onclick="document.getElementById('cs-upload').click()">⬆️ Subir planilha</button></div><input type="file" id="cs-upload" accept=".xlsx" style="display:none" onchange="subirPlanilhaClientesC(this)"><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><button class="btn sec2 sm csit on" id="csit-todos" onclick="setSitFiltroC('todos')">Todos</button><button class="btn sec2 sm csit" id="csit-ativo" onclick="setSitFiltroC('ativo')">🟢 Ativas</button><button class="btn sec2 sm csit" id="csit-contemplado" onclick="setSitFiltroC('contemplado')">🏆 Contempladas</button><button class="btn sec2 sm csit" id="csit-cancelado" onclick="setSitFiltroC('cancelado')">❌ Canceladas</button></div>
+  </div>
+</div>
+
+<div class="aba" id="aba-clientes">
+  <div class="sec">
+    <div class="row"><div class="h">👥 Clientes</div></div>
+    <div style="display:flex;gap:6px;margin:8px 0 10px">
+      <button class="chip on" id="cc-tab-cliente" style="flex:1;text-align:center" onclick="setCcTab('cliente')">👥 Cliente</button>
+      <button class="chip" id="cc-tab-sorteio" style="flex:1;text-align:center" onclick="setCcTab('sorteio')">🎯 Sorteio</button>
+    </div>
+    <div id="cc-cliente">
       <div class="card" style="padding:12px;margin-bottom:10px;background:linear-gradient(135deg,#0f8a5f,#0b6e4c);color:#fff"><div style="font-size:12px;opacity:.9">💼 Carteira total <span style="opacity:.8">(sem canceladas)</span></div><div id="vd-carteira-total" style="font-size:22px;font-weight:800;margin-top:2px">—</div><div id="vd-carteira-sub" class="mut" style="color:rgba(255,255,255,.85);font-size:11px;margin-top:2px"></div></div>
-      <div id="vd-clientes"></div></div>
-    <div id="vd-sorteio-wrap" style="display:none">
+      <button class="btn full" style="background:var(--ok);margin-bottom:8px" onclick="novaClienteAntigo()">➕ Cadastro de cliente</button>
+      <div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sec2" style="flex:1;padding:9px" onclick="baixarModeloClientesC()">⬇️ Baixar modelo</button><button class="btn sec2" style="flex:1;padding:9px" onclick="document.getElementById('cs-upload').click()">⬆️ Subir planilha</button></div>
+      <input type="file" id="cs-upload" accept=".xlsx" style="display:none" onchange="subirPlanilhaClientesC(this)">
+      <input type="text" id="cc-busca" placeholder="🔎 Buscar cliente ou CPF" oninput="renderClientes()" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><button class="btn sec2 sm csit on" id="csit-todos" onclick="setSitFiltroC('todos')">Todos</button><button class="btn sec2 sm csit" id="csit-ativo" onclick="setSitFiltroC('ativo')">🟢 Ativas</button><button class="btn sec2 sm csit" id="csit-contemplado" onclick="setSitFiltroC('contemplado')">🏆 Contempladas</button><button class="btn sec2 sm csit" id="csit-cancelado" onclick="setSitFiltroC('cancelado')">❌ Canceladas</button></div>
+      <div class="mut" id="cc-total" style="font-size:12px;margin-bottom:8px">—</div>
+      <div id="vd-clientes"></div>
+    </div>
+    <div id="cc-sorteio" style="display:none">
       <div class="card" style="padding:12px;margin-bottom:10px">
         <div class="mut" style="font-size:12px;margin-bottom:10px">Digite os números da <b>Loteria Federal</b> (5 prêmios) e escolha o grupo. Mostra <b>as suas cotas</b> por proximidade do número sorteado, indicando de qual prêmio cada uma está mais perto. <i>Não é contemplação oficial.</i></div>
         <div id="cs-premios"></div>
@@ -225,6 +238,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   <a href="#" data-aba="checkin" onclick="irAba('checkin');return false"><span class="ic">✅</span>Check-in</a>
   <a href="#" data-aba="atividades" onclick="irAba('atividades');return false"><span class="ic">📋</span>Atividades</a>
   <a href="#" data-aba="vendas" onclick="irAba('vendas');carregarVendas();return false"><span class="ic">💼</span>Vendas</a>
+  <a href="#" data-aba="clientes" onclick="irAba('clientes');carregarClientesTab();return false"><span class="ic">👥</span>Clientes</a>
 </div>
 
 <!-- BALÃO DE NOTIFICAÇÕES (flutuante) -->
@@ -258,7 +272,7 @@ async function carregarDispo(){
     if(!d.ativo){
       el.innerHTML='<div class="mut" style="font-size:12px">Você ainda não está vinculado a um gestor. Assim que o vínculo for feito, a disponibilidade aparece aqui.</div>';return;
     }
-    const H0=8,H1=19,span=(H1-H0)*60,nh=H1-H0;
+    const H0=6,H1=22,span=(H1-H0)*60,nh=H1-H0;
     const base=new Date(d.inicio);const nomesDia=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
     const ocup=(d.ocupados||[]).map(o=>({s:new Date(o.inicio),e:new Date(o.fim),tipo:o.tipo||'ocupado',meu:!!o.meu}));
     window._ocupDispo=ocup;
@@ -284,7 +298,7 @@ async function carregarDispo(){
 }
 function escolherHorario(ev,bar,y,m,da){
   const rect=bar.getBoundingClientRect();const frac=Math.min(1,Math.max(0,(ev.clientX-rect.left)/rect.width));
-  const H0=8,H1=19;let mins=Math.round((H0*60+frac*(H1-H0)*60)/15)*15;const hh=Math.floor(mins/60),mm=mins%60;
+  const H0=6,H1=22;let mins=Math.round((H0*60+frac*(H1-H0)*60)/15)*15;const hh=Math.floor(mins/60),mm=mins%60;
   const p=n=>String(n).padStart(2,'0');
   const alvo=new Date(y,m,da,hh,mm);
   // impede escolher um horário já reservado/ocupado
@@ -354,7 +368,7 @@ async function carregarVendas(){
   const de=document.getElementById('vd-de').value, ate=document.getElementById('vd-ate').value;
   const qs=[]; if(de)qs.push('de='+de); if(ate)qs.push('ate='+ate);
   const res=await fetch('/api/vendas'+(qs.length?'?'+qs.join('&'):''));
-  const d=await res.json(); _vendas=d.vendas||[]; renderVendas();
+  const d=await res.json(); _vendas=d.vendas||[]; renderVendas(); renderClientes();
 }
 function limparFiltroVendas(){document.getElementById('vd-de').value='';document.getElementById('vd-ate').value='';document.getElementById('vd-busca').value='';carregarVendas();}
 // agrupa por cliente (CPF) + segmento (tipo). Mesmo cliente e mesmo tipo = 1 card; tipo diferente = cards separados.
@@ -373,19 +387,9 @@ function cardGrupo(g){const fechada=g.status==='fechada';const n=g.vendas.length
 </div>`;}
 function abrirGrupoV(i){const g=(window._gruposV||[])[i];if(!g)return;if(g.vendas.length===1)return abrirVenda(g.vendas[0].id);const c=g.cliente||{};const linhas=g.vendas.map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="fecharPop();abrirVenda('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:700;color:var(--ok)">${money(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${fmtDataBR(v.data)}</div></div><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅':'🤝'}</span></div></div>`).join('');abrirPop((c.nome||'Cliente')+(g.tipo?' · '+(tipoInfo(g.tipo)?tipoInfo(g.tipo).label:''):''),`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${g.vendas.length} cota(s) · total ${money(g.total)}</div>${linhas}<button class="btn full" style="background:var(--ok);margin-top:8px" onclick="novaVendaCliente('${encodeURIComponent(c.nome||'')}','${(c.cpf||'')}')">+ Nova cota para este cliente</button>`);}
 async function toggleGrupoFechada(i,checked){const g=(window._gruposV||[])[i];if(!g)return;const cpf=(g.cliente&&g.cliente.cpf)||'';if(checked&&!cpfValido(cpf)){toast('Para efetivar, informe um CPF válido do cliente');return abrirGrupoV(i);}const st=checked?'fechada':'negociacao';for(const v of g.vendas){await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:v.id,status:st})});}toast(checked?'Fechada(s) ✅':'Voltou para negociação');carregarVendas();}
-let vendaView='kanban';
-function setVendaView(v){
-  vendaView=v;
-  document.getElementById('vv-kanban').classList.toggle('on',v==='kanban');
-  document.getElementById('vv-clientes').classList.toggle('on',v==='clientes');
-  document.getElementById('vv-sorteio').classList.toggle('on',v==='sorteio');
-  document.getElementById('vd-kanban-wrap').style.display=v==='kanban'?'grid':'none';
-  document.getElementById('vd-clientes-wrap').style.display=v==='clientes'?'block':'none';
-  document.getElementById('vd-sorteio-wrap').style.display=v==='sorteio'?'block':'none';
-  document.getElementById('vd-filtro-card').style.display=v==='sorteio'?'none':'block';
-  if(v==='sorteio'){renderPremiosC();carregarGruposSorteioC();return;}
-  renderVendas();
-}
+// aba Clientes (separada de Vendas) com sub-abas Cliente | Sorteio
+async function carregarClientesTab(){setCcTab('cliente');try{if(!(_vendas||[]).length){const d=await(await fetch('/api/vendas')).json();_vendas=d.vendas||[];}}catch(e){}renderClientes();}
+function setCcTab(t){document.getElementById('cc-tab-cliente').classList.toggle('on',t==='cliente');document.getElementById('cc-tab-sorteio').classList.toggle('on',t==='sorteio');document.getElementById('cc-cliente').style.display=t==='cliente'?'block':'none';document.getElementById('cc-sorteio').style.display=t==='sorteio'?'block':'none';if(t==='cliente'){renderClientes();}else{renderPremiosC();carregarGruposSorteioC();}}
 function renderPremiosC(){const el=document.getElementById('cs-premios');if(!el||el.dataset.done)return;const ord=['1º','2º','3º','4º','5º'];el.innerHTML=ord.map(o=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="mut" style="width:26px;font-size:13px;font-weight:600">${o}</span><input type="text" class="cs-premio" inputmode="numeric" maxlength="5" placeholder="00000" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,5)" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:15px;letter-spacing:2px;background:var(--bg)"></div>`).join('');el.dataset.done='1';}
 async function carregarGruposSorteioC(){const el=document.getElementById('cs-grupos-list');if(!el)return;try{const j=await(await fetch('/api/sorteio-grupos')).json();const gs=j.grupos||[];el.innerHTML=gs.length?gs.map(g=>{const bar=`<div class="prog" style="margin-top:5px;height:6px"><div style="width:${g.pct}%;height:100%;background:${g.lotado?'#3E8E6E':'var(--acc)'}"></div></div>`;const badge=g.lotado?'<span class="badge b-ok" style="font-size:10px">LOTADO</span>':`<span class="mut" style="font-size:10px">${g.pct}%</span>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="calcularSorteioC('${esc(g.grupo)}',${g.tamanho})"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700;font-size:13px">Grupo ${esc(g.grupo)} <span class="mut" style="font-weight:400">· ${g.tamanho} part.</span></div><div style="text-align:right;flex:none">${badge}<div class="mut" style="font-size:10px">${g.qtd}/${g.tamanho} suas</div></div></div>${bar}</div>`;}).join(''):'<div class="mut" style="font-size:12px;padding:8px">Você ainda não tem cota fechada com tamanho de grupo.</div>';}catch(e){el.innerHTML='<div class="mut" style="font-size:12px;padding:8px">Erro ao carregar grupos</div>';}}
 async function calcularSorteioC(grupo,tamanho){
@@ -414,7 +418,7 @@ function sitDeC(v){return v.situacao||'ativo';}
 function sitBadgeC(s){if(s==='cancelado')return '<span class="badge b-warn" style="background:#F6D5D5;color:#B23B3B">❌ Cancelada</span>';if(s==='contemplado')return '<span class="badge" style="background:#FBE7C0;color:#8A6D1F">🏆 Contemplada</span>';return '<span class="badge b-ok">🟢 Ativa</span>';}
 function setSitFiltroC(s){_cSitFiltro=s;['todos','ativo','contemplado','cancelado'].forEach(x=>document.getElementById('csit-'+x).classList.toggle('on',x===s));renderClientes();}
 function renderClientes(){
-  const q=(document.getElementById('vd-busca').value||'').toLowerCase();
+  const bEl=document.getElementById('cc-busca'); if(!bEl)return; const q=(bEl.value||'').toLowerCase();
   let list=(_vendas||[]).filter(v=>v.carteira||v.status==='fechada'); // clientes = carteira + vendas fechadas
   if(q)list=list.filter(v=>((v.cliente&&v.cliente.nome)||'').toLowerCase().includes(q)||((v.cliente&&v.cliente.cpf)||'').includes(q.replace(/\D/g,'')));
   const matchSit=v=>_cSitFiltro==='todos'||sitDeC(v)===_cSitFiltro;
@@ -426,7 +430,7 @@ function renderClientes(){
   const elSub=document.getElementById('vd-carteira-sub'); if(elSub)elSub.textContent=`${carteira.length} cota(s) ativa(s)/contemplada(s)${nContempl?' · 🏆 '+nContempl+' contemplada(s)':''}`;
   let clientes=agruparClientes(list).filter(c=>(c.vendas||[]).some(matchSit));window._clientesG=clientes;
   const totCotas=clientes.reduce((s,c)=>s+(c.vendas||[]).filter(matchSit).length,0);
-  document.getElementById('vd-total').innerHTML=`<b>${clientes.length}</b> cliente(s) · <b>${totCotas}</b> cota(s)`;
+  const ct=document.getElementById('cc-total'); if(ct)ct.innerHTML=`<b>${clientes.length}</b> cliente(s) · <b>${totCotas}</b> cota(s)`;
   document.getElementById('vd-clientes').innerHTML=clientes.map((c,i)=>{const cot=(c.vendas||[]).filter(matchSit);const tot=cot.reduce((s,v)=>s+(+v.valor||0),0);return `<div class="card" style="cursor:pointer;padding:11px 12px;margin-bottom:8px" onclick="abrirCliente(${i})">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
       <div style="min-width:0"><div class="titulo" style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:11px;margin-top:2px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${cot.length} cota(s)</div></div>
@@ -448,7 +452,6 @@ function novaVendaCliente(nomeEnc,cpf){
   abrirPop('Novas cotas · '+nome,formVendaMulti({cliente:{nome,cpf},lock:true})+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();
 }
 function renderVendas(){
-  if(vendaView==='clientes'){renderClientes();return;}
   const q=(document.getElementById('vd-busca').value||'').toLowerCase();
   let list=(_vendas||[]).filter(v=>!v.carteira); // carteira não aparece no kanban de vendas
   if(q)list=list.filter(v=>((v.cliente&&v.cliente.nome)||'').toLowerCase().includes(q)||((v.cliente&&v.cliente.cpf)||'').includes(q.replace(/\D/g,'')));
