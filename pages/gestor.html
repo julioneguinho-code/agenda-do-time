@@ -406,6 +406,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <input type="file" id="gc-upload" accept=".xlsx" style="display:none" onchange="subirPlanilhaClientes(this)">
       <div class="card" style="padding:10px 12px;margin-bottom:10px">
         <input type="text" id="vgc-busca" placeholder="🔎 Buscar cliente por nome ou CPF" oninput="renderClientesG()" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          <button class="chip on" id="gcsit-todos" onclick="setSitFiltro('todos')">Todos</button>
+          <button class="chip" id="gcsit-ativo" onclick="setSitFiltro('ativo')">🟢 Ativas</button>
+          <button class="chip" id="gcsit-contemplado" onclick="setSitFiltro('contemplado')">🏆 Contempladas</button>
+          <button class="chip" id="gcsit-cancelado" onclick="setSitFiltro('cancelado')">❌ Canceladas</button>
+        </div>
         <div class="mut" id="vgc-total" style="margin-top:8px;font-size:12px">—</div>
       </div>
       <div id="vgc-lista"></div>
@@ -647,21 +653,26 @@ async function carregarClientesG(){
   document.getElementById('vgc-total').innerHTML=`<b>${j.qtdConsultores||0}</b> pessoa(s) do time · <b>${j.qtdCotas||0}</b> cota(s)`;
   renderClientesGList();
 }
-function renderClientesG(){renderClientesGList();} // filtro client-side pela busca
+let _gcFiltroSit='todos';
+function sitDe(v){return v.situacao||'ativo';}
+function sitBadge(s){if(s==='cancelado')return '<span class="badge b-no" style="font-size:10px">❌ Cancelada</span>';if(s==='contemplado')return '<span class="badge" style="font-size:10px;background:#FBE7C0;color:#8A6D1F">🏆 Contemplada</span>';return '<span class="badge b-ok" style="font-size:10px">🟢 Ativa</span>';}
+function setSitFiltro(s){_gcFiltroSit=s;['todos','ativo','contemplado','cancelado'].forEach(x=>document.getElementById('gcsit-'+x).classList.toggle('on',x===s));renderClientesGList();}
+function renderClientesG(){renderClientesGList();}
 function renderClientesGList(){
   const cons=window._gcCons||[];
   const q=(document.getElementById('vgc-busca').value||'').trim().toLowerCase();
   const dq=q.replace(/\D/g,'');
-  const matchCli=c=>!q||((c.nome||'').toLowerCase().includes(q))||(dq&&(c.cpf||'').includes(dq));
+  const matchBusca=c=>!q||((c.nome||'').toLowerCase().includes(q))||(dq&&(c.cpf||'').includes(dq));
+  const matchSit=v=>_gcFiltroSit==='todos'||sitDe(v)===_gcFiltroSit;
   const html=cons.map((p,ci)=>{
-    const clientes=(p.clientes||[]).filter(matchCli);
-    if(q&&!clientes.length)return '';
-    const aberto=q?true:!!_gcExpand[p.email];
-    const linhasCli=clientes.map((c,kj)=>{const kidx=(p.clientes||[]).indexOf(c);return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid var(--bord);cursor:pointer" onclick="abrirClienteGC(${ci},${kidx})"><div style="min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s)</div></div><div style="text-align:right;flex:none"><div style="font-weight:700;color:var(--ok);font-size:13px">${moneyG(c.total)}</div>${c.negociacao?`<div class="mut" style="font-size:10px">🤝 ${moneyG(c.negociacao)}</div>`:''}</div></div>`;}).join('');
+    const clientes=(p.clientes||[]).filter(c=>matchBusca(c)&&(c.vendas||[]).some(matchSit));
+    if(!clientes.length)return '';
+    const aberto=(q||_gcFiltroSit!=='todos')?true:!!_gcExpand[p.email];
+    const linhasCli=clientes.map(c=>{const kidx=(p.clientes||[]).indexOf(c);const cot=(c.vendas||[]).filter(matchSit);const tot=cot.reduce((s,v)=>s+(+v.valor||0),0);return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-top:1px solid var(--bord);cursor:pointer" onclick="abrirClienteGC(${ci},${kidx})"><div style="min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${cot.length} cota(s)</div></div><div style="text-align:right;flex:none"><div style="font-weight:700;color:var(--ok);font-size:13px">${moneyG(tot)}</div></div></div>`;}).join('');
     return `<div class="card" style="padding:0;margin-bottom:8px;overflow:hidden">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:#F7F8FA" onclick="toggleGcCons('${p.email}')">
-        <div style="display:flex;align-items:center;gap:8px;min-width:0">${avatarHTML(p.nome,p.cor,28,p.foto)}<div style="min-width:0"><div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nome)}</div><div class="mut" style="font-size:10px">${p.qtdClientes} cliente(s) · ${p.qtdCotas} cota(s)</div></div></div>
-        <div style="text-align:right;flex:none"><div style="font-weight:700;color:var(--ok);font-size:13px">${moneyG(p.totalFechado)}</div><div class="mut" style="font-size:10px">${aberto?'▲':'▼'}${p.totalNeg?(' · 🤝 '+moneyG(p.totalNeg)):''}</div></div>
+        <div style="display:flex;align-items:center;gap:8px;min-width:0">${avatarHTML(p.nome,p.cor,28,p.foto)}<div style="min-width:0"><div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nome)}</div><div class="mut" style="font-size:10px">${clientes.length} cliente(s)</div></div></div>
+        <div style="text-align:right;flex:none"><div class="mut" style="font-size:12px">${aberto?'▲':'▼'}</div></div>
       </div>
       <div style="display:${aberto?'block':'none'}">${linhasCli||'<div class="mut" style="font-size:11px;padding:10px">Nenhum cliente</div>'}</div>
     </div>`;
@@ -671,9 +682,11 @@ function renderClientesGList(){
 function toggleGcCons(email){_gcExpand[email]=!_gcExpand[email];renderClientesGList();}
 function abrirClienteGC(ci,kj){
   const p=(window._gcCons||[])[ci];if(!p)return;const c=(p.clientes||[])[kj];if(!c)return;
-  const linhas=(c.vendas||[]).map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="editarCotaCliente('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:700;color:var(--ok)">${moneyG(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''}${v.tamanhoGrupo?(' · '+v.tamanhoGrupo+'p'):''} · ${(v.data||'').split('-').reverse().join('/')}</div>${v.tipo?`<div style="margin-top:4px">${tipoPill(v.tipo)}</div>`:''}</div><div style="text-align:right;flex:none"><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅':'🤝'}</span><div class="mut" style="font-size:10px;margin-top:3px">✏️ editar</div></div></div></div>`).join('');
-  abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:4px">Consultor: ${esc(p.nome)}</div><div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s) · Fechado ${moneyG(c.fechado)} · Negociação ${moneyG(c.negociacao)}</div><div class="mut" style="font-size:11px;margin-bottom:8px">Toque numa cota para editar.</div>${linhas}`);
+  window._gcCliAtual={ci,kj};
+  const linhas=(c.vendas||[]).map(v=>{const s=sitDe(v);const btn=(k,lbl)=>`<button class="btn sec2 sm" style="padding:4px 8px;font-size:11px;${s===k?'border-color:var(--acc);font-weight:700':''}" onclick="setSituacaoCota('${v.id}','${k}')">${lbl}</button>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div style="cursor:pointer" onclick="editarCotaCliente('${v.id}')"><div style="font-weight:700;color:var(--ok)">${moneyG(v.valor)} <span style="font-weight:400">✏️</span></div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''}${v.tamanhoGrupo?(' · '+v.tamanhoGrupo+'p'):''} · ${(v.data||'').split('-').reverse().join('/')}</div></div><div style="flex:none">${sitBadge(s)}</div></div><div style="display:flex;gap:5px;margin-top:7px">${btn('ativo','🟢 Ativa')}${btn('contemplado','🏆 Contemplada')}${btn('cancelado','❌ Cancelada')}</div></div>`;}).join('');
+  abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:4px">Consultor: ${esc(p.nome)}</div><div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s)</div><div class="mut" style="font-size:11px;margin-bottom:8px">Marque a situação de cada cota. Toque no valor (✏️) para editar a cota.</div>${linhas}`);
 }
+async function setSituacaoCota(id,sit){const r=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,situacao:sit})});const j=await r.json();if(j.ok){toast('Situação atualizada ✓');await carregarClientesG();const a=window._gcCliAtual;if(a)abrirClienteGC(a.ci,a.kj);}else toast(j.erro||'Erro');}
 function editarCotaCliente(id){fecharPop();abrirVendaG(id);}
 function gestaoAberta(){const el=document.getElementById('aba-gestcli');return el&&el.classList.contains('on');}
 function parseBRG(s){s=String(s).replace(/[^\d.,-]/g,'');if(s.includes(',')){s=s.replace(/\./g,'').replace(',','.');}return parseFloat(s)||0;}
