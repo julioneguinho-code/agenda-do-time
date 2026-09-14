@@ -258,7 +258,8 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/usuarios' && req.method === 'POST') {
         const { email, senha, nome, papel, time, calendarId, metaVenda } = await readBody(req);
         if (!email || !senha || !nome || !papel) return send(res, 400, { erro: 'Preencha nome, e-mail, senha e papel' });
-        auth.criarUsuario(email.trim().toLowerCase(), senha, nome.trim(), papel, { time: time || '', calendarId: calendarId || '', metaVenda: +metaVenda || 0 });
+        const rc = auth.criarUsuario(email.trim().toLowerCase(), senha, nome.trim(), papel, { time: time || '', calendarId: calendarId || '', metaVenda: +metaVenda || 0 });
+        if (rc && rc.erro) return send(res, 400, { erro: rc.erro });
         return send(res, 200, { ok: true });
       }
       if (p === '/api/gestor/usuarios/remover' && req.method === 'POST') {
