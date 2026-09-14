@@ -18,11 +18,46 @@ function send(res, status, body, headers = {}) {
   res.end(isObj ? JSON.stringify(body) : body);
 }
 
+// Limite de tamanho do corpo (evita zip-bomb / upload gigante que derruba a memória).
+// Uploads (planilhas em base64) podem ser grandes, então damos folga: 25 MB.
+const MAX_BODY = 25 * 1024 * 1024;
 async function readBody(req) {
   let data = '';
-  for await (const chunk of req) data += chunk;
+  let tam = 0;
+  for await (const chunk of req) {
+    tam += chunk.length;
+    if (tam > MAX_BODY) { req.destroy(); return { __tooBig: true }; }
+    data += chunk;
+  }
   try { return JSON.parse(data || '{}'); } catch { return {}; }
 }
+
+// Extrai o IP do cliente (respeita proxy do Render via X-Forwarded-For)
+function ipDe(req) {
+  const xff = req.headers['x-forwarded-for'];
+  if (xff) return String(xff).split(',')[0].trim();
+  return (req.socket && req.socket.remoteAddress) || 'desconhecido';
+}
+
+// Rate-limit em memória para login: no máx. N tentativas por janela, por chave (IP+usuário).
+const tentativasLogin = new Map(); // chave -> { n, reset }
+const LOGIN_MAX = 8;             // tentativas
+const LOGIN_JANELA = 15 * 60000; // 15 minutos
+function loginBloqueado(chave) {
+  const agora = Date.now();
+  const reg = tentativasLogin.get(chave);
+  if (!reg || agora > reg.reset) { tentativasLogin.set(chave, { n: 0, reset: agora + LOGIN_JANELA }); return false; }
+  return reg.n >= LOGIN_MAX;
+}
+function registrarFalhaLogin(chave) {
+  const agora = Date.now();
+  const reg = tentativasLogin.get(chave);
+  if (!reg || agora > reg.reset) { tentativasLogin.set(chave, { n: 1, reset: agora + LOGIN_JANELA }); return; }
+  reg.n++;
+}
+function limparFalhaLogin(chave) { tentativasLogin.delete(chave); }
+// limpeza periódica das chaves expiradas (evita crescer indefinidamente)
+setInterval(() => { const t = Date.now(); for (const [k, v] of tentativasLogin) if (t > v.reset) tentativasLogin.delete(k); }, 10 * 60000).unref();
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
@@ -43,8 +78,11 @@ const server = http.createServer(async (req, res) => {
     if (p.startsWith('/api/fin/')) {
       if (p === '/api/fin/login' && req.method === 'POST') {
         const { usuario, senha } = await readBody(req);
+        const chave = 'fin:' + ipDe(req) + ':' + String(usuario || '').toLowerCase();
+        if (loginBloqueado(chave)) return send(res, 429, { erro: 'Muitas tentativas. Tente novamente em alguns minutos.' });
         const r = fin.login(usuario, senha);
-        if (!r) return send(res, 401, { erro: 'Usuário ou senha incorretos' });
+        if (!r) { registrarFalhaLogin(chave); return send(res, 401, { erro: 'Usuário ou senha incorretos' }); }
+        limparFalhaLogin(chave);
         return send(res, 200, { ok: true, usuario: r.usuario, nome: r.nome }, { 'Set-Cookie': r.cookie });
       }
       if (p === '/api/fin/logout' && req.method === 'POST') return send(res, 200, { ok: true }, { 'Set-Cookie': fin.clearCookie() });
@@ -69,9 +107,12 @@ const server = http.createServer(async (req, res) => {
       const session = auth.getSession(req);
       if (p === '/api/login' && req.method === 'POST') {
         const { email, senha } = await readBody(req);
+        const chave = 'app:' + ipDe(req) + ':' + String(email || '').toLowerCase();
+        if (loginBloqueado(chave)) return send(res, 429, { erro: 'Muitas tentativas. Tente novamente em alguns minutos.' });
         const result = await auth.login(email, senha);
         if (result && result.bloqueado) return send(res, 403, { erro: 'Acesso desativado. Fale com seu gestor.' });
-        if (!result) return send(res, 401, { erro: 'Usuário ou senha incorretos' });
+        if (!result) { registrarFalhaLogin(chave); return send(res, 401, { erro: 'Usuário ou senha incorretos' }); }
+        limparFalhaLogin(chave);
         return send(res, 200, { ok: true, papel: result.papel }, { 'Set-Cookie': result.cookie });
       }
       if (p === '/api/logout' && req.method === 'POST') {
@@ -171,7 +212,7 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200, { 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Content-Disposition': 'attachment; filename="' + r.filename + '"', 'Content-Length': r.buffer.length, 'Cache-Control': 'no-store' });
         return res.end(r.buffer);
       }
-      if (p === '/api/clientes/importar' && req.method === 'POST') return send(res, 200, await notion.importarClientesXlsx(session, await readBody(req)));
+      if (p === '/api/clientes/importar' && req.method === 'POST') { const b = await readBody(req); if (b.__tooBig) return send(res, 413, { erro: 'Arquivo muito grande (máx. 25 MB).' }); return send(res, 200, await notion.importarClientesXlsx(session, b)); }
       // --- gestor
       if (session.papel !== 'gestor' && p.startsWith('/api/gestor')) return send(res, 403, { erro: 'Somente gestores' });
       if (p === '/api/gestor/painel') return send(res, 200, await notion.painelGestor(session));
@@ -180,7 +221,7 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/clientes-por-consultor') return send(res, 200, await notion.clientesPorConsultor(session));
       if (p === '/api/gestor/comissoes/impostos' && req.method === 'GET') return send(res, 200, notion.comImpostosGet(session));
       if (p === '/api/gestor/comissoes/impostos' && req.method === 'POST') return send(res, 200, notion.comImpostosSalvar(session, await readBody(req)));
-      if (p === '/api/gestor/comissoes/importar' && req.method === 'POST') return send(res, 200, await notion.comImportar(session, await readBody(req)));
+      if (p === '/api/gestor/comissoes/importar' && req.method === 'POST') { const b = await readBody(req); if (b.__tooBig) return send(res, 413, { erro: 'Arquivo muito grande (máx. 25 MB).' }); return send(res, 200, await notion.comImportar(session, b)); }
       if (p === '/api/gestor/comissoes/fechamentos' && req.method === 'GET') return send(res, 200, notion.comListarFechamentos(session));
       if (p === '/api/gestor/comissoes/fechamento' && req.method === 'GET') return send(res, 200, notion.comFechamento(session, { id: url.searchParams.get('id'), consultor: url.searchParams.get('consultor') }));
       if (p === '/api/gestor/comissoes/excluir' && req.method === 'POST') return send(res, 200, notion.comExcluirFechamento(session, await readBody(req)));
