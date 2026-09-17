@@ -1,6 +1,6 @@
 {
   "name": "agenda-do-time",
-  "version": "1.3.9",
+  "version": "1.4.1",
   "description": "Agenda do Time — gestao de agenda, check-in e atividades",
   "main": "server.js",
   "scripts": {

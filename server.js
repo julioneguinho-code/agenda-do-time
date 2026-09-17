@@ -74,6 +74,16 @@ const server = http.createServer(async (req, res) => {
       return send(res, 404, 'não encontrado');
     }
 
+    // ---- BACKUP (rotina diária): dump de vendas/carteira em JSON, protegido por token fixo.
+    // Não usa cookie de sessão (é chamado por uma tarefa agendada). Defina BACKUP_TOKEN no ambiente.
+    if (p === '/api/backup/vendas' && req.method === 'GET') {
+      const tok = process.env.BACKUP_TOKEN;
+      if (!tok) return send(res, 403, { erro: 'Backup desativado — defina a variável BACKUP_TOKEN.' });
+      const enviado = url.searchParams.get('token') || req.headers['x-backup-token'] || '';
+      if (String(enviado).length !== String(tok).length || !crypto.timingSafeEqual(Buffer.from(String(enviado)), Buffer.from(String(tok)))) return send(res, 401, { erro: 'Token inválido' });
+      return send(res, 200, notion.backupDados(), { 'Cache-Control': 'no-store' });
+    }
+
     // ---- API FINANÇAS (módulo pessoal, cookie próprio)
     if (p.startsWith('/api/fin/')) {
       if (p === '/api/fin/login' && req.method === 'POST') {
