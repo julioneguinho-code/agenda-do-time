@@ -468,12 +468,19 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Taxa adm total (%)</label><input type="text" inputmode="decimal" id="cxf-adm" placeholder="17" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Fundo reserva (%)</label><input type="text" inputmode="decimal" id="cxf-fundo" placeholder="2" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
         </div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--txt);cursor:pointer"><input type="checkbox" id="cxf-reaj" onchange="cxfToggleReaj()" style="width:16px;height:16px"> Reajuste anual do crédito (INCC/IPCA)</label>
+        <div id="cxf-reaj-box" style="display:none;gap:8px;margin-top:6px">
+          <select id="cxf-indice" onchange="cxfIndiceChange()" style="flex:1;padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:var(--bg)"><option value="incc">INCC (imóvel)</option><option value="ipca">IPCA (veículo)</option></select>
+          <input type="text" inputmode="decimal" id="cxf-indicepct" placeholder="% a.a." style="flex:1;padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:var(--bg)">
+        </div>
         <div style="font-weight:700;font-size:13px;margin:12px 0 6px">🏦 Financiamento</div>
         <div style="display:flex;gap:8px">
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Entrada (R$)</label><input type="text" inputmode="decimal" id="cxf-entrada" placeholder="0" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Juros ao mês (%)</label><input type="text" inputmode="decimal" id="cxf-juros" placeholder="1,5" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Prazo (meses)</label><input type="text" inputmode="numeric" id="cxf-prazoF" placeholder="= consórcio" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
         </div>
+        <label style="font-size:11px;color:var(--mut);display:block;margin-top:10px">Tabela do financiamento</label>
+        <select id="cxf-tabela" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"><option value="price">PRICE — parcela fixa</option><option value="sac">SAC — parcela decrescente</option></select>
         <button class="btn" style="width:100%;padding:11px;margin-top:12px" onclick="calcCxF()">Calcular comparativo</button>
       </div>
       <div id="cxf-result"></div>
@@ -548,49 +555,61 @@ function calcParcela(){
   </div>
   <div class="mut" style="font-size:10px;margin-top:8px">Estimativa sem reajuste anual, seguro ou lance. Custo = taxa de administração + fundo de reserva diluídos no prazo.</div>`;
 }
+function cxfToggleReaj(){const on=document.getElementById('cxf-reaj').checked;document.getElementById('cxf-reaj-box').style.display=on?'flex':'none';if(on)cxfIndiceChange();}
+function cxfIndiceChange(){const idx=document.getElementById('cxf-indice').value;const f=document.getElementById('cxf-indicepct');if(!f.value)f.value=idx==='ipca'?'5,5':'6,5';}
 function calcCxF(){
-  const credito=simNum('cxf-credito');
-  const prazoC=simNum('cxf-prazoC');
-  const adm=isNaN(simNum('cxf-adm'))?0:simNum('cxf-adm');
-  const fundo=isNaN(simNum('cxf-fundo'))?0:simNum('cxf-fundo');
-  const entrada=isNaN(simNum('cxf-entrada'))?0:simNum('cxf-entrada');
-  const juros=isNaN(simNum('cxf-juros'))?0:simNum('cxf-juros');
-  let prazoF=simNum('cxf-prazoF'); if(isNaN(prazoF))prazoF=prazoC;
+  const credito=simNum('cxf-credito');const prazoC=simNum('cxf-prazoC');
+  const adm=isNaN(simNum('cxf-adm'))?0:simNum('cxf-adm');const fundo=isNaN(simNum('cxf-fundo'))?0:simNum('cxf-fundo');
+  const entrada=isNaN(simNum('cxf-entrada'))?0:simNum('cxf-entrada');const juros=isNaN(simNum('cxf-juros'))?0:simNum('cxf-juros');
+  let prazoF=simNum('cxf-prazoF');if(isNaN(prazoF))prazoF=prazoC;
+  const reaj=document.getElementById('cxf-reaj').checked;
+  const g=reaj?(isNaN(simNum('cxf-indicepct'))?0:simNum('cxf-indicepct'))/100:0;
+  const tabela=document.getElementById('cxf-tabela').value;
   const box=document.getElementById('cxf-result');
   if(isNaN(credito)||credito<=0||isNaN(prazoC)||prazoC<=0){box.innerHTML='<div class="card" style="padding:12px;color:var(--no)">Informe ao menos o valor do crédito e o prazo do consórcio.</div>';return;}
-  // CONSÓRCIO (sem juros: custo = taxas diluídas)
-  const totalCons=credito*(1+adm/100+fundo/100);
-  const parcelaCons=totalCons/prazoC;
-  const custoCons=totalCons-credito;
-  // FINANCIAMENTO (Tabela Price)
-  const fin=Math.max(0,credito-entrada);
-  const i=juros/100;
-  let parcelaFin; if(i>0){parcelaFin=fin*i/(1-Math.pow(1+i,-prazoF));}else{parcelaFin=fin/prazoF;}
-  const totalFin=parcelaFin*prazoF+entrada;
-  const custoFin=totalFin-credito;
-  const economia=totalFin-totalCons;
+  // CONSÓRCIO — plano diluído, com reajuste anual opcional do saldo
+  const plano=credito*(1+adm/100+fundo/100);
+  let saldo=plano,parcela=plano/prazoC,totalCons=0;const parcConsAno=[];
+  for(let mes=1;mes<=prazoC;mes++){
+    if(mes>1&&(mes-1)%12===0){saldo=saldo*(1+g);const rest=prazoC-(mes-1);parcela=saldo/rest;}
+    if((mes-1)%12===0)parcConsAno.push(parcela);
+    totalCons+=parcela;saldo-=parcela;
+  }
+  const parcConsIni=parcConsAno[0]||0;const custoCons=totalCons-credito;
+  // FINANCIAMENTO — SAC ou PRICE
+  const fin=Math.max(0,credito-entrada);const i=juros/100;let totalFin=entrada;const parcFinAno=[];
+  if(tabela==='sac'){const amort=fin/prazoF;let s=fin;for(let mes=1;mes<=prazoF;mes++){const p=amort+s*i;if((mes-1)%12===0)parcFinAno.push(p);totalFin+=p;s-=amort;}}
+  else{const p=i>0?fin*i/(1-Math.pow(1+i,-prazoF)):fin/prazoF;for(let mes=1;mes<=prazoF;mes++){if((mes-1)%12===0)parcFinAno.push(p);totalFin+=p;}}
+  const parcFinIni=parcFinAno[0]||0;const custoFin=totalFin-credito;const economia=totalFin-totalCons;
   const pct=b=>credito>0?(b/credito*100):0;
-  const linha=(lbl,val,cor)=>`<div class="lin" style="display:flex;justify-content:space-between;border-top:1px solid var(--bord);padding:7px 0"><span style="font-size:12px;color:var(--mut)">${lbl}</span><b style="font-size:13px${cor?';color:'+cor:''}">${val}</b></div>`;
+  const anos=Math.ceil(Math.max(prazoC,prazoF)/12);let evo='';
+  for(let a=0;a<anos;a++){const pc=a<parcConsAno.length?simBRL(parcConsAno[a]):'—';const pf=a<parcFinAno.length?simBRL(parcFinAno[a]):'—';evo+=`<div style="display:flex;justify-content:space-between;border-top:1px solid var(--bord);padding:6px 0;font-size:12px"><span style="color:var(--mut);width:56px">Ano ${a+1}</span><span style="flex:1;text-align:center">${pc}</span><span style="flex:1;text-align:right">${pf}</span></div>`;}
+  const linha=(l,v,c)=>`<div style="display:flex;justify-content:space-between;border-top:1px solid var(--bord);padding:7px 0"><span style="font-size:12px;color:var(--mut)">${l}</span><b style="font-size:13px${c?';color:'+c:''}">${v}</b></div>`;
   box.innerHTML=`
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
     <div class="card" style="padding:12px;border:1.5px solid var(--acc)">
       <div style="font-weight:700;margin-bottom:2px">🧩 Consórcio</div>
-      <div style="font-size:20px;font-weight:800;color:var(--acc)">${simBRL(parcelaCons)}</div><div class="mut" style="font-size:11px">por mês · ${prazoC}x</div>
+      <div style="font-size:19px;font-weight:800;color:var(--acc)">${simBRL(parcConsIni)}</div><div class="mut" style="font-size:11px">1ª parcela · ${prazoC}x${reaj?' · reajuste '+(g*100).toFixed(1).replace('.',',')+'%/ano':''}</div>
       ${linha('Total pago',simBRL(totalCons))}
-      ${linha('Custo (taxas)',simBRL(custoCons)+' · '+pct(custoCons).toFixed(1)+'%','var(--no)')}
+      ${linha('Custo (taxas'+(reaj?'+reajuste':'')+')',simBRL(custoCons)+' · '+pct(custoCons).toFixed(1)+'%','var(--no)')}
     </div>
     <div class="card" style="padding:12px">
       <div style="font-weight:700;margin-bottom:2px">🏦 Financiamento</div>
-      <div style="font-size:20px;font-weight:800">${simBRL(parcelaFin)}</div><div class="mut" style="font-size:11px">por mês · ${prazoF}x${entrada>0?' + entrada':''}</div>
+      <div style="font-size:19px;font-weight:800">${simBRL(parcFinIni)}</div><div class="mut" style="font-size:11px">1ª parcela · ${prazoF}x · ${tabela.toUpperCase()}${entrada>0?' + entrada':''}</div>
       ${linha('Total pago',simBRL(totalFin))}
       ${linha('Custo (juros)',simBRL(custoFin)+' · '+pct(custoFin).toFixed(1)+'%','var(--no)')}
     </div>
   </div>
+  <div class="card" style="padding:12px;margin-top:10px">
+    <div style="font-weight:700;font-size:13px;margin-bottom:6px">📈 Evolução da parcela (ano a ano)</div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);font-weight:700"><span style="width:56px">Período</span><span style="flex:1;text-align:center">Consórcio</span><span style="flex:1;text-align:right">Financiam.</span></div>
+    ${evo}
+  </div>
   <div class="card" style="padding:12px;margin-top:10px;border:1.5px solid var(--ok);background:var(--okbg)">
     <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:700">${economia>=0?'💚 Consórcio economiza':'⚠️ Financiamento sai mais barato'}</div><div style="font-weight:800;font-size:18px;color:${economia>=0?'var(--ok)':'var(--no)'}">${simBRL(Math.abs(economia))}</div></div>
-    <div class="mut" style="font-size:11px;margin-top:4px">Diferença de parcela: ${simBRL(Math.abs(parcelaCons-parcelaFin))}/mês · comparado no total pago${prazoC!==prazoF?' (prazos diferentes)':''}.</div>
+    <div class="mut" style="font-size:11px;margin-top:4px">${economia>=0?'A favor do consórcio no total pago':'Financiamento custa menos no total'} · ${pct(Math.abs(economia)).toFixed(1)}% do crédito.</div>
   </div>
-  <div class="mut" style="font-size:10px;margin-top:8px">Estimativa simplificada, sem reajustes, IOF ou seguro. Consórcio sem juros (custo = taxa adm + fundo). Financiamento pela Tabela Price.</div>`;
+  <div class="mut" style="font-size:10px;margin-top:8px">Estimativa simplificada, sem IOF/seguro. Consórcio: adm + fundo${reaj?' + reajuste anual pelo índice':' (sem juros)'}. Financiamento pela tabela ${tabela.toUpperCase()}.</div>`;
 }
 // ===== COMISSÕES / REPASSE =====
 let _cmImp=[],_cmExpand={};
