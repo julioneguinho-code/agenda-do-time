@@ -8,7 +8,7 @@ const crypto = require('crypto');
 const PORT = process.env.PORT || 3000;
 const notion = require('./lib/notion');
 const auth = require('./lib/auth');
-const fin = require('./lib/financas');
+const mercado = require('./lib/mercado');
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json' };
 
@@ -84,32 +84,9 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, notion.backupDados(), { 'Cache-Control': 'no-store' });
     }
 
-    // ---- API FINANÇAS (módulo pessoal, cookie próprio)
-    if (p.startsWith('/api/fin/')) {
-      if (p === '/api/fin/login' && req.method === 'POST') {
-        const { usuario, senha } = await readBody(req);
-        const chave = 'fin:' + ipDe(req) + ':' + String(usuario || '').toLowerCase();
-        if (loginBloqueado(chave)) return send(res, 429, { erro: 'Muitas tentativas. Tente novamente em alguns minutos.' });
-        const r = fin.login(usuario, senha);
-        if (!r) { registrarFalhaLogin(chave); return send(res, 401, { erro: 'Usuário ou senha incorretos' }); }
-        limparFalhaLogin(chave);
-        return send(res, 200, { ok: true, usuario: r.usuario, nome: r.nome }, { 'Set-Cookie': r.cookie });
-      }
-      if (p === '/api/fin/logout' && req.method === 'POST') return send(res, 200, { ok: true }, { 'Set-Cookie': fin.clearCookie() });
-      const fs2 = fin.sessao(req);
-      if (!fs2) return send(res, 401, { erro: 'Não autenticado' });
-      const fu = fs2.u; // usuário do perfil logado (julio/ana)
-      if (p === '/api/fin/perfil' && req.method === 'GET') return send(res, 200, fin.perfilInfo(fu));
-      if (p === '/api/fin/mes' && req.method === 'GET') return send(res, 200, fin.getMes(fu, url.searchParams.get('m')));
-      if (p === '/api/fin/mes' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.salvarMes(fu, b.mes, b.renda, b.despesa)); }
-      if (p === '/api/fin/metas' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.salvarMetas(fu, b.metas)); }
-      if (p === '/api/fin/ano' && req.method === 'GET') return send(res, 200, fin.resumoAno(fu, url.searchParams.get('y')));
-      if (p === '/api/fin/investimentos' && req.method === 'GET') return send(res, 200, fin.investimentos(fu, url.searchParams.get('y')));
-      if (p === '/api/fin/investimento' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.addInvest(fu, b)); }
-      if (p === '/api/fin/investimento/remover' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.removerInvest(fu, b.id, b.ano)); }
-      if (p === '/api/fin/parcela' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.propagarParcela(fu, b.mes, b.despesa)); }
-      if (p === '/api/fin/senha' && req.method === 'POST') { const b = await readBody(req); return send(res, 200, fin.trocarSenha(fu, b.atual, b.nova)); }
-      return send(res, 404, { erro: 'Rota não encontrada' });
+    // ---- MERCADO (Selic + taxas médias BCB) para os simuladores. Dados públicos, sem sessão.
+    if (p === '/api/mercado' && req.method === 'GET') {
+      return send(res, 200, mercado.getMercado(), { 'Cache-Control': 'max-age=3600' });
     }
 
     // ---- API
@@ -335,11 +312,6 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, auth.atualizarUsuario(email, { ativo: !!ativo }));
       }
       return send(res, 404, { erro: 'Rota não encontrada' });
-    }
-
-    // ---- página do módulo financeiro (login próprio dentro da página)
-    if (p === '/financas') {
-      return send(res, 200, fs.readFileSync(path.join(__dirname, 'pages/financas.html'), 'utf8'));
     }
 
     // ---- páginas

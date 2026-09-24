@@ -102,6 +102,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <div class="tile" onclick="irAba('atividades')"><span class="bad" id="tile-atv">0</span><div class="emo">📋</div><div class="lbl">Atividades</div></div>
       <div class="tile" onclick="abrirArquivosPop()"><div class="emo">📎</div><div class="lbl">Arquivos</div></div>
       <div class="tile" onclick="irAba('mural');carregarMuralC()"><div class="emo">🏅</div><div class="lbl">Mural</div></div>
+      <div class="tile" onclick="irAba('simuladores')"><div class="emo">🧮</div><div class="lbl">Simuladores</div></div>
     </div>
   </div>
   <!-- dados carregados pelo app (usados nas telas internas) -->
@@ -233,6 +234,59 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   <div class="gbar"><span class="gl" id="gl-vendas">💰 Vendas</span><div class="gtrack"><div class="gfill" id="g-vendas" style="width:0%;background:linear-gradient(90deg,#3E8E6E,#57B36A)"></div></div><span class="gp" id="gp-vendas" style="color:#3E8E6E">0%</span></div>
   <div class="gbar"><span class="gl" id="gl-check">✅ Check-in</span><div class="gtrack"><div class="gfill" id="g-check" style="width:0%;background:linear-gradient(90deg,#5175A0,#6E92C0)"></div></div><span class="gp" id="gp-check" style="color:#5175A0">0%</span></div>
 </div>
+<div class="aba" id="aba-simuladores">
+  <div class="sec">
+    <div class="h">🧮 Simuladores</div>
+    <div id="sim-hub" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+      <div class="card" onclick="abrirSimulador('cxf')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
+        <div style="font-size:26px">⚖️</div>
+        <div><div style="font-weight:700;font-size:14px">Consórcio × Financiamento</div><div class="mut" style="font-size:12px">Compare parcela e custo total</div></div>
+      </div>
+      <div class="card" onclick="abrirSimulador('parcela')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
+        <div style="font-size:26px">🧾</div>
+        <div><div style="font-weight:700;font-size:14px">Crédito → Parcela</div><div class="mut" style="font-size:12px">Parcela mensal do consórcio</div></div>
+      </div>
+      <div class="card" style="padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:center;align-items:center;border:1px dashed var(--bord);color:var(--mut)"><div style="font-size:24px">➕</div><div style="font-size:12px;margin-top:6px">Novos simuladores em breve</div></div>
+    </div>
+    <div id="sim-parcela" class="sim-panel" style="display:none">
+      <button class="btn sec2" style="padding:6px 12px;margin-bottom:10px" onclick="voltarSimHub()">← Voltar aos simuladores</button>
+      <div class="card" style="padding:12px;margin-bottom:10px">
+        <label style="font-size:12px;color:var(--mut)">Valor do crédito (R$)</label>
+        <input type="text" inputmode="decimal" id="pc-credito" placeholder="Ex.: 100.000" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:10px">
+        <div style="display:flex;gap:8px">
+          <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Prazo (meses)</label><input type="text" inputmode="numeric" id="pc-prazo" placeholder="120" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
+          <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Taxa adm total (%)</label><input type="text" inputmode="decimal" id="pc-adm" placeholder="17" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
+          <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Fundo reserva (%)</label><input type="text" inputmode="decimal" id="pc-fundo" placeholder="2" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
+        </div>
+        <button class="btn" style="width:100%;padding:11px;margin-top:12px" onclick="calcParcela()">Calcular parcela</button>
+      </div>
+      <div id="pc-result"></div>
+    </div>
+    <div id="sim-cxf" class="sim-panel" style="display:none">
+      <button class="btn sec2" style="padding:6px 12px;margin-bottom:10px" onclick="voltarSimHub()">← Voltar aos simuladores</button>
+      <div class="card" style="padding:12px;margin-bottom:10px">
+        <div id="cxf-mercado" style="font-size:12px;margin-bottom:10px;background:var(--card2);border-radius:8px;padding:8px 10px"></div>
+        <label style="font-size:12px;color:var(--mut)">Valor do crédito / bem (R$)</label>
+        <input type="text" inputmode="decimal" id="cxf-credito" placeholder="Ex.: 100.000" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:10px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:6px">🧩 Consórcio</div>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Prazo (meses)</label><input type="text" inputmode="numeric" id="cxf-prazoC" placeholder="120" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
+          <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Taxa adm total (%)</label><input type="text" inputmode="decimal" id="cxf-adm" placeholder="17" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
+          <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Fundo reserva (%)</label><input type="text" inputmode="decimal" id="cxf-fundo" placeholder="2" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
+        </div>
+        <div style="font-weight:700;font-size:13px;margin:12px 0 6px">🏦 Financiamento</div>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Entrada (R$)</label><input type="text" inputmode="decimal" id="cxf-entrada" placeholder="0" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
+          <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Juros ao mês (%)</label><input type="text" inputmode="decimal" id="cxf-juros" placeholder="1,5" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
+          <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Prazo (meses)</label><input type="text" inputmode="numeric" id="cxf-prazoF" placeholder="= consórcio" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
+        </div>
+        <button class="btn" style="width:100%;padding:11px;margin-top:12px" onclick="calcCxF()">Calcular comparativo</button>
+      </div>
+      <div id="cxf-result"></div>
+    </div>
+  </div>
+</div>
+
 <div class="nav">
   <a href="#" class="on" data-aba="inicio" onclick="irAba('inicio');return false"><span class="ic">🏠</span>Início</a>
   <a href="#" data-aba="agenda" onclick="irAba('agenda');return false"><span class="ic">📅</span>Agenda</a>
@@ -240,6 +294,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   <a href="#" data-aba="atividades" onclick="irAba('atividades');return false"><span class="ic">📋</span>Atividades</a>
   <a href="#" data-aba="vendas" onclick="irAba('vendas');carregarVendas();return false"><span class="ic">💼</span>Vendas</a>
   <a href="#" data-aba="clientes" onclick="irAba('clientes');carregarClientesTab();return false"><span class="ic">👥</span>Clientes</a>
+  <a href="#" data-aba="simuladores" onclick="irAba('simuladores');return false"><span class="ic">🧮</span>Simular</a>
 </div>
 
 <!-- BALÃO DE NOTIFICAÇÕES (flutuante) -->
@@ -263,6 +318,58 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 let dados = null;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
 function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n));const bv=document.getElementById('btn-voltar');if(bv)bv.style.display=n==='inicio'?'none':'block';window.scrollTo(0,0);if(n==='agenda'){carregarDispo();carregarGestores()}}
+// ===== SIMULADORES =====
+function simNum(id){const v=(document.getElementById(id).value||'').trim();if(!v)return NaN;return parseFloat(v.replace(/\./g,'').replace(',','.'));}
+function simBRL(v){return (isFinite(v)?v:0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function abrirSimulador(id){document.getElementById('sim-hub').style.display='none';document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');const el=document.getElementById('sim-'+id);if(el)el.style.display='block';if(id==='cxf')carregarMercado();}
+function voltarSimHub(){document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');document.getElementById('sim-hub').style.display='grid';}
+let _mercado=null;
+async function carregarMercado(){const box=document.getElementById('cxf-mercado');if(!box)return;if(_mercado){renderMercado();return;}box.textContent='📊 Buscando taxas de mercado (BCB)…';try{_mercado=await(await fetch('/api/mercado')).json();}catch(e){_mercado={};}renderMercado();}
+function fmtPct(v){return v!=null&&isFinite(v)?Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'–';}
+function renderMercado(){const box=document.getElementById('cxf-mercado');if(!box)return;const m=_mercado||{};if(m.selic==null&&m.veiculosAM==null&&m.imovelAM==null){box.innerHTML='📊 Taxas de mercado indisponíveis agora — digite o juros manualmente.';return;}box.innerHTML=`📊 <b>Mercado hoje</b> (BCB${m.atualizadoEm?' · '+m.atualizadoEm:''}): Selic ${fmtPct(m.selic)}% a.a. · 🚗 veículos ~${fmtPct(m.veiculosAM)}% a.m. · 🏠 imóvel ~${fmtPct(m.imovelAM)}% a.m.<div style="margin-top:6px">Pré-preencher juros: <button class="btn sec2" style="padding:3px 9px;font-size:11px" onclick="usarJuros('veiculosAM')">🚗 Veículo</button> <button class="btn sec2" style="padding:3px 9px;font-size:11px" onclick="usarJuros('imovelAM')">🏠 Imóvel</button></div><div class="mut" style="font-size:10px;margin-top:4px">Médias de mercado do Banco Central — referência, não oferta de um banco.</div>`;const j=document.getElementById('cxf-juros');if(j&&!j.value&&m.veiculosAM!=null)j.value=String(m.veiculosAM).replace('.',',');}
+function usarJuros(k){const m=_mercado||{};if(m[k]==null)return;document.getElementById('cxf-juros').value=String(m[k]).replace('.',',');}
+function calcCxF(){
+  const credito=simNum('cxf-credito');
+  const prazoC=simNum('cxf-prazoC');
+  const adm=isNaN(simNum('cxf-adm'))?0:simNum('cxf-adm');
+  const fundo=isNaN(simNum('cxf-fundo'))?0:simNum('cxf-fundo');
+  const entrada=isNaN(simNum('cxf-entrada'))?0:simNum('cxf-entrada');
+  const juros=isNaN(simNum('cxf-juros'))?0:simNum('cxf-juros');
+  let prazoF=simNum('cxf-prazoF'); if(isNaN(prazoF))prazoF=prazoC;
+  const box=document.getElementById('cxf-result');
+  if(isNaN(credito)||credito<=0||isNaN(prazoC)||prazoC<=0){box.innerHTML='<div class="card" style="padding:12px;color:var(--no)">Informe ao menos o valor do crédito e o prazo do consórcio.</div>';return;}
+  const totalCons=credito*(1+adm/100+fundo/100);
+  const parcelaCons=totalCons/prazoC;
+  const custoCons=totalCons-credito;
+  const fin=Math.max(0,credito-entrada);
+  const i=juros/100;
+  let parcelaFin; if(i>0){parcelaFin=fin*i/(1-Math.pow(1+i,-prazoF));}else{parcelaFin=fin/prazoF;}
+  const totalFin=parcelaFin*prazoF+entrada;
+  const custoFin=totalFin-credito;
+  const economia=totalFin-totalCons;
+  const pct=b=>credito>0?(b/credito*100):0;
+  const linha=(lbl,val,cor)=>`<div style="display:flex;justify-content:space-between;border-top:1px solid var(--bord);padding:7px 0"><span style="font-size:12px;color:var(--mut)">${lbl}</span><b style="font-size:13px${cor?';color:'+cor:''}">${val}</b></div>`;
+  box.innerHTML=`
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="card" style="padding:12px;border:1.5px solid var(--acc)">
+      <div style="font-weight:700;margin-bottom:2px">🧩 Consórcio</div>
+      <div style="font-size:20px;font-weight:800;color:var(--acc)">${simBRL(parcelaCons)}</div><div class="mut" style="font-size:11px">por mês · ${prazoC}x</div>
+      ${linha('Total pago',simBRL(totalCons))}
+      ${linha('Custo (taxas)',simBRL(custoCons)+' · '+pct(custoCons).toFixed(1)+'%','var(--no)')}
+    </div>
+    <div class="card" style="padding:12px">
+      <div style="font-weight:700;margin-bottom:2px">🏦 Financiamento</div>
+      <div style="font-size:20px;font-weight:800">${simBRL(parcelaFin)}</div><div class="mut" style="font-size:11px">por mês · ${prazoF}x${entrada>0?' + entrada':''}</div>
+      ${linha('Total pago',simBRL(totalFin))}
+      ${linha('Custo (juros)',simBRL(custoFin)+' · '+pct(custoFin).toFixed(1)+'%','var(--no)')}
+    </div>
+  </div>
+  <div class="card" style="padding:12px;margin-top:10px;border:1.5px solid var(--ok);background:var(--okbg)">
+    <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:700">${economia>=0?'💚 Consórcio economiza':'⚠️ Financiamento sai mais barato'}</div><div style="font-weight:800;font-size:18px;color:${economia>=0?'var(--ok)':'var(--no)'}">${simBRL(Math.abs(economia))}</div></div>
+    <div class="mut" style="font-size:11px;margin-top:4px">Diferença de parcela: ${simBRL(Math.abs(parcelaCons-parcelaFin))}/mês · comparado no total pago${prazoC!==prazoF?' (prazos diferentes)':''}.</div>
+  </div>
+  <div class="mut" style="font-size:10px;margin-top:8px">Estimativa simplificada, sem reajustes, IOF ou seguro. Consórcio sem juros (custo = taxa adm + fundo). Financiamento pela Tabela Price.</div>`;
+}
 async function carregarDispo(){
   const el=document.getElementById('dispo-semana');if(!el)return;
   try{
