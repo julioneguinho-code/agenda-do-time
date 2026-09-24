@@ -557,6 +557,7 @@ function calcParcela(){
 }
 function cxfToggleReaj(){const on=document.getElementById('cxf-reaj').checked;document.getElementById('cxf-reaj-box').style.display=on?'flex':'none';if(on)cxfIndiceChange();}
 function cxfIndiceChange(){const idx=document.getElementById('cxf-indice').value;const f=document.getElementById('cxf-indicepct');if(!f.value)f.value=idx==='ipca'?'5,5':'6,5';}
+function cxfToggleAno(a){const el=document.getElementById('cxf-ano-'+a);const ar=document.getElementById('cxf-ar-'+a);if(!el)return;const abrir=el.style.display==='none';el.style.display=abrir?'block':'none';if(ar)ar.textContent=abrir?'▾':'▸';}
 function calcCxF(){
   const credito=simNum('cxf-credito');const prazoC=simNum('cxf-prazoC');
   const adm=isNaN(simNum('cxf-adm'))?0:simNum('cxf-adm');const fundo=isNaN(simNum('cxf-fundo'))?0:simNum('cxf-fundo');
@@ -569,21 +570,26 @@ function calcCxF(){
   if(isNaN(credito)||credito<=0||isNaN(prazoC)||prazoC<=0){box.innerHTML='<div class="card" style="padding:12px;color:var(--no)">Informe ao menos o valor do crédito e o prazo do consórcio.</div>';return;}
   // CONSÓRCIO — plano diluído, com reajuste anual opcional do saldo
   const plano=credito*(1+adm/100+fundo/100);
-  let saldo=plano,parcela=plano/prazoC,totalCons=0;const parcConsAno=[];
+  let saldo=plano,parcela=plano/prazoC,totalCons=0;const parcConsAno=[],parcConsMes=[];
   for(let mes=1;mes<=prazoC;mes++){
     if(mes>1&&(mes-1)%12===0){saldo=saldo*(1+g);const rest=prazoC-(mes-1);parcela=saldo/rest;}
     if((mes-1)%12===0)parcConsAno.push(parcela);
+    parcConsMes.push(parcela);
     totalCons+=parcela;saldo-=parcela;
   }
   const parcConsIni=parcConsAno[0]||0;const custoCons=totalCons-credito;
   // FINANCIAMENTO — SAC ou PRICE
-  const fin=Math.max(0,credito-entrada);const i=juros/100;let totalFin=entrada;const parcFinAno=[];
-  if(tabela==='sac'){const amort=fin/prazoF;let s=fin;for(let mes=1;mes<=prazoF;mes++){const p=amort+s*i;if((mes-1)%12===0)parcFinAno.push(p);totalFin+=p;s-=amort;}}
-  else{const p=i>0?fin*i/(1-Math.pow(1+i,-prazoF)):fin/prazoF;for(let mes=1;mes<=prazoF;mes++){if((mes-1)%12===0)parcFinAno.push(p);totalFin+=p;}}
+  const fin=Math.max(0,credito-entrada);const i=juros/100;let totalFin=entrada;const parcFinAno=[],parcFinMes=[];
+  if(tabela==='sac'){const amort=fin/prazoF;let s=fin;for(let mes=1;mes<=prazoF;mes++){const p=amort+s*i;if((mes-1)%12===0)parcFinAno.push(p);parcFinMes.push(p);totalFin+=p;s-=amort;}}
+  else{const p=i>0?fin*i/(1-Math.pow(1+i,-prazoF)):fin/prazoF;for(let mes=1;mes<=prazoF;mes++){if((mes-1)%12===0)parcFinAno.push(p);parcFinMes.push(p);totalFin+=p;}}
   const parcFinIni=parcFinAno[0]||0;const custoFin=totalFin-credito;const economia=totalFin-totalCons;
   const pct=b=>credito>0?(b/credito*100):0;
   const anos=Math.ceil(Math.max(prazoC,prazoF)/12);let evo='';
-  for(let a=0;a<anos;a++){const pc=a<parcConsAno.length?simBRL(parcConsAno[a]):'—';const pf=a<parcFinAno.length?simBRL(parcFinAno[a]):'—';evo+=`<div style="display:flex;justify-content:space-between;border-top:1px solid var(--bord);padding:6px 0;font-size:12px"><span style="color:var(--mut);width:56px">Ano ${a+1}</span><span style="flex:1;text-align:center">${pc}</span><span style="flex:1;text-align:right">${pf}</span></div>`;}
+  for(let a=0;a<anos;a++){
+    const pc=a<parcConsAno.length?simBRL(parcConsAno[a]):'—';const pf=a<parcFinAno.length?simBRL(parcFinAno[a]):'—';
+    let meses='';for(let k=0;k<12;k++){const mi=a*12+k;if(mi>=parcConsMes.length&&mi>=parcFinMes.length)break;const mc=mi<parcConsMes.length?simBRL(parcConsMes[mi]):'—';const mf=mi<parcFinMes.length?simBRL(parcFinMes[mi]):'—';meses+=`<div style="display:flex;justify-content:space-between;padding:3px 8px;font-size:11px;color:var(--mut)"><span style="width:64px">Mês ${mi+1}</span><span style="flex:1;text-align:center">${mc}</span><span style="flex:1;text-align:right">${mf}</span></div>`;}
+    evo+=`<div style="border-top:1px solid var(--bord)"><div onclick="cxfToggleAno(${a})" style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;cursor:pointer"><span style="width:64px;color:var(--mut)"><span id="cxf-ar-${a}">▸</span> Ano ${a+1}</span><span style="flex:1;text-align:center">${pc}</span><span style="flex:1;text-align:right">${pf}</span></div><div id="cxf-ano-${a}" style="display:none;background:var(--card2);border-radius:8px;margin-bottom:4px;padding:4px 0">${meses}</div></div>`;
+  }
   const linha=(l,v,c)=>`<div style="display:flex;justify-content:space-between;border-top:1px solid var(--bord);padding:7px 0"><span style="font-size:12px;color:var(--mut)">${l}</span><b style="font-size:13px${c?';color:'+c:''}">${v}</b></div>`;
   box.innerHTML=`
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -601,8 +607,9 @@ function calcCxF(){
     </div>
   </div>
   <div class="card" style="padding:12px;margin-top:10px">
-    <div style="font-weight:700;font-size:13px;margin-bottom:6px">📈 Evolução da parcela (ano a ano)</div>
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);font-weight:700"><span style="width:56px">Período</span><span style="flex:1;text-align:center">Consórcio</span><span style="flex:1;text-align:right">Financiam.</span></div>
+    <div style="font-weight:700;font-size:13px;margin-bottom:2px">📈 Evolução da parcela</div>
+    <div class="mut" style="font-size:10px;margin-bottom:6px">Toque no ano para abrir os meses.</div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);font-weight:700"><span style="width:64px">Período</span><span style="flex:1;text-align:center">Consórcio</span><span style="flex:1;text-align:right">Financiam.</span></div>
     ${evo}
   </div>
   <div class="card" style="padding:12px;margin-top:10px;border:1.5px solid var(--ok);background:var(--okbg)">
