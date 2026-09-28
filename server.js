@@ -4,6 +4,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const zlib = require('zlib');
 
 const PORT = process.env.PORT || 3000;
 const notion = require('./lib/notion');
@@ -12,10 +13,39 @@ const mercado = require('./lib/mercado');
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json' };
 
+// Compacta (gzip) respostas de texto/JSON acima de 1 KB quando o navegador aceita — reduz 70–90% do tráfego.
+let _reqAtual = null; // requisição em andamento (o servidor atende uma por vez no event loop)
+function aceitaGzip(req) { return !!req && /\bgzip\b/.test(String(req.headers['accept-encoding'] || '')); }
 function send(res, status, body, headers = {}) {
   const isObj = typeof body === 'object' && !(body instanceof Buffer);
-  res.writeHead(status, { 'Content-Type': isObj ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8', ...headers });
-  res.end(isObj ? JSON.stringify(body) : body);
+  const h = { 'Content-Type': isObj ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8', ...headers };
+  let payload = isObj ? JSON.stringify(body) : body;
+  const req = res.req || _reqAtual;
+  if (payload != null && status !== 204 && status !== 304 && !h['Content-Encoding'] && aceitaGzip(req)) {
+    const buf = Buffer.isBuffer(payload) ? payload : Buffer.from(String(payload));
+    if (buf.length > 1024) {
+      try { payload = zlib.gzipSync(buf, { level: 6 }); h['Content-Encoding'] = 'gzip'; h['Vary'] = 'Accept-Encoding'; } catch (e) { payload = buf; }
+    }
+  }
+  res.writeHead(status, h);
+  res.end(payload);
+}
+// Páginas HTML: lidas do disco 1x (mudam só em deploy, que reinicia o processo), já compactadas,
+// com ETag — o navegador revalida e recebe 304 (sem baixar de novo) quando nada mudou.
+const _paginas = {};
+function pagina(nome) {
+  if (!_paginas[nome]) {
+    const html = fs.readFileSync(path.join(__dirname, 'pages', nome));
+    _paginas[nome] = { html, gz: zlib.gzipSync(html, { level: 9 }), etag: '"' + crypto.createHash('sha1').update(html).digest('hex').slice(0, 16) + '"' };
+  }
+  return _paginas[nome];
+}
+function sendPagina(req, res, nome) {
+  const pg = pagina(nome);
+  const h = { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'ETag': pg.etag, 'Vary': 'Accept-Encoding' };
+  if (String(req.headers['if-none-match'] || '') === pg.etag) { res.writeHead(304, h); return res.end(); }
+  if (aceitaGzip(req)) { h['Content-Encoding'] = 'gzip'; res.writeHead(200, h); return res.end(pg.gz); }
+  res.writeHead(200, h); return res.end(pg.html);
 }
 
 // Limite de tamanho do corpo (evita zip-bomb / upload gigante que derruba a memória).
@@ -62,6 +92,7 @@ setInterval(() => { const t = Date.now(); for (const [k, v] of tentativasLogin) 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const p = url.pathname;
+  _reqAtual = req;
   try {
     // ---- estáticos
     if (p.startsWith('/public/')) {
@@ -112,6 +143,16 @@ const server = http.createServer(async (req, res) => {
       if (!session) return send(res, 401, { erro: 'Não autenticado' });
 
       if (p === '/api/me') return send(res, 200, session);
+      // foto de perfil como imagem (antes ia embutida em base64 em todas as listas). Link muda quando a foto muda.
+      if (p === '/api/foto' && req.method === 'GET') {
+        const f = auth.fotoDoUsuario(url.searchParams.get('u'));
+        if (!f) return send(res, 404, { erro: 'Sem foto' });
+        const etag = '"' + f.v + '"';
+        const hf = { 'Content-Type': f.mime, 'Cache-Control': 'private, max-age=31536000, immutable', 'ETag': etag };
+        if (String(req.headers['if-none-match'] || '') === etag) { res.writeHead(304, hf); return res.end(); }
+        res.writeHead(200, { ...hf, 'Content-Length': f.buf.length });
+        return res.end(f.buf);
+      }
       if (p === '/api/senha' && req.method === 'POST') {
         const { atual, nova } = await readBody(req);
         return send(res, 200, auth.trocarSenha(session.email, atual, nova));
@@ -323,15 +364,15 @@ const server = http.createServer(async (req, res) => {
     const session = auth.getSession(req);
     if (p === '/' || p === '/login') {
       if (session) return send(res, 302, '', { Location: session.papel === 'gestor' ? '/gestor' : '/app' });
-      return send(res, 200, fs.readFileSync(path.join(__dirname, 'pages/login.html'), 'utf8'));
+      return sendPagina(req, res, 'login.html');
     }
     if (p === '/app') {
       if (!session) return send(res, 302, '', { Location: '/login' });
-      return send(res, 200, fs.readFileSync(path.join(__dirname, 'pages/consultor.html'), 'utf8'), { 'Cache-Control': 'no-store, must-revalidate' });
+      return sendPagina(req, res, 'consultor.html');
     }
     if (p === '/gestor') {
       if (!session || session.papel !== 'gestor') return send(res, 302, '', { Location: '/login' });
-      return send(res, 200, fs.readFileSync(path.join(__dirname, 'pages/gestor.html'), 'utf8'), { 'Cache-Control': 'no-store, must-revalidate' });
+      return sendPagina(req, res, 'gestor.html');
     }
     send(res, 404, '<h1>404</h1>');
   } catch (e) {
