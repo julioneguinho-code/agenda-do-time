@@ -70,7 +70,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 <div class="top">
-  <div><div class="sub">Painel do gestor</div><div class="nome" id="time">…</div></div>
+  <div style="min-width:0;flex:1 1 auto;cursor:pointer" onclick="abrirEquipes()" title="Trocar ou criar equipe"><div class="sub" id="time-sub">Painel do gestor</div><div class="nome" style="display:flex;align-items:center;gap:4px;min-width:0"><span id="time" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">…</span><span style="flex:none;font-size:13px;color:var(--mut)">▾</span></div></div>
   <div style="display:flex;align-items:center;gap:8px">
     <button onclick="abrirAvisos()" title="Avisos" style="position:relative;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔔<span id="badge-avisos" style="display:none;position:absolute;top:-5px;right:-5px;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:17px;height:17px;line-height:17px;text-align:center"></span></button>
     <button onclick="irAba('acessos');carregarUsuarios()" title="Acessos e identidade" style="border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">⚙️</button>
@@ -527,7 +527,7 @@ let painel=null;let semanaOffset=0;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
 function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n))}
 // ===== SIMULADORES =====
-function simNum(id){const v=(document.getElementById(id).value||'').trim();if(!v)return NaN;return parseFloat(v.replace(/\./g,'').replace(',','.'));}
+function simNum(id){let v=(document.getElementById(id).value||'').trim().replace(/\s|R\$|%/g,'');if(!v)return NaN;if(v.includes(','))v=v.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(v))v=v.replace(/\./g,'');return parseFloat(v);}
 function simBRL(v){return (isFinite(v)?v:0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 function abrirSimulador(id){document.getElementById('sim-hub').style.display='none';document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');const el=document.getElementById('sim-'+id);if(el)el.style.display='block';if(id==='cxf')carregarMercado();}
 function voltarSimHub(){document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');document.getElementById('sim-hub').style.display='grid';}
@@ -570,18 +570,20 @@ function calcCxF(){
   if(isNaN(credito)||credito<=0||isNaN(prazoC)||prazoC<=0){box.innerHTML='<div class="card" style="padding:12px;color:var(--no)">Informe ao menos o valor do crédito e o prazo do consórcio.</div>';return;}
   // CONSÓRCIO — plano diluído, com reajuste anual opcional do saldo
   const plano=credito*(1+adm/100+fundo/100);
-  let saldo=plano,parcela=plano/prazoC,totalCons=0;const parcConsAno=[],parcConsMes=[];
+  let saldo=plano,parcela=Math.round(plano/prazoC*100)/100,totalCons=0;const parcConsAno=[],parcConsMes=[];
   for(let mes=1;mes<=prazoC;mes++){
-    if(mes>1&&(mes-1)%12===0){saldo=saldo*(1+g);const rest=prazoC-(mes-1);parcela=saldo/rest;}
+    if(mes>1&&(mes-1)%12===0){saldo=saldo*(1+g);const rest=prazoC-(mes-1);parcela=Math.round(saldo/rest*100)/100;}
     if((mes-1)%12===0)parcConsAno.push(parcela);
     parcConsMes.push(parcela);
     totalCons+=parcela;saldo-=parcela;
   }
+  totalCons=Math.round(totalCons*100)/100;
   const parcConsIni=parcConsAno[0]||0;const custoCons=totalCons-credito;
   // FINANCIAMENTO — SAC ou PRICE
   const fin=Math.max(0,credito-entrada);const i=juros/100;let totalFin=entrada;const parcFinAno=[],parcFinMes=[];
-  if(tabela==='sac'){const amort=fin/prazoF;let s=fin;for(let mes=1;mes<=prazoF;mes++){const p=amort+s*i;if((mes-1)%12===0)parcFinAno.push(p);parcFinMes.push(p);totalFin+=p;s-=amort;}}
-  else{const p=i>0?fin*i/(1-Math.pow(1+i,-prazoF)):fin/prazoF;for(let mes=1;mes<=prazoF;mes++){if((mes-1)%12===0)parcFinAno.push(p);parcFinMes.push(p);totalFin+=p;}}
+  if(tabela==='sac'){const amort=fin/prazoF;let s=fin;for(let mes=1;mes<=prazoF;mes++){const p=Math.round((amort+s*i)*100)/100;if((mes-1)%12===0)parcFinAno.push(p);parcFinMes.push(p);totalFin+=p;s-=amort;}}
+  else{const p0=i>0?fin*i/(1-Math.pow(1+i,-prazoF)):fin/prazoF;const p=Math.round(p0*100)/100;for(let mes=1;mes<=prazoF;mes++){if((mes-1)%12===0)parcFinAno.push(p);parcFinMes.push(p);totalFin+=p;}}
+  totalFin=Math.round(totalFin*100)/100;
   const parcFinIni=parcFinAno[0]||0;const custoFin=totalFin-credito;const economia=totalFin-totalCons;
   const pct=b=>credito>0?(b/credito*100):0;
   const anos=Math.ceil(Math.max(prazoC,prazoF)/12);let evo='';
@@ -669,7 +671,8 @@ async function carregar(){
   if(res.status===401||res.status===403){location.href='/login';return}
   painel = await res.json();
   window._fotos=painel.fotos||{};window._meuEmail=painel.email;window._meuNome=(painel.nome||'').split(' ')[0];
-  document.getElementById('time').textContent = 'Equipe ' + (painel.time||'');
+  document.getElementById('time').textContent = painel.time||'Equipe';
+  {const n=(painel.equipes||[]).length;document.getElementById('time-sub').textContent=n>1?('Equipe · '+n+' no total'):'Painel do gestor';}
   const gav=document.getElementById('avatar');
   if(painel.foto){gav.textContent='';gav.style.cssText='width:38px;height:38px;border-radius:50%;background-image:url('+painel.foto+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
   else{gav.textContent=(painel.nome||painel.time||'G').replace(/^Gestor\s+/i,'').trim().slice(0,2).toUpperCase();aplicarCorAvatar(gav,painel.cor);}
@@ -1328,6 +1331,32 @@ async function confirmarTransfer(id){
   const j=await res.json();fecharPop();toast(j.ok?'Transferida para '+g.nome+' ✓':(j.erro||'Erro'));carregar();
 }
 async function sair(){await fetch('/api/logout',{method:'POST'});location.href='/login'}
+// ===== EQUIPES DO GESTOR (vários escritórios no mesmo acesso) =====
+// Trocar de equipe muda só o quadro (consultores, vendas, clientes, agenda, ranking). Comissões seguem consolidadas no seu login.
+async function abrirEquipes(){
+  let j;try{j=await(await fetch('/api/gestor/equipes')).json();}catch(e){toast('Erro ao carregar equipes');return}
+  if(!j||!j.ok){toast((j&&j.erro)||'Erro');return}
+  window._minhasEquipes=j.equipes||[];
+  const lista=window._minhasEquipes.map((e,i)=>`<div class="card" style="padding:10px 12px;margin-bottom:7px;${e.ativa?'border-color:var(--acc);background:var(--accbg)':''}"><div class="row" style="align-items:center"><div style="min-width:0"><div class="titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.nome)}${e.principal?' <span class="badge" style="font-size:9px;background:var(--card2);color:var(--mut)">principal</span>':''}</div><div class="mut" style="font-size:11px">${e.consultores} consultor(es)</div></div><div style="display:flex;gap:6px;flex:none">${e.ativa?'<span class="badge b-ok">aberta</span>':`<button class="btn" style="padding:6px 12px" onclick="entrarEquipe(${i})">Abrir</button>`}${(!e.principal&&!e.consultores)?`<button class="btn sec2" style="padding:6px 9px;color:var(--no)" title="Remover equipe vazia" onclick="removerEquipeG(${i})">🗑</button>`:''}</div></div></div>`).join('');
+  abrirPop('Minhas equipes',`<div class="mut" style="font-size:12px;margin-bottom:10px">Trocar de equipe muda só o quadro (consultores, vendas, clientes, agenda e ranking). Os avisos de todas as equipes continuam chegando aqui.</div>${lista}<div class="h" style="margin-top:14px">➕ Nova equipe</div><div style="display:flex;gap:8px"><input type="text" id="nova-equipe" placeholder="Nome da equipe (ex: Chama Batel)" maxlength="40" onkeydown="if(event.key==='Enter')novaEquipe()" style="flex:1;min-width:0;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><button class="btn" onclick="novaEquipe()">Criar</button></div><div class="mut" style="font-size:11px;margin-top:6px">Você vira o gestor dessa equipe. Depois cadastre os consultores dela em ⚙️ → Novo.</div>`);
+}
+async function entrarEquipe(i){
+  const e=(window._minhasEquipes||[])[i];if(!e)return;
+  const j=await(await fetch('/api/gestor/equipes/ativa',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({time:e.nome})})).json();
+  if(j.ok){toast('Abrindo equipe '+j.ativa+'…');setTimeout(()=>location.reload(),350);}else toast(j.erro||'Erro');
+}
+async function novaEquipe(){
+  const el=document.getElementById('nova-equipe');const nome=(el&&el.value||'').trim();
+  if(!nome){toast('Escreva o nome da equipe');return}
+  const j=await(await fetch('/api/gestor/equipes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome})})).json();
+  if(j.ok){toast('Equipe '+j.ativa+' criada ✓');setTimeout(()=>location.reload(),450);}else toast(j.erro||'Erro');
+}
+async function removerEquipeG(i){
+  const e=(window._minhasEquipes||[])[i];if(!e)return;
+  if(!confirm('Remover a equipe "'+e.nome+'"? (ela está vazia)'))return;
+  const j=await(await fetch('/api/gestor/equipes/remover',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:e.nome})})).json();
+  if(j.ok){toast('Equipe removida ✓');if(e.ativa)setTimeout(()=>location.reload(),350);else abrirEquipes();}else toast(j.erro||'Erro');
+}
 function abrirPop(titulo,corpo){document.getElementById('modal-titulo').textContent=titulo;document.getElementById('modal-corpo').innerHTML=corpo;document.getElementById('modal').style.display='flex'}
 function fecharPop(){document.getElementById('modal').style.display='none'}
 function confetesCairG(){
@@ -1456,7 +1485,7 @@ async function excluirArquivo(id){if(!confirm('Excluir este arquivo? Os consulto
 function preencherTimes(){
   const times=timesExistentes();
   const sel=document.getElementById('u-time');
-  if(sel){const atual=sel.value;sel.innerHTML='<option value="">Time…</option>'+times.map(t=>`<option>${t}</option>`).join('');if(atual)sel.value=atual;}
+  if(sel){const atual=sel.value;sel.innerHTML='<option value="">Time…</option>'+times.map(t=>`<option>${t}</option>`).join('');if(atual)sel.value=atual;else if(painel&&painel.time&&times.includes(painel.time))sel.value=painel.time;}
 }
 let _rotinas=[];
 async function carregarRotinasEdit(){

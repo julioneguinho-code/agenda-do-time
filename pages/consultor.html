@@ -326,7 +326,7 @@ let dados = null;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
 function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n));const bv=document.getElementById('btn-voltar');if(bv)bv.style.display=n==='inicio'?'none':'block';window.scrollTo(0,0);if(n==='agenda'){carregarDispo();carregarGestores()}}
 // ===== SIMULADORES =====
-function simNum(id){const v=(document.getElementById(id).value||'').trim();if(!v)return NaN;return parseFloat(v.replace(/\./g,'').replace(',','.'));}
+function simNum(id){let v=(document.getElementById(id).value||'').trim().replace(/\s|R\$|%/g,'');if(!v)return NaN;if(v.includes(','))v=v.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(v))v=v.replace(/\./g,'');return parseFloat(v);}
 function simBRL(v){return (isFinite(v)?v:0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 function abrirSimulador(id){document.getElementById('sim-hub').style.display='none';document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');const el=document.getElementById('sim-'+id);if(el)el.style.display='block';if(id==='cxf')carregarMercado();}
 function voltarSimHub(){document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');document.getElementById('sim-hub').style.display='grid';}
@@ -349,17 +349,19 @@ function calcCxF(){
   const box=document.getElementById('cxf-result');
   if(isNaN(credito)||credito<=0||isNaN(prazoC)||prazoC<=0){box.innerHTML='<div class="card" style="padding:12px;color:var(--no)">Informe ao menos o valor do crédito e o prazo do consórcio.</div>';return;}
   const plano=credito*(1+adm/100+fundo/100);
-  let saldo=plano,parcela=plano/prazoC,totalCons=0;const parcConsAno=[],parcConsMes=[];
+  let saldo=plano,parcela=Math.round(plano/prazoC*100)/100,totalCons=0;const parcConsAno=[],parcConsMes=[];
   for(let mes=1;mes<=prazoC;mes++){
-    if(mes>1&&(mes-1)%12===0){saldo=saldo*(1+g);const rest=prazoC-(mes-1);parcela=saldo/rest;}
+    if(mes>1&&(mes-1)%12===0){saldo=saldo*(1+g);const rest=prazoC-(mes-1);parcela=Math.round(saldo/rest*100)/100;}
     if((mes-1)%12===0)parcConsAno.push(parcela);
     parcConsMes.push(parcela);
     totalCons+=parcela;saldo-=parcela;
   }
+  totalCons=Math.round(totalCons*100)/100;
   const parcConsIni=parcConsAno[0]||0;const custoCons=totalCons-credito;
   const fin=Math.max(0,credito-entrada);const i=juros/100;let totalFin=entrada;const parcFinAno=[],parcFinMes=[];
-  if(tabela==='sac'){const amort=fin/prazoF;let s=fin;for(let mes=1;mes<=prazoF;mes++){const p=amort+s*i;if((mes-1)%12===0)parcFinAno.push(p);parcFinMes.push(p);totalFin+=p;s-=amort;}}
-  else{const p=i>0?fin*i/(1-Math.pow(1+i,-prazoF)):fin/prazoF;for(let mes=1;mes<=prazoF;mes++){if((mes-1)%12===0)parcFinAno.push(p);parcFinMes.push(p);totalFin+=p;}}
+  if(tabela==='sac'){const amort=fin/prazoF;let s=fin;for(let mes=1;mes<=prazoF;mes++){const p=Math.round((amort+s*i)*100)/100;if((mes-1)%12===0)parcFinAno.push(p);parcFinMes.push(p);totalFin+=p;s-=amort;}}
+  else{const p0=i>0?fin*i/(1-Math.pow(1+i,-prazoF)):fin/prazoF;const p=Math.round(p0*100)/100;for(let mes=1;mes<=prazoF;mes++){if((mes-1)%12===0)parcFinAno.push(p);parcFinMes.push(p);totalFin+=p;}}
+  totalFin=Math.round(totalFin*100)/100;
   const parcFinIni=parcFinAno[0]||0;const custoFin=totalFin-credito;const economia=totalFin-totalCons;
   const pct=b=>credito>0?(b/credito*100):0;
   const anos=Math.ceil(Math.max(prazoC,prazoF)/12);let evo='';

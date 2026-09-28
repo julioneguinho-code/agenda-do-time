@@ -265,6 +265,11 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/contratacao/marcar' && req.method === 'POST') {
         return send(res, 200, await notion.marcarContratacao(session, await readBody(req)));
       }
+      // equipes do gestor (vários escritórios no mesmo acesso) — trocar muda só o quadro
+      if (p === '/api/gestor/equipes' && req.method === 'GET') return send(res, 200, notion.minhasEquipes(session));
+      if (p === '/api/gestor/equipes' && req.method === 'POST') return send(res, 200, notion.criarEquipe(session, await readBody(req)));
+      if (p === '/api/gestor/equipes/ativa' && req.method === 'POST') return send(res, 200, notion.trocarEquipe(session, await readBody(req)));
+      if (p === '/api/gestor/equipes/remover' && req.method === 'POST') return send(res, 200, notion.removerEquipe(session, await readBody(req)));
       if (p === '/api/gestor/times' && req.method === 'GET') {
         return send(res, 200, { times: notion.listarTimes() });
       }
