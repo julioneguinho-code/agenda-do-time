@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agenda do Time</title>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#D62839"><link rel="icon" type="image/png" href="/public/favicon-64.png"><link rel="apple-touch-icon" href="/public/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Chama">
+<title>Gestão Chama</title>
 <style>
 :root{--bg:#E8E9EC;--card:#FFFFFF;--card2:#F2F3F5;--txt:#23272F;--mut:#7B828C;--acc:#D62839;--acc2:#B71F2E;--accbg:rgba(214,40,57,.10);--ok:#3E8E6E;--okbg:rgba(62,142,110,.13);--warn:#A9772F;--warnbg:rgba(169,119,47,.14);--no:#C0484E;--nobg:rgba(192,72,78,.12);--bord:#E1E3E7;--r:14px;color-scheme:light}
 *{box-sizing:border-box;margin:0}
@@ -103,6 +104,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <div class="tile" onclick="abrirArquivosPop()"><div class="emo">📎</div><div class="lbl">Arquivos</div></div>
       <div class="tile" onclick="irAba('mural');carregarMuralC()"><div class="emo">🏅</div><div class="lbl">Mural</div></div>
       <div class="tile" onclick="irAba('simuladores')"><div class="emo">🧮</div><div class="lbl">Simuladores</div></div>
+      <div class="tile" onclick="irAba('comissoes');carregarExtrato()" style="grid-column:1/-1;min-height:92px"><span class="bad" id="tile-com" style="display:none"></span><div class="emo">💸</div><div class="lbl">Minhas comissões</div></div>
     </div>
   </div>
   <!-- dados carregados pelo app (usados nas telas internas) -->
@@ -197,6 +199,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <div class="card" style="padding:12px;margin-bottom:10px;background:linear-gradient(135deg,#0f8a5f,#0b6e4c);color:#fff"><div style="font-size:12px;opacity:.9">💼 Carteira total <span style="opacity:.8">(sem canceladas)</span></div><div id="vd-carteira-total" style="font-size:22px;font-weight:800;margin-top:2px">—</div><div id="vd-carteira-sub" class="mut" style="color:rgba(255,255,255,.85);font-size:11px;margin-top:2px"></div></div>
       <button class="btn full" style="background:var(--ok);margin-bottom:8px" onclick="novaClienteAntigo()">➕ Cadastro de cliente</button>
       <div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sec2" style="flex:1;padding:9px" onclick="baixarModeloClientesC()">⬇️ Baixar modelo</button><button class="btn sec2" style="flex:1;padding:9px" onclick="document.getElementById('cs-upload').click()">⬆️ Subir planilha</button></div>
+      <button class="btn sec2 full" style="padding:9px;margin-bottom:10px" onclick="Chama.exportarClientes()">📤 Exportar minha carteira (Excel)</button>
       <input type="file" id="cs-upload" accept=".xlsx" style="display:none" onchange="subirPlanilhaClientesC(this)">
       <input type="text" id="cc-busca" placeholder="🔎 Buscar cliente ou CPF" oninput="renderClientes()" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px">
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><button class="btn sec2 sm csit on" id="csit-todos" onclick="setSitFiltroC('todos')">Todos</button><button class="btn sec2 sm csit" id="csit-ativo" onclick="setSitFiltroC('ativo')">🟢 Ativas</button><button class="btn sec2 sm csit" id="csit-contemplado" onclick="setSitFiltroC('contemplado')">🏆 Contempladas</button><button class="btn sec2 sm csit" id="csit-cancelado" onclick="setSitFiltroC('cancelado')">❌ Canceladas</button></div>
@@ -206,12 +209,25 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
     <div id="cc-sorteio" style="display:none">
       <div class="card" style="padding:12px;margin-bottom:10px">
         <div class="mut" style="font-size:12px;margin-bottom:10px">Digite os números da <b>Loteria Federal</b> (5 prêmios) e escolha o grupo. Mostra <b>as suas cotas</b> por proximidade do número sorteado, indicando de qual prêmio cada uma está mais perto. <i>Não é contemplação oficial.</i></div>
+        <button class="btn sec2 full" style="margin-bottom:8px;padding:9px" onclick="Chama.extrairLoteria('cs-premio','cs-lot-info',this)">📥 Extrair números da Loteria</button>
+        <div id="cs-lot-info" style="font-size:11px;margin-bottom:8px"></div>
         <div id="cs-premios"></div>
         <label style="font-size:12px;color:var(--mut);display:block;margin-top:6px">Grupos — toque num grupo para calcular</label>
         <div id="cs-grupos-list"><div class="mut" style="font-size:12px;padding:8px">Carregando…</div></div>
       </div>
       <div id="cs-resultado"></div>
     </div>
+  </div>
+</div>
+
+<div class="aba" id="aba-comissoes">
+  <div class="sec">
+    <div class="h">💸 Minhas comissões</div>
+    <div class="kpis" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 10px">
+      <div class="card" style="padding:10px 12px;margin:0"><div class="mut" style="font-size:11px">A receber</div><div id="ex-pend" style="font-weight:800;font-size:18px;color:var(--acc)">—</div></div>
+      <div class="card" style="padding:10px 12px;margin:0"><div class="mut" style="font-size:11px">Já recebido</div><div id="ex-pago" style="font-weight:800;font-size:18px;color:var(--ok)">—</div></div>
+    </div>
+    <div id="ex-lista"><div class="mut" style="padding:10px">Carregando…</div></div>
   </div>
 </div>
 
@@ -307,6 +323,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <!-- BALÃO DE NOTIFICAÇÕES (flutuante) -->
 <div id="notif-panel" style="display:none;position:fixed;top:64px;right:12px;width:min(340px,92vw);max-height:70vh;overflow:auto;background:var(--card);border:1px solid var(--bord);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);z-index:9997;padding:12px">
   <div class="row" style="margin-bottom:8px"><div class="titulo">🔔 Notificações</div><button onclick="apagarAvisos()" style="border:none;background:transparent;font-size:12px;color:var(--acc);cursor:pointer">Limpar todas</button></div>
+  <div id="push-cta"></div>
   <div id="lista-avisos"></div>
 </div>
 
@@ -321,12 +338,13 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
+<script src="/public/comum.js"></script>
 <script>
 let dados = null;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
 function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n));const bv=document.getElementById('btn-voltar');if(bv)bv.style.display=n==='inicio'?'none':'block';window.scrollTo(0,0);if(n==='agenda'){carregarDispo();carregarGestores()}}
 // ===== SIMULADORES =====
-function simNum(id){let v=(document.getElementById(id).value||'').trim().replace(/\s|R\$|%/g,'');if(!v)return NaN;if(v.includes(','))v=v.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(v))v=v.replace(/\./g,'');return parseFloat(v);}
+function simNum(id){let v=(document.getElementById(id).value||'').trim().replace(/\s|R\$|%/g,'');if(!v)return NaN;const taxa=/(adm|fundo|juros|indicepct)$/.test(id);/* taxa (%): ponto é sempre decimal — "1.125" = 1,125% */if(v.includes(','))v=v.replace(/\./g,'').replace(',','.');else if(!taxa&&/^\d{1,3}(\.\d{3})+$/.test(v))v=v.replace(/\./g,'');return parseFloat(v);}
 function simBRL(v){return (isFinite(v)?v:0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 function abrirSimulador(id){document.getElementById('sim-hub').style.display='none';document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');const el=document.getElementById('sim-'+id);if(el)el.style.display='block';if(id==='cxf')carregarMercado();}
 function voltarSimHub(){document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');document.getElementById('sim-hub').style.display='grid';}
@@ -447,7 +465,7 @@ function fmtData(iso){const d=new Date(iso);const dias=['Dom','Seg','Ter','Qua',
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function money(v){return 'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 // ---------- MURAL (consultor, somente leitura) ----------
-function mcAvatar(nome,foto,size){size=size||34;if(foto)return `<div style="width:${size}px;height:${size}px;border-radius:50%;background-image:url('${foto}');background-size:cover;background-position:center;flex:none;border:1px solid var(--bord)"></div>`;return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#C9CDD4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.36)}px;font-weight:700;flex:none">${(nome||'?').slice(0,2).toUpperCase()}</div>`;}
+function mcAvatar(nome,foto,size){size=size||34;if(foto)return `<div style="width:${size}px;height:${size}px;border-radius:50%;background-image:url('${foto}');background-size:cover;background-position:center;flex:none;border:1px solid var(--bord)"></div>`;return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#C9CDD4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.36)}px;font-weight:700;flex:none">${esc((nome||'?').slice(0,2).toUpperCase())}</div>`;}
 function mcMedCor(pos){return pos===1?'#E6B800':pos===2?'#9AA0A6':pos===3?'#B87333':'var(--mut)';}
 const MILHAO=1000000;
 const FLAMA_SVG='<svg class="flamebg" viewBox="0 0 100 130"><path fill="#F1431C" d="M50 2C55 22 47 30 55 40c5-6 6-14 5-21 13 14 26 30 24 55-2 30-19 52-34 52S14 106 14 79c0-16 7-25 15-33-2 10 1 17 7 20-8-19 3-46 14-64z"/><path fill="#FF7A17" d="M50 34c4 14 15 22 12 44-3 24-16 40-25 40s-19-14-19-34c0-14 8-22 15-29-1 9 2 15 7 17-4-14 6-30 10-38z"/><path fill="#FFC518" d="M50 62c3 10 10 15 8 30-2 16-9 26-15 26s-12-10-12-24c0-11 6-16 11-21-1 7 2 10 5 11-2-10 3-18 5-22z"/></svg>';
@@ -525,7 +543,7 @@ function abrirGrupoV(i){const g=(window._gruposV||[])[i];if(!g)return;if(g.venda
 async function toggleGrupoFechada(i,checked){const g=(window._gruposV||[])[i];if(!g)return;const cpf=(g.cliente&&g.cliente.cpf)||'';if(checked&&!cpfValido(cpf)){toast('Para efetivar, informe um CPF válido do cliente');return abrirGrupoV(i);}const st=checked?'fechada':'negociacao';for(const v of g.vendas){await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:v.id,status:st})});}toast(checked?'Fechada(s) ✅':'Voltou para negociação');carregarVendas();}
 // aba Clientes (separada de Vendas) com sub-abas Cliente | Sorteio
 async function carregarClientesTab(){setCcTab('cliente');try{if(!(_vendas||[]).length){const d=await(await fetch('/api/vendas')).json();_vendas=d.vendas||[];}}catch(e){}renderClientes();}
-function setCcTab(t){document.getElementById('cc-tab-cliente').classList.toggle('on',t==='cliente');document.getElementById('cc-tab-sorteio').classList.toggle('on',t==='sorteio');document.getElementById('cc-cliente').style.display=t==='cliente'?'block':'none';document.getElementById('cc-sorteio').style.display=t==='sorteio'?'block':'none';if(t==='cliente'){renderClientes();}else{renderPremiosC();carregarGruposSorteioC();}}
+function setCcTab(t){document.getElementById('cc-tab-cliente').classList.toggle('on',t==='cliente');document.getElementById('cc-tab-sorteio').classList.toggle('on',t==='sorteio');document.getElementById('cc-cliente').style.display=t==='cliente'?'block':'none';document.getElementById('cc-sorteio').style.display=t==='sorteio'?'block':'none';if(t==='cliente'){renderClientes();}else{renderPremiosC();Chama.carregarLoteria('cs-premio','cs-lot-info');carregarGruposSorteioC();}}
 function renderPremiosC(){const el=document.getElementById('cs-premios');if(!el||el.dataset.done)return;const ord=['1º','2º','3º','4º','5º'];el.innerHTML=ord.map(o=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="mut" style="width:26px;font-size:13px;font-weight:600">${o}</span><input type="text" class="cs-premio" inputmode="numeric" maxlength="5" placeholder="00000" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,5)" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:15px;letter-spacing:2px;background:var(--bg)"></div>`).join('');el.dataset.done='1';}
 async function carregarGruposSorteioC(){const el=document.getElementById('cs-grupos-list');if(!el)return;try{const j=await(await fetch('/api/sorteio-grupos')).json();const gs=j.grupos||[];el.innerHTML=gs.length?gs.map(g=>{const bar=`<div class="prog" style="margin-top:5px;height:6px"><div style="width:${g.pct}%;height:100%;background:${g.lotado?'#3E8E6E':'var(--acc)'}"></div></div>`;const badge=g.lotado?'<span class="badge b-ok" style="font-size:10px">LOTADO</span>':`<span class="mut" style="font-size:10px">${g.pct}%</span>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="calcularSorteioC('${esc(g.grupo)}',${g.tamanho})"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700;font-size:13px">Grupo ${esc(g.grupo)} <span class="mut" style="font-weight:400">· ${g.tamanho} part.</span></div><div style="text-align:right;flex:none">${badge}<div class="mut" style="font-size:10px">${g.qtd}/${g.tamanho} suas</div></div></div>${bar}</div>`;}).join(''):'<div class="mut" style="font-size:12px;padding:8px">Você ainda não tem cota fechada com tamanho de grupo.</div>';}catch(e){el.innerHTML='<div class="mut" style="font-size:12px;padding:8px">Erro ao carregar grupos</div>';}}
 async function calcularSorteioC(grupo,tamanho){
@@ -580,7 +598,8 @@ function abrirCliente(i){
   window._cCliAtual=i;
   const c={nome:grp.nome||'—',cpf:grp.cpf||''};
   const linhas=list.map(v=>{const s=sitDeC(v);const btn=(k,lbl)=>`<button class="btn sec2 sm" style="padding:4px 8px;font-size:11px;${s===k?'border-color:var(--acc);font-weight:700':''}" onclick="setSituacaoC('${v.id}','${k}')">${lbl}</button>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div style="cursor:pointer" onclick="fecharPop();abrirVenda('${v.id}')"><div style="font-weight:700;color:var(--ok)">${money(v.valor)} <span style="font-weight:400">✏️</span></div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${fmtDataBR(v.data)}</div>${v.tipo?`<div style="margin-top:4px">${tipoPill(v.tipo)}</div>`:''}</div><div style="flex:none">${sitBadgeC(s)}</div></div><div style="display:flex;gap:5px;margin-top:7px">${btn('ativo','🟢 Ativa')}${btn('contemplado','🏆 Contemplada')}${btn('cancelado','❌ Cancelada')}</div></div>`;}).join('');
-  abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${list.length} cota(s)</div>${linhas}<button class="btn full" style="background:var(--ok);margin-top:8px" onclick="novaVendaCliente('${encodeURIComponent(c.nome)}','${c.cpf}')">+ Nova cota para este cliente</button>`);
+  abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${list.length} cota(s)</div>${Chama.fichaHTML()}${linhas}<button class="btn full" style="background:var(--ok);margin-top:8px" onclick="novaVendaCliente('${encodeURIComponent(c.nome)}','${c.cpf}')">+ Nova cota para este cliente</button>`);
+  Chama.carregarFicha(c.cpf,grp.nome||'');
 }
 async function setSituacaoC(id,sit){const r=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,situacao:sit})});const j=await r.json();if(j.ok){toast('Situação atualizada ✓');await carregarVendas();const i=window._cCliAtual;if(i!=null)abrirCliente(i);}else toast(j.erro||'Erro');}
 function novaVendaCliente(nomeEnc,cpf){
@@ -698,7 +717,7 @@ async function carregarArquivosCons(){
   const el=document.getElementById('lista-arquivos-consultor');if(!el)return;
   try{
     const r=await fetch('/api/arquivos');const d=await r.json();
-    el.innerHTML=(d.arquivos||[]).map(a=>`<a class="card row" href="/api/arquivo?id=${a.id}" style="text-decoration:none;color:inherit;margin-bottom:8px"><div style="min-width:0"><div class="titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.titulo}</div><div class="mut" style="font-size:11px">${a.nome} · ${fmtTam(a.tamanho)} · expira em ${diasAte(a.expiraEm)}d</div></div><span class="btn sec2" style="padding:6px 12px;font-size:12px">⬇️ Baixar</span></a>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum arquivo por enquanto</div>';
+    el.innerHTML=(d.arquivos||[]).map(a=>`<a class="card row" href="/api/arquivo?id=${a.id}" style="text-decoration:none;color:inherit;margin-bottom:8px"><div style="min-width:0"><div class="titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.titulo)}</div><div class="mut" style="font-size:11px">${esc(a.nome)} · ${fmtTam(a.tamanho)} · expira em ${diasAte(a.expiraEm)}d</div></div><span class="btn sec2" style="padding:6px 12px;font-size:12px">⬇️ Baixar</span></a>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum arquivo por enquanto</div>';
   }catch(e){}
 }
 async function abrirArquivosPop(){
@@ -718,7 +737,7 @@ async function carregar(){
   const av=document.getElementById('avatar');
   if(dados.foto){av.textContent='';av.style.cssText='width:38px;height:38px;border-radius:50%;background-image:url('+dados.foto+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
   else{av.textContent=dados.nome.slice(0,2).toUpperCase();aplicarCorAvatar(av,dados.cor);}
-  if(dados.cargo){document.getElementById('nome').innerHTML=dados.nome+` <span style="font-size:11px;${estiloCor(dados.cor)};padding:2px 9px;border-radius:10px;font-weight:500">${dados.cargo}</span>`}
+  if(dados.cargo){document.getElementById('nome').innerHTML=esc(dados.nome)+` <span style="font-size:11px;${estiloCor(dados.cor)};padding:2px 9px;border-radius:10px;font-weight:500">${esc(dados.cargo)}</span>`}
   const ck = dados.checkin;
   document.getElementById('ck-resumo').textContent = `${ck.feitas} de ${ck.total} rotinas feitas`;
   document.getElementById('ck-resumo2').textContent = `${ck.feitas} de ${ck.total} rotinas`;
@@ -726,23 +745,23 @@ async function carregar(){
   const trava = ck.finalizado;
   document.getElementById('ck-lock').style.display = trava?'block':'none';
   document.getElementById('btn-finalizar').style.display = (!trava && ck.feitas>0)?'block':'none';
-  document.getElementById('lista-rotinas').innerHTML = ck.rotinas.map(r=>`<div class="rotina"><input type="checkbox" ${r.feita?'checked':''} ${trava?'disabled':''} onchange="checkin('${r.nome.replace(/'/g,"\\'")}',this.checked)"><span style="font-size:14px;${trava?'color:var(--mut)':''}">${r.nome}</span></div>`).join('');
+  document.getElementById('lista-rotinas').innerHTML = ck.rotinas.map(r=>`<div class="rotina"><input type="checkbox" ${r.feita?'checked':''} ${trava?'disabled':''} onchange="checkin('${r.nome.replace(/'/g,"\\'")}',this.checked)"><span style="font-size:14px;${trava?'color:var(--mut)':''}">${esc(r.nome)}</span></div>`).join('');
   if(ck.completo && !window._festejou){window._festejou=true;chuvaDeFogo()}
   if(!ck.completo)window._festejou=false;
   if(dados.meta){document.getElementById('meta-num').textContent=`${dados.meta.atual} / ${dados.meta.alvo}`;document.getElementById('meta-bar').style.width=dados.meta.pct+'%';}
   if(dados.ranking){document.getElementById('rank-txt').textContent=`Sua posição: ${dados.ranking.posicao}º de ${dados.ranking.total}`;document.getElementById('rank-pts').textContent=`${dados.ranking.pontos} pts`;}
   window._reunioes = dados.proximasReunioes||[];
-  document.getElementById('prox-reunioes').innerHTML = window._reunioes.length ? window._reunioes.map((r,i)=>`<div class="card" style="padding:10px 12px;cursor:pointer" onclick="verReuniao(${i})"><div style="font-size:13px;font-weight:600">${(r.assunto||'Reunião')}</div><div class="mut" style="font-size:11px;margin-top:3px">${fmtData(r.inicio)}</div><span class="badge b-ok" style="margin-top:6px;display:inline-block">Aprovada</span></div>`).join('') : '<div class="mut" style="grid-column:1/-1">Nenhuma reunião marcada</div>';
+  document.getElementById('prox-reunioes').innerHTML = window._reunioes.length ? window._reunioes.map((r,i)=>`<div class="card" style="padding:10px 12px;cursor:pointer" onclick="verReuniao(${i})"><div style="font-size:13px;font-weight:600">${esc(r.assunto||'Reunião')}</div><div class="mut" style="font-size:11px;margin-top:3px">${fmtData(r.inicio)}</div><span class="badge b-ok" style="margin-top:6px;display:inline-block">Aprovada</span></div>`).join('') : '<div class="mut" style="grid-column:1/-1">Nenhuma reunião marcada</div>';
   document.getElementById('lista-solicitacoes').innerHTML = (dados.solicitacoes||[]).map(s=>{
     let acao='';
     if(s.status==='Pendente')acao=`<button class="btn sec2" style="padding:6px 11px;font-size:12px;color:var(--warn)" onclick="cancelar('${s.id}')">Cancelar</button>`;
     else if(s.status==='Aprovada')acao=`<button class="btn sec2" style="padding:6px 11px;font-size:12px;color:var(--no)" onclick="cancelar('${s.id}')">Cancelar</button>`;
     else if(s.status==='Recusada'||s.status==='Cancelada')acao=`<button class="btn sec2" style="padding:6px 11px;font-size:12px;color:var(--no)" onclick="excluirSolic('${s.id}')">🗑 Excluir</button>`;
-    return `<div class="card row"><div><div class="titulo">${s.assunto||'Reunião'}</div><div class="mut">${fmtData(s.inicio)} · ${s.local||''} · ${s.duracao} min${s.resposta?' · '+s.resposta:''}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="badge ${badge(s.status)}">${s.status}</span>${acao}</div></div>`;
+    return `<div class="card row"><div><div class="titulo">${esc(s.assunto||'Reunião')}</div><div class="mut">${fmtData(s.inicio)} · ${esc(s.local||'')} · ${s.duracao} min${s.resposta?' · '+esc(s.resposta):''}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="badge ${badge(s.status)}">${s.status}</span>${acao}</div></div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nenhuma ainda</div>';
   const rndAtv = a=>{
-    if(a.status==='Cancelada')return `<div class="card row" style="opacity:.6"><div><div class="titulo" style="font-weight:500"><s>${a.titulo}</s></div><div class="mut">Cancelada${a.justificativa?' · '+a.justificativa:''}</div></div><span class="badge b-no">Cancelada</span></div>`;
-    return `<div class="card row"><div><div class="titulo" style="font-weight:500">${a.titulo}</div><div class="mut">${a.tipo} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><div style="display:flex;gap:6px;align-items:center">${a.status!=='Feito'?`<button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="mudarAtv('${a.id}','${a.status==='A fazer'?'Fazendo':'Feito'}')">${a.status==='A fazer'?'Iniciar':'Concluir'}</button><button class="btn sec2" style="padding:6px 9px;font-size:12px;color:var(--warn)" onclick="cancelarAtv('${a.id}')" title="Cancelar">✕</button>`:`<span class="badge b-ok">Feito</span>`}</div></div>`;
+    if(a.status==='Cancelada')return `<div class="card row" style="opacity:.6"><div><div class="titulo" style="font-weight:500"><s>${esc(a.titulo)}</s></div><div class="mut">Cancelada${a.justificativa?' · '+esc(a.justificativa):''}</div></div><span class="badge b-no">Cancelada</span></div>`;
+    return `<div class="card row"><div><div class="titulo" style="font-weight:500">${esc(a.titulo)}</div><div class="mut">${a.tipo} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><div style="display:flex;gap:6px;align-items:center">${a.status!=='Feito'?`<button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="mudarAtv('${a.id}','${a.status==='A fazer'?'Fazendo':'Feito'}')">${a.status==='A fazer'?'Iniciar':'Concluir'}</button><button class="btn sec2" style="padding:6px 9px;font-size:12px;color:var(--warn)" onclick="cancelarAtv('${a.id}')" title="Cancelar">✕</button>`:`<span class="badge b-ok">Feito</span>`}</div></div>`;
   };
   window._todasAtv=dados.atividades||[];window._rndAtv=rndAtv;
   const hojeStr=new Date().toISOString().slice(0,10);
@@ -775,7 +794,7 @@ async function carregarGestores(){
   try{
     const r=await fetch('/api/gestores');const d=await r.json();
     const sel=document.getElementById('s-para');if(!sel)return;
-    const opts=(d.gestores||[]).map(g=>`<option value="${g.email}">Enviar para: ${g.nome}${g.time?' ('+g.time+')':''}</option>`).join('');
+    const opts=(d.gestores||[]).map(g=>`<option value="${g.email}">Enviar para: ${esc(g.nome)}${g.time?' ('+esc(g.time)+')':''}</option>`).join('');
     sel.innerHTML='<option value="">Meu gestor (padrão)</option>'+opts+'<option value="__none__">Só registrar (não enviar p/ ninguém)</option>';
     _gestoresCarregados=true;
   }catch(e){}
@@ -825,13 +844,13 @@ async function salvarSenha(){
   const j=await res.json();
   if(j.ok){toast('Senha alterada ✓');fecharPop()}else{toast(j.erro||'Erro')}
 }
-function verReuniao(i){const r=window._reunioes[i];abrirPop(r.assunto||'Reunião',`<div style="font-size:14px;line-height:1.9"><div><b>Data:</b> ${fmtData(r.inicio)}</div><div><b>Duração:</b> ${r.duracao} min</div><div><b>Local:</b> ${r.local||'—'}</div><div><b>Status:</b> Aprovada ✅</div>${r.resposta?`<div><b>Obs. do gestor:</b> ${r.resposta}</div>`:''}</div>`)}
+function verReuniao(i){const r=window._reunioes[i];abrirPop(r.assunto||'Reunião',`<div style="font-size:14px;line-height:1.9"><div><b>Data:</b> ${fmtData(r.inicio)}</div><div><b>Duração:</b> ${r.duracao} min</div><div><b>Local:</b> ${esc(r.local||'—')}</div><div><b>Status:</b> Aprovada ✅</div>${r.resposta?`<div><b>Obs. do gestor:</b> ${esc(r.resposta)}</div>`:''}</div>`)}
 let _avisos=[];let _notifVistos=null;
-function iniciarNotif(){if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();if('serviceWorker'in navigator)navigator.serviceWorker.register('/public/sw.js').catch(()=>{});}
+function iniciarNotif(){Chama.iniciarPWA();}
 function notificarNovos(avisos){
   const naoLidos=avisos.filter(a=>!a.lida);
   if(_notifVistos===null){_notifVistos=new Set(avisos.map(a=>a.id));return;} // 1a carga: não notifica retroativo
-  naoLidos.forEach(a=>{if(!_notifVistos.has(a.id)){_notifVistos.add(a.id);if('Notification'in window&&Notification.permission==='granted'){try{new Notification(a.titulo,{body:a.texto,icon:'/public/icon.png',tag:a.id})}catch(e){}}}});
+  naoLidos.forEach(a=>{if(!_notifVistos.has(a.id)){_notifVistos.add(a.id);if(!Chama.pushLigado()&&'Notification'in window&&Notification.permission==='granted'){try{new Notification(a.titulo,{body:a.texto,icon:'/public/icon-192.png',tag:a.id})}catch(e){}}}});
   avisos.forEach(a=>_notifVistos.add(a.id));
 }
 async function carregarAvisos(){
@@ -840,12 +859,12 @@ async function carregarAvisos(){
   const b=document.getElementById('badge-avisos');
   if(j.naoLidas>0){b.textContent=j.naoLidas;b.style.display='block'}else b.style.display='none';
   document.getElementById('lista-avisos').innerHTML=(_avisos.length?`<div style="text-align:right;margin-bottom:8px"><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="apagarAvisos(true)">Limpar todas</button></div>`:'')+
-    (_avisos.map((a,i)=>`<div class="card row" style="${a.lida?'opacity:.65':''}"><div style="cursor:pointer;flex:1" onclick="abrirAviso(${i})"><div class="titulo">${a.lida?'':'🔵 '}${a.titulo}</div><div class="mut" style="font-size:12px;margin-top:2px">${new Date(a.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div><button onclick="apagarAviso('${a.id}')" title="Apagar" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--mut)">🗑</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum aviso</div>');
+    (_avisos.map((a,i)=>`<div class="card row" style="${a.lida?'opacity:.65':''}"><div style="cursor:pointer;flex:1" onclick="abrirAviso(${i})"><div class="titulo">${a.lida?'':'🔵 '}${esc(a.titulo)}</div><div class="mut" style="font-size:12px;margin-top:2px">${new Date(a.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div><button onclick="apagarAviso('${a.id}')" title="Apagar" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--mut)">🗑</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum aviso</div>');
 }
 function abrirAvisos(){const p=document.getElementById('notif-panel');if(p.style.display==='none'||!p.style.display){p.style.display='block';carregarAvisos()}else p.style.display='none'}
 document.addEventListener('click',e=>{const p=document.getElementById('notif-panel');if(p.style.display==='block'&&!p.contains(e.target)&&!e.target.closest('[onclick*="abrirAvisos"]'))p.style.display='none'});
 function toggleChat(){const box=document.getElementById('chat-box');const abrir=box.style.display==='none'||!box.style.display;box.style.display=abrir?'flex':'none';document.getElementById('chat-fab').style.display=abrir?'none':'block';if(abrir)abrirChat()}
-async function abrirAviso(i){const a=_avisos[i];abrirPop(a.titulo,`<div style="font-size:14px;line-height:1.7">${a.texto}</div><div class="mut" style="margin-top:10px;font-size:12px">${new Date(a.data).toLocaleString('pt-BR')}</div><div style="text-align:right;margin-top:12px"><button class="btn sec2" style="padding:6px 12px" onclick="apagarAviso('${a.id}');fecharPop()">🗑 Apagar</button></div>`);if(!a.lida){await fetch('/api/avisos/ler',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id})});carregarAvisos()}}
+async function abrirAviso(i){const a=_avisos[i];abrirPop(a.titulo,`<div style="font-size:14px;line-height:1.7">${esc(a.texto)}</div><div class="mut" style="margin-top:10px;font-size:12px">${new Date(a.data).toLocaleString('pt-BR')}</div><div style="text-align:right;margin-top:12px"><button class="btn sec2" style="padding:6px 12px" onclick="apagarAviso('${a.id}');fecharPop()">🗑 Apagar</button></div>`);if(!a.lida){await fetch('/api/avisos/ler',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id})});carregarAvisos()}}
 async function apagarAviso(id){await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});carregarAvisos()}
 async function apagarAvisos(){if(!confirm('Apagar todas as notificações?'))return;await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({todos:true})});carregarAvisos()}
 async function abrirChat(){
@@ -853,7 +872,7 @@ async function abrirChat(){
   const box=document.getElementById('chat-msgs');
   box.innerHTML=(j.mensagens||[]).map(m=>{
     const meu=m.de==='consultor';
-    return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px"><div style="font-size:14px">${m.texto}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`;
+    return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px"><div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`;
   }).join('')||'<div class="mut" style="text-align:center;padding:20px">Inicie a conversa com seu gestor</div>';
   box.scrollTop=box.scrollHeight;
   document.getElementById('badge-chat').style.display='none';
@@ -863,14 +882,27 @@ async function enviarMsg(){
   await fetch('/api/chat/enviar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({texto:t.value})});
   t.value='';abrirChat();
 }
-async function checarChat(){const res=await fetch('/api/avisos');const j=await res.json();const nm=(j.avisos||[]).filter(a=>!a.lida&&a.titulo.toLowerCase().includes('mensagem')).length;const b=document.getElementById('badge-chat');const aberto=document.getElementById('chat-box').style.display==='flex';if(nm>0&&!aberto){b.textContent=nm;b.style.display='block'}else b.style.display='none';}
-setInterval(()=>{if(!document.hidden){checarChat();if(document.getElementById('chat-box').style.display==='flex')abrirChat();}},10000);checarChat();
+function mostrarBadgeChat(nm){const b=document.getElementById('badge-chat');const aberto=document.getElementById('chat-box').style.display==='flex';if(nm>0&&!aberto){b.textContent=nm;b.style.display='block'}else b.style.display='none';}
 iniciarNotif();
-setInterval(carregarAvisos,30000);carregarAvisos();
-// recarrega dados ao voltar o foco pra aba (reflete mudanças feitas em outro lugar)
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){carregar();carregarAvisos();}});
-// atualização automática (reflete atividades criadas pelo gestor, etc) — não atrapalha o que você digita
-setInterval(()=>{if(!document.hidden)carregar()},10000);
+carregarAvisos();
+// v155: em vez de recarregar tudo a cada 10 s, a tela pergunta "mudou algo?" (/api/pulso) e só recarrega quando mudou
+Chama.iniciarPulso({
+  mudou(){carregar();if(document.getElementById('chat-box').style.display==='flex')abrirChat();if(document.getElementById('aba-comissoes').classList.contains('on'))carregarExtrato();},
+  avisos(){carregarAvisos();},
+  chat(n){mostrarBadgeChat(n);}
+});
+// ===== MINHAS COMISSÕES (extrato) =====
+let _extrato=[],_exAberto={};
+async function carregarExtrato(){
+  const el=document.getElementById('ex-lista');
+  try{const j=await(await fetch('/api/comissoes/minhas')).json();_extrato=j.itens||[];
+    document.getElementById('ex-pend').textContent=money(j.totalPendente||0);document.getElementById('ex-pago').textContent=money(j.totalRecebido||0);
+    const t=document.getElementById('tile-com');const np=_extrato.filter(x=>!x.pago).length;if(t){t.textContent=np;t.style.display=np?'block':'none';}
+    el.innerHTML=_extrato.length?_extrato.map((x,i)=>{const c=String(x.competencia||'').split('-');const cl=c.length===2?c[1]+'/'+c[0]:x.competencia;const ab=_exAberto[i];
+      const cotas=(x.cotas||[]).map(q=>`<div style="display:flex;justify-content:space-between;border-top:1px solid var(--bord);padding:6px 0;font-size:12px"><span>Gr ${esc(q.grupo)} · Cota ${esc(q.cota)}${q.cliente?' · '+esc(q.cliente):''}</span><b>${money(q.valor)}</b></div>`).join('');
+      return `<div class="card" style="padding:10px 12px;margin-bottom:8px;${x.pago?'':'border-left:3px solid var(--acc)'}"><div style="display:flex;justify-content:space-between;gap:8px;cursor:pointer" onclick="_exAberto[${i}]=!_exAberto[${i}];carregarExtrato()"><div><div style="font-weight:700">${cl} <span class="mut" style="font-weight:400;font-size:11px">· ${esc(x.tipo)}</span></div><div class="mut" style="font-size:11px">${x.qtdCotas} cota(s) · cheio ${money(x.cheio)} · imp ${money(x.imposto)} · de ${esc(x.deNome||'')}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:${x.pago?'var(--ok)':'var(--acc)'}">${money(x.liquido)}</div><div style="font-size:10px;font-weight:700;color:${x.pago?'var(--ok)':'var(--warn,#B8791F)'}">${x.pago?'✓ PAGO'+(x.pagoEm?' '+new Date(x.pagoEm).toLocaleDateString('pt-BR'):''):'⏳ PENDENTE'}</div></div></div><div style="display:${ab?'block':'none'};margin-top:6px">${cotas}</div></div>`;}).join(''):'<div class="card mut" style="padding:14px;text-align:center">Nenhuma comissão lançada para você ainda.</div>';
+  }catch(e){el.innerHTML='<div class="mut" style="padding:10px">Erro ao carregar</div>';}
+}
 async function cancelar(id){if(!confirm('Cancelar este compromisso? Ele sai da sua agenda e da agenda do gestor.'))return;const res=await fetch('/api/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Cancelado ✓':(j.erro||'Erro'));carregar()}
 async function excluirSolic(id){if(!confirm('Excluir esta solicitação da lista?'))return;const res=await fetch('/api/solicitacao/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Excluída ✓':(j.erro||'Erro'));carregar()}
 async function cancelarAtv(id){const justificativa=prompt('Por que você está cancelando esta atividade? (obrigatório — o gestor será avisado)');if(justificativa===null)return;if(!justificativa.trim()){toast('Justificativa obrigatória');return}const res=await fetch('/api/atividade/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,justificativa})});const j=await res.json();toast(j.ok?'Atividade cancelada ✓':(j.erro||'Erro'));carregar()}

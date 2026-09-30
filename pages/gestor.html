@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#D62839"><link rel="icon" type="image/png" href="/public/favicon-64.png"><link rel="apple-touch-icon" href="/public/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Chama">
 <title>Painel do Gestor</title>
 <style>
 :root{--bg:#E8E9EC;--card:#FFFFFF;--card2:#F2F3F5;--txt:#23272F;--mut:#7B828C;--acc:#D62839;--acc2:#B71F2E;--accbg:rgba(214,40,57,.10);--ok:#3E8E6E;--okbg:rgba(62,142,110,.13);--warnbg:rgba(169,119,47,.14);--warn:#A9772F;--no:#C0484E;--nobg:rgba(192,72,78,.12);--ia:#7B828C;--iabg:rgba(214,40,57,.07);--bord:#E1E3E7;color-scheme:light}
@@ -271,6 +272,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <button class="chip" data-sa="times" onclick="subAcesso('times')">🏷️ Times</button>
       <button class="chip" data-sa="check" onclick="subAcesso('check')">✅ Check-in</button>
       <button class="chip" data-sa="arq" onclick="subAcesso('arq')">📎 Arquivos</button>
+      <button class="chip" data-sa="audit" onclick="subAcesso('audit')">🕵️ Auditoria</button>
     </div>
 
     <div class="sa" id="sa-acessos">
@@ -315,7 +317,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 
     <div class="sa" id="sa-check" style="display:none">
       <div class="card">
-        <div class="mut" style="font-size:12px;margin-bottom:8px">Rotinas que os consultores marcam todo dia. Edite, adicione ou remova.</div>
+        <div class="mut" id="rot-desc" style="font-size:12px;margin-bottom:8px">Rotinas que os consultores marcam todo dia. Edite, adicione ou remova.</div>
         <div id="lista-rotinas-edit"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
           <input type="text" id="nova-rotina" placeholder="Nova rotina…" onkeydown="if(event.key==='Enter')addRotina()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
@@ -323,6 +325,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
         </div>
         <button class="btn" style="width:100%;margin-top:10px" onclick="salvarRotinas()">Salvar check-in</button>
       </div>
+    </div>
+
+    <div class="sa" id="sa-audit" style="display:none">
+      <div id="audit-backup"></div>
+      <input type="text" id="audit-busca" placeholder="🔎 Filtrar por pessoa, ação ou detalhe" oninput="renderAuditoria()" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px;box-sizing:border-box">
+      <div id="audit-lista"><div class="mut" style="padding:10px">Carregando…</div></div>
     </div>
 
     <div class="sa" id="sa-arq" style="display:none">
@@ -362,6 +370,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <button class="chip on" id="cm-tab-novo" style="flex:1;text-align:center" onclick="setCmTab('novo')">📥 Importar</button>
       <button class="chip" id="cm-tab-hist" style="flex:1;text-align:center" onclick="setCmTab('hist')">🗂 Histórico</button>
       <button class="chip" id="cm-tab-imp" style="flex:1;text-align:center" onclick="setCmTab('imp')">🧮 Impostos</button>
+      <button class="chip" id="cm-tab-receber" style="flex:1;text-align:center" onclick="setCmTab('receber')">📬 A receber</button>
     </div>
 
     <div id="cm-novo">
@@ -378,6 +387,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
     <div id="cm-hist" style="display:none">
       <div id="cm-hist-lista"><div class="mut" style="padding:10px">Carregando…</div></div>
       <div id="cm-hist-detalhe"></div>
+    </div>
+
+    <div id="cm-receber" style="display:none">
+      <div class="mut" style="font-size:12px;margin-bottom:8px">Repasses que <b>outros gestores</b> lançaram para você (supervisor 0,2% ou repasse de gestor 0,5%).</div>
+      <div id="cm-receber-lista"><div class="mut" style="padding:10px">Carregando…</div></div>
     </div>
 
     <div id="cm-imp" style="display:none">
@@ -403,6 +417,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <label style="font-size:12px;color:var(--mut)">Atribuir a carteira ao consultor</label>
       <select id="gc-cons-import" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:6px"><option value="">— usar a coluna Consultor da planilha —</option></select>
       <div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sec2" style="flex:1;padding:9px" onclick="baixarModeloClientes()">⬇️ Baixar planilha modelo</button><button class="btn sec2" style="flex:1;padding:9px" onclick="document.getElementById('gc-upload').click()">⬆️ Subir planilha</button></div>
+      <button class="btn sec2" style="width:100%;padding:9px;margin-bottom:10px" onclick="Chama.exportarClientes()">📤 Exportar carteira da equipe (Excel)</button>
       <input type="file" id="gc-upload" accept=".xlsx" style="display:none" onchange="subirPlanilhaClientes(this)">
       <div class="card" style="padding:10px 12px;margin-bottom:10px">
         <input type="text" id="vgc-busca" placeholder="🔎 Buscar cliente por nome ou CPF" oninput="renderClientesG()" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
@@ -419,6 +434,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
     <div id="gc-sorteio" style="display:none">
       <div class="card" style="padding:12px;margin-bottom:10px">
         <div class="mut" style="font-size:12px;margin-bottom:10px">Digite os números da <b>Loteria Federal</b> (5 prêmios) e escolha o grupo. O sistema lista <b>as nossas cotas</b> por proximidade do número sorteado, indicando de qual prêmio cada uma está mais perto. <i>Não é contemplação oficial — mostra só a nossa parte do grupo.</i></div>
+        <button class="btn sec2" style="width:100%;margin-bottom:8px;padding:9px" onclick="Chama.extrairLoteria('srt-premio','srt-lot-info',this)">📥 Extrair números da Loteria</button>
+        <div id="srt-lot-info" style="font-size:11px;margin-bottom:8px"></div>
         <div id="srt-premios"></div>
         <label style="font-size:12px;color:var(--mut);display:block;margin-top:6px">Grupos — toque num grupo para calcular</label>
         <div id="srt-grupos-list"><div class="mut" style="font-size:12px;padding:8px">Carregando…</div></div>
@@ -502,6 +519,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- BALÃO DE NOTIFICAÇÕES (flutuante) -->
 <div id="notif-panel" style="display:none;position:fixed;top:64px;right:12px;width:min(360px,92vw);max-height:70vh;overflow:auto;background:var(--card);border:1px solid var(--bord);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);z-index:9997;padding:12px">
   <div class="row" style="margin-bottom:8px"><div class="titulo">🔔 Notificações</div><button onclick="apagarAvisos()" style="border:none;background:transparent;font-size:12px;color:var(--acc);cursor:pointer">Limpar todas</button></div>
+  <div id="push-cta"></div>
   <div id="lista-avisos"></div>
 </div>
 
@@ -522,12 +540,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
+<script src="/public/comum.js"></script>
 <script>
 let painel=null;let semanaOffset=0;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
 function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n))}
 // ===== SIMULADORES =====
-function simNum(id){let v=(document.getElementById(id).value||'').trim().replace(/\s|R\$|%/g,'');if(!v)return NaN;if(v.includes(','))v=v.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(v))v=v.replace(/\./g,'');return parseFloat(v);}
+function simNum(id){let v=(document.getElementById(id).value||'').trim().replace(/\s|R\$|%/g,'');if(!v)return NaN;const taxa=/(adm|fundo|juros|indicepct)$/.test(id);/* taxa (%): ponto é sempre decimal — "1.125" = 1,125% */if(v.includes(','))v=v.replace(/\./g,'').replace(',','.');else if(!taxa&&/^\d{1,3}(\.\d{3})+$/.test(v))v=v.replace(/\./g,'');return parseFloat(v);}
 function simBRL(v){return (isFinite(v)?v:0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
 function abrirSimulador(id){document.getElementById('sim-hub').style.display='none';document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');const el=document.getElementById('sim-'+id);if(el)el.style.display='block';if(id==='cxf')carregarMercado();}
 function voltarSimHub(){document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');document.getElementById('sim-hub').style.display='grid';}
@@ -623,25 +642,37 @@ function calcCxF(){
 // ===== COMISSÕES / REPASSE =====
 let _cmImp=[],_cmExpand={};
 function carregarComissoes(){const c=document.getElementById('cm-comp');if(c&&!c.value)c.value=new Date().toISOString().slice(0,7);setCmTab('novo');carregarImpostos();carregarHistComissao();}
-function setCmTab(t){['novo','hist','imp'].forEach(x=>{document.getElementById('cm-tab-'+x).classList.toggle('on',x===t);document.getElementById('cm-'+x).style.display=x===t?'block':'none';});if(t==='hist')carregarHistComissao();}
+function setCmTab(t){['novo','hist','imp','receber'].forEach(x=>{document.getElementById('cm-tab-'+x).classList.toggle('on',x===t);document.getElementById('cm-'+x).style.display=x===t?'block':'none';});if(t==='hist')carregarHistComissao();if(t==='receber')carregarReceber();}
 async function carregarImpostos(){try{const j=await(await fetch('/api/gestor/comissoes/impostos')).json();_cmImp=j.impostos||[];renderImpostosRows();}catch(e){}}
 function renderImpostosRows(){const el=document.getElementById('cm-imp-lista');if(!el)return;el.innerHTML=_cmImp.map((im,i)=>`<div style="display:flex;gap:5px;margin-bottom:6px;align-items:center"><input value="${esc(im.nome)}" placeholder="Nome (ISS, IR...)" oninput="_cmImp[${i}].nome=this.value" style="flex:2;padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);min-width:0"><select onchange="_cmImp[${i}].tipo=this.value" style="width:70px;padding:9px;border:1px solid var(--bord);border-radius:10px;background:var(--bg)"><option value="pct" ${im.tipo!=='fixo'?'selected':''}>%</option><option value="fixo" ${im.tipo==='fixo'?'selected':''}>R$</option></select><input inputmode="decimal" value="${im.valor}" oninput="_cmImp[${i}].valor=parseBRG(this.value)" style="width:80px;padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"><button class="btn sec2 sm" style="color:var(--no)" onclick="_cmImp.splice(${i},1);renderImpostosRows()">✕</button></div>`).join('')||'<div class="mut" style="font-size:12px">Nenhum imposto cadastrado.</div>';}
 function addImpostoRow(){_cmImp.push({nome:'',tipo:'pct',valor:0});renderImpostosRows();}
 async function salvarImpostos(){const r=await fetch('/api/gestor/comissoes/impostos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({impostos:_cmImp})});const j=await r.json();if(j.ok){_cmImp=j.impostos||[];renderImpostosRows();toast('Impostos salvos ✓');}else toast(j.erro||'Erro');}
-async function importarComissao(input){const f=input.files&&input.files[0];if(!f)return;input.value='';const comp=document.getElementById('cm-comp').value;document.getElementById('cm-resultado').innerHTML='<div class="mut" style="padding:10px">Lendo e cruzando o relatório…</div>';const rd=new FileReader();rd.onload=async()=>{const b64=String(rd.result).split(',')[1]||'';const r=await fetch('/api/gestor/comissoes/importar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({arquivo:b64,competencia:comp})});const j=await r.json();if(j.erro){document.getElementById('cm-resultado').innerHTML=`<div class="card" style="padding:12px;color:var(--no)">${esc(j.erro)}</div>`;return;}_cmFechAtual=j.fechamento;_cmFechContainer='cm-resultado';document.getElementById('cm-resultado').innerHTML='<div class="card" style="padding:10px;color:var(--ok);margin-bottom:8px">✓ Importado e salvo no histórico.</div>'+cmFechHTML(j.fechamento);carregarHistComissao();};rd.readAsDataURL(f);}
+async function importarComissao(input){const f=input.files&&input.files[0];if(!f)return;input.value='';const comp=document.getElementById('cm-comp').value;document.getElementById('cm-resultado').innerHTML='<div class="mut" style="padding:10px">Lendo e cruzando o relatório…</div>';const rd=new FileReader();rd.onload=async()=>{const b64=String(rd.result).split(',')[1]||'';const enviar=async(confirmarDuplicado)=>(await fetch('/api/gestor/comissoes/importar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({arquivo:b64,competencia:comp,confirmarDuplicado})})).json();let j=await enviar(false);if(j.duplicado){if(confirm(j.erro+'\n\nImportar mesmo assim?'))j=await enviar(true);else{document.getElementById('cm-resultado').innerHTML='<div class="mut" style="padding:10px">Importação cancelada.</div>';return;}}if(j.erro){document.getElementById('cm-resultado').innerHTML=`<div class="card" style="padding:12px;color:var(--no)">${esc(j.erro)}</div>`;return;}_cmFechAtual=j.fechamento;_cmFechContainer='cm-resultado';document.getElementById('cm-resultado').innerHTML='<div class="card" style="padding:10px;color:var(--ok);margin-bottom:8px">✓ Importado e salvo no histórico.</div>'+cmFechHTML(j.fechamento);carregarHistComissao();};rd.readAsDataURL(f);}
 function cmFechHTML(f){
   const comp=(f.competencia||'').split('-');const compL=comp.length===2?comp[1]+'/'+comp[0]:f.competencia;
   const impL=(f.impostos||[]).map(im=>`${esc(im.nome)} ${im.tipo==='fixo'?moneyG(im.valor):im.valor+'%'}`).join(' · ')||'sem imposto';
   const g=f.gestor||{cheio:0,imposto:0,liquido:0,qtdCotas:0,cotas:[]};
-  let h=`<div class="card" style="padding:12px;margin-bottom:10px"><div style="font-weight:700;margin-bottom:4px">Competência ${compL}${f.gestorNome?(' · '+esc(f.gestorNome)):''}</div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Cheio total</div><div class="v">${moneyG(f.totalCheio)}</div></div><div class="kpi"><div class="l">Imposto</div><div class="v" style="color:var(--no)">${moneyG(f.totalImposto)}</div></div></div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Minha retenção</div><div class="v" style="color:var(--acc)">${moneyG(g.liquido)}</div></div><div class="kpi"><div class="l">A repassar (total)</div><div class="v" style="color:var(--ok)">${moneyG(f.totalRepasse!=null?f.totalRepasse:f.totalLiquido)}</div></div></div><div class="mut" style="font-size:11px">Impostos: ${impL} · ${f.qtdCotas} cota(s)</div>${f.id?`<button class="btn sec2" style="width:100%;padding:9px;margin-top:8px" onclick="baixarRelatorioComissao('${f.id}')">⬇️ Retirar relatório (Excel)</button>`:''}</div>`;
+  let h=`<div class="card" style="padding:12px;margin-bottom:10px"><div style="font-weight:700;margin-bottom:4px">Competência ${compL}${f.gestorNome?(' · '+esc(f.gestorNome)):''}</div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Cheio total</div><div class="v">${moneyG(f.totalCheio)}</div></div><div class="kpi"><div class="l">Imposto</div><div class="v" style="color:var(--no)">${moneyG(f.totalImposto)}</div></div></div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Minha retenção</div><div class="v" style="color:var(--acc)">${moneyG(g.liquido)}</div></div><div class="kpi"><div class="l">A repassar (total)</div><div class="v" style="color:var(--ok)">${moneyG(f.totalRepasse!=null?f.totalRepasse:f.totalLiquido)}</div></div></div><div class="mut" style="font-size:11px">Impostos: ${impL} · ${f.qtdCotas} cota(s)</div>${f.totalPendente!=null?`<div style="font-size:12px;margin-top:4px"><span style="color:var(--ok)">✓ pago ${moneyG(f.totalPago||0)}</span> · <span style="color:#B8791F">⏳ pendente ${moneyG(f.totalPendente)}</span></div>`:''}${f.id?`<button class="btn sec2" style="width:100%;padding:9px;margin-top:8px" onclick="baixarRelatorioComissao('${f.id}')">⬇️ Retirar relatório (Excel)</button>`:''}</div>`;
   // card do gestor (LICENCIADO)
   {const key=(f.id||'x')+'_gestor';const ab=_cmExpand[key];const cotas=(g.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border:1.5px solid var(--acc)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:700;font-size:14px">🏅 ${esc(g.nome||'Gestor')} <span class="mut" style="font-weight:400">(minha retenção · ${(g.nivel||f.nivelImportador)==='laranja'?'0,2%':'0,5%'})</span></div><div class="mut" style="font-size:11px">${g.qtdCotas} cota(s) · cheio ${moneyG(g.cheio)} · imp ${moneyG(g.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:var(--acc)">${moneyG(g.liquido)}</div><div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;}
   // repasses a supervisores (laranja 0,2%) e a outros gestores roxos (0,5% integral)
-  [['repassesSupervisor','🟠','Supervisor · 0,2%','#B8791F'],['repassesRoxo','🟣','Repasse a gestor · 0,5%','#7C5CE0']].forEach(([campo,ic,tag,cor])=>{(f[campo]||[]).forEach((rp,i)=>{const key=(f.id||'x')+'_'+campo+'_'+i;const ab=_cmExpand[key];const cotas=(rp.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border-left:3px solid ${cor}"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:700;font-size:14px">${ic} ${esc(rp.nome)}${rp.time?` <span class="mut" style="font-weight:400">· ${esc(rp.time)}</span>`:''}</div><div class="mut" style="font-size:11px">${tag} · ${rp.qtdCotas} cota(s) · cheio ${moneyG(rp.cheio)} · imp ${moneyG(rp.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:${cor}">${moneyG(rp.liquido)}</div><div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;});});
-  h+=(f.porConsultor||[]).map((pc,i)=>{const key=(f.id||'x')+'_'+i;const ab=_cmExpand[key];const cotas=(pc.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');return `<div class="card" style="padding:10px 12px;margin-bottom:7px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:700;font-size:14px">${esc(pc.nome)}</div><div class="mut" style="font-size:11px">${pc.qtdCotas} cota(s) · cheio ${moneyG(pc.cheio)} · imp ${moneyG(pc.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:var(--ok)">${moneyG(pc.liquido)}</div><div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;}).join('')||'<div class="mut" style="padding:8px">Nenhuma comissão casou com a carteira.</div>';
-  if((f.naoBateram||[]).length){const nb=f.naoBateram.map(n=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(n.grupo)} · Cota ${esc(n.cota)}${n.cliente?' · '+esc(n.cliente):''}</span><b style="font-size:12px;color:var(--no)">${moneyG(n.valor)}</b></div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border:1px solid var(--no)"><div style="font-weight:700;color:var(--no)">⚠️ Não bateram com a carteira (${f.naoBateram.length}) · ${moneyG(f.naoBateuTotal)}</div><div class="mut" style="font-size:11px;margin-bottom:4px">Cotas do relatório que não achei na carteira — confira grupo/cota.</div>${nb}</div>`;}
+  [['repassesSupervisor','🟠','Supervisor · 0,2%','#B8791F'],['repassesRoxo','🟣','Repasse a gestor · 0,5%','#7C5CE0']].forEach(([campo,ic,tag,cor])=>{(f[campo]||[]).forEach((rp,i)=>{const key=(f.id||'x')+'_'+campo+'_'+i;const ab=_cmExpand[key];const cotas=(rp.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border-left:3px solid ${cor}"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:700;font-size:14px">${ic} ${esc(rp.nome)}${rp.time?` <span class="mut" style="font-weight:400">· ${esc(rp.time)}</span>`:''}</div><div class="mut" style="font-size:11px">${tag} · ${rp.qtdCotas} cota(s) · cheio ${moneyG(rp.cheio)} · imp ${moneyG(rp.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:${cor}">${moneyG(rp.liquido)}</div>${cmBotaoPago(f,rp)}<div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;});});
+  h+=(f.porConsultor||[]).map((pc,i)=>{const key=(f.id||'x')+'_'+i;const ab=_cmExpand[key];const cotas=(pc.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');return `<div class="card" style="padding:10px 12px;margin-bottom:7px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:700;font-size:14px">${esc(pc.nome)}</div><div class="mut" style="font-size:11px">${pc.qtdCotas} cota(s) · cheio ${moneyG(pc.cheio)} · imp ${moneyG(pc.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:var(--ok)">${moneyG(pc.liquido)}</div>${cmBotaoPago(f,pc)}<div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;}).join('')||'<div class="mut" style="padding:8px">Nenhuma comissão casou com a carteira.</div>';
+  if((f.naoBateram||[]).length){const nb=f.naoBateram.map(n=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0;align-items:center;gap:6px"><span style="flex:1;font-size:12px">Gr ${esc(n.grupo)} · Cota ${esc(n.cota)}${n.cliente?' · '+esc(n.cliente):''} <span class="mut">(${n.tipo==='override'?'override':'autorizado'})</span></span><b style="font-size:12px;color:var(--no)">${moneyG(n.valor)}</b>${f.id&&f.cotasBase?`<button class="btn sec2 sm" style="padding:3px 8px;font-size:11px" onclick="cmVincularPop('${f.id}','${encodeURIComponent(n.grupo)}','${encodeURIComponent(n.cota)}')">🔗 Vincular</button>`:''}</div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border:1px solid var(--no)"><div style="font-weight:700;color:var(--no)">⚠️ Não bateram com a carteira (${f.naoBateram.length}) · ${moneyG(f.naoBateuTotal)}</div><div class="mut" style="font-size:11px;margin-bottom:4px">Cotas do relatório que não achei na carteira — confira grupo/cota.</div>${nb}</div>`;}
   return h;
 }
+// ---- pago / vincular / a receber (v155) ----
+function cmBotaoPago(f,p){if(!f.id||p.pago==null&&f.totalPendente==null)return '';return p.pago?`<button class="btn sec2 sm" style="padding:2px 7px;font-size:10px;color:var(--ok);margin:3px 0" title="Pago em ${p.pagoEm?new Date(p.pagoEm).toLocaleDateString('pt-BR'):''} — toque para voltar a pendente" onclick="event.stopPropagation();cmPago('${f.id}','${encodeURIComponent(p.email)}',false)">✓ pago</button>`:`<button class="btn sm" style="padding:2px 7px;font-size:10px;margin:3px 0" onclick="event.stopPropagation();cmPago('${f.id}','${encodeURIComponent(p.email)}',true)">marcar pago</button>`;}
+async function cmPago(id,email,pago){const r=await fetch('/api/gestor/comissoes/pago',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,email:decodeURIComponent(email),pago})});const j=await r.json();if(!j.ok){toast(j.erro||'Erro');return;}toast(pago?'Marcado como pago ✓ (a pessoa foi avisada)':'Voltou para pendente');_cmFechAtual=j.fechamento;rerenderFech();carregarHistComissao();}
+async function cmVincularPop(id,grupo,cota){grupo=decodeURIComponent(grupo);cota=decodeURIComponent(cota);let us=[];try{us=((await(await fetch('/api/gestor/usuarios')).json()).usuarios||[]).filter(u=>u.ativo!==false);}catch(e){}
+  us.sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt'));window._cmVinc={id,grupo,cota};
+  abrirPop('🔗 Vincular cota',`<div class="mut" style="font-size:12px;margin-bottom:8px">Gr <b>${esc(grupo)}</b> · Cota <b>${esc(cota)}</b> não foi achada na carteira. Escolha quem é o dono — o fechamento é recalculado pelas regras de nível.</div><input id="cmv-busca" placeholder="🔎 Buscar pessoa" oninput="document.querySelectorAll('#cmv-sel option').forEach(o=>o.hidden=!o.textContent.toLowerCase().includes(this.value.toLowerCase()))" style="width:100%;padding:9px;border:1px solid var(--bord);border-radius:10px;margin-bottom:6px;box-sizing:border-box"><select id="cmv-sel" size="8" style="width:100%;border:1px solid var(--bord);border-radius:10px;padding:4px">${us.map(u=>`<option value="${esc(u.email)}">${esc(u.nome)} · ${u.papel==='gestor'?'gestor':'consultor'}${u.time?' · '+esc(u.time):''}</option>`).join('')}</select><button class="btn full" style="margin-top:10px" onclick="cmVincular()">Vincular e recalcular</button>`);}
+async function cmVincular(){const sel=document.getElementById('cmv-sel');if(!sel.value){toast('Escolha uma pessoa');return;}const v=window._cmVinc;const r=await fetch('/api/gestor/comissoes/vincular',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:v.id,grupo:v.grupo,cota:v.cota,email:sel.value})});const j=await r.json();if(!j.ok){toast(j.erro||'Erro');return;}fecharPop();toast('Cota vinculada e fechamento recalculado ✓');_cmFechAtual=j.fechamento;rerenderFech();carregarHistComissao();}
+async function carregarReceber(){const el=document.getElementById('cm-receber-lista');if(!el)return;try{const j=await(await fetch('/api/comissoes/minhas')).json();const it=j.itens||[];el.innerHTML=`<div class="kpis" style="margin:0 0 8px"><div class="kpi"><div class="l">A receber</div><div class="v" style="color:var(--acc)">${moneyG(j.totalPendente||0)}</div></div><div class="kpi"><div class="l">Recebido</div><div class="v" style="color:var(--ok)">${moneyG(j.totalRecebido||0)}</div></div></div>`+(it.length?it.map(x=>{const c=String(x.competencia||'').split('-');return `<div class="card" style="padding:10px 12px;margin-bottom:7px"><div style="display:flex;justify-content:space-between;gap:8px"><div><div style="font-weight:700">${c.length===2?c[1]+'/'+c[0]:esc(x.competencia)} · ${esc(x.deNome||'')}</div><div class="mut" style="font-size:11px">${esc(x.tipo)} · ${x.qtdCotas} cota(s) · cheio ${moneyG(x.cheio)}</div></div><div style="text-align:right"><div style="font-weight:800">${moneyG(x.liquido)}</div><div style="font-size:10px;font-weight:700;color:${x.pago?'var(--ok)':'#B8791F'}">${x.pago?'✓ PAGO':'⏳ PENDENTE'}</div></div></div></div>`;}).join(''):'<div class="mut" style="padding:10px">Nenhum repasse de outros gestores para você.</div>');}catch(e){el.innerHTML='<div class="mut" style="padding:10px">Erro ao carregar</div>';}}
+// ---- auditoria (v155) ----
+let _audit=[];
+async function carregarAuditoria(){const el=document.getElementById('audit-lista');try{const j=await(await fetch('/api/gestor/auditoria?limite=500')).json();_audit=j.registros||[];document.getElementById('audit-backup').innerHTML=j.master?'<div class="card" style="padding:10px 12px;margin-bottom:8px"><div style="font-weight:700;margin-bottom:4px">💾 Backup completo</div><div class="mut" style="font-size:11px;margin-bottom:8px">Baixa tudo (vendas, carteira, clientes, comissões, agenda, acessos) num arquivo .json.gz. O servidor também guarda uma cópia por dia dos últimos 14 dias.</div><a class="btn full" style="display:block;text-align:center;text-decoration:none;padding:9px" href="/api/gestor/backup" download>⬇️ Baixar backup agora</a></div>':'';renderAuditoria();}catch(e){el.innerHTML='<div class="mut" style="padding:10px">Erro ao carregar</div>';}}
+function renderAuditoria(){const el=document.getElementById('audit-lista');if(!el)return;const q=(document.getElementById('audit-busca').value||'').toLowerCase();const l=_audit.filter(a=>!q||[a.porNome,a.por,a.acao,a.alvo,a.alvoNome,a.detalhe].join(' ').toLowerCase().includes(q));el.innerHTML=l.length?l.slice(0,300).map(a=>`<div class="card" style="padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;gap:8px"><div style="font-size:13px"><b>${esc(a.porNome||a.por||'sistema')}</b> ${esc(a.acao)}${a.alvo?` <span class="mut">→ ${esc(a.alvoNome||a.alvo)}</span>`:''}</div><div class="mut" style="font-size:10px;flex:none">${new Date(a.quando).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>${a.detalhe?`<div class="mut" style="font-size:11px;margin-top:3px">${esc(a.detalhe)}</div>`:''}</div>`).join(''):'<div class="mut" style="padding:10px">Nenhum registro.</div>';}
 function baixarRelatorioComissao(id){const a=document.createElement('a');a.href='/api/gestor/comissoes/exportar?id='+encodeURIComponent(id);a.download='';document.body.appendChild(a);a.click();a.remove();toast('Gerando relatório… ⬇️');}
 let _cmFechAtual=null,_cmFechContainer='cm-resultado';
 function rerenderFech(){if(_cmFechAtual){const el=document.getElementById(_cmFechContainer);if(el)el.innerHTML=cmFechHTML(_cmFechAtual);}}
@@ -656,10 +687,10 @@ function estiloCor(cor){
   if(cor)return `background:${cor}33;color:#1a1a18;border:1px solid ${cor}`;
   return 'background:transparent;color:var(--txt)';
 }
-function balaoNome(nome,cor){return `<span style="${estiloCor(cor)};padding:3px 10px;border-radius:12px;font-weight:500;display:inline-block">${nome}</span>`}
+function balaoNome(nome,cor){return `<span style="${estiloCor(cor)};padding:3px 10px;border-radius:12px;font-weight:500;display:inline-block">${esc(nome)}</span>`}
 function avatarHTML(nome,cor,size,foto){size=size||34;const f=foto||(window._fotos&&window._fotos[nome])||'';
   if(f)return `<div style="width:${size}px;height:${size}px;border-radius:50%;background-image:url('${f}');background-size:cover;background-position:center;flex:none;border:1px solid var(--bord)"></div>`;
-  return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.36)}px;flex:none;${estiloCorSolidaG(cor)}">${(nome||'?').slice(0,2).toUpperCase()}</div>`;
+  return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.36)}px;flex:none;${estiloCorSolidaG(cor)}">${esc((nome||'?').slice(0,2).toUpperCase())}</div>`;
 }
 function setFotoEd(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=()=>{const max=400,s=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*s),h=Math.round(img.height*s);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);const d=c.toDataURL('image/jpeg',0.75);document.getElementById('ed-foto').value=d;document.getElementById('ed-foto-prev').style.backgroundImage="url('"+d+"')";};img.src=rd.result;};rd.readAsDataURL(f);}
 function removerFotoEd(){document.getElementById('ed-foto').value='';document.getElementById('ed-foto-prev').style.backgroundImage='';}
@@ -678,14 +709,14 @@ async function carregar(){
   else{gav.textContent=(painel.nome||painel.time||'G').replace(/^Gestor\s+/i,'').trim().slice(0,2).toUpperCase();aplicarCorAvatar(gav,painel.cor);}
   if(painel.tarefas){document.getElementById('t-atr').textContent=painel.tarefas.atrasadas;document.getElementById('t-pen').textContent=painel.tarefas.pendentes;document.getElementById('t-fin').textContent=painel.tarefas.finalizadas;}
   document.getElementById('execucao').innerHTML = painel.execucao.map(e=>`<div class="exe" style="cursor:pointer" onclick="abrirPerfil('${e.email}')"><span class="n" style="width:auto;min-width:70px;display:flex;align-items:center;gap:6px">${avatarHTML(e.nome,e.cor,24,e.foto)}${balaoNome(e.nome,e.cor)}</span><div class="bar"><div style="width:${e.pct}%;height:100%;background:${corPct(e.pct)}"></div></div><span class="pct" style="${e.pct<40?'color:var(--no)':''}">${e.pct}%</span></div>`).join('');
-  document.getElementById('atrasadas').innerHTML = painel.atividadesAtrasadas.map(a=>`<div class="card row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(a.consultor,'',30,a.foto)}<div><div class="titulo" style="font-weight:500;color:var(--acc);cursor:pointer" onclick="abrirPerfil('${a.consultorEmail||''}')">${a.consultor}</div><div class="mut">${a.titulo} · venceu ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma 🎉</div>';
+  document.getElementById('atrasadas').innerHTML = painel.atividadesAtrasadas.map(a=>`<div class="card row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(a.consultor,'',30,a.foto)}<div><div class="titulo" style="font-weight:500;color:var(--acc);cursor:pointer" onclick="abrirPerfil('${a.consultorEmail||''}')">${esc(a.consultor)}</div><div class="mut">${esc(a.titulo)} · venceu ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma 🎉</div>';
   // Minhas tarefas (enviadas por outros gestores)
   const mt=(painel.minhasTarefas||[]).filter(t=>t.status!=='Feito');
   document.getElementById('h-minhas-tarefas').style.display=mt.length?'block':'none';
-  document.getElementById('minhas-tarefas').innerHTML=mt.map(a=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${a.titulo}</div><div class="mut">${a.tipo}${a.de?' · de '+a.de:''} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('');
+  document.getElementById('minhas-tarefas').innerHTML=mt.map(a=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${esc(a.titulo)}</div><div class="mut">${a.tipo}${a.de?' · de '+esc(a.de):''} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('');
   carregarDestinatarios();
   carregarCadastros();
-  document.getElementById('decididas').innerHTML=(painel.decididas||[]).map(s=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${s.consultor} · ${fmtData(s.inicio)}</div><div class="mut">${s.resposta||''}</div></div><span class="badge ${s.status==='Aprovada'?'b-ok':s.status==='Recusada'?'b-no':'b-warn'}">${s.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma ainda</div>';
+  document.getElementById('decididas').innerHTML=(painel.decididas||[]).map(s=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${esc(s.consultor)} · ${fmtData(s.inicio)}</div><div class="mut">${esc(s.resposta||'')}</div></div><span class="badge ${s.status==='Aprovada'?'b-ok':s.status==='Recusada'?'b-no':'b-warn'}">${s.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma ainda</div>';
   const pend=painel.pendentes||[];
   document.getElementById('pendentes').innerHTML = pend.map(cardPendente).join('')||'<div class="mut" style="padding:0 4px">Nenhuma pendente 🎉</div>';
   document.getElementById('h-agend-home').style.display=pend.length?'block':'none';
@@ -697,7 +728,7 @@ function cardPendente(s){return `
       <div class="row" style="margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:10px;min-width:0">
           ${avatarHTML(s.consultor,s.cor,38,s.foto)}
-          <div style="min-width:0"><div>${balaoNome(s.consultor,s.cor)}${s.deGestor?' <span class="badge b-blue">gestor</span>':''}</div><div class="mut" style="margin-top:3px">${s.assunto||'Reunião'} · ${fmtData(s.inicio)} · ${s.duracao} min${s.local?' · '+s.local:''}</div></div>
+          <div style="min-width:0"><div>${balaoNome(s.consultor,s.cor)}${s.deGestor?' <span class="badge b-blue">gestor</span>':''}</div><div class="mut" style="margin-top:3px">${esc(s.assunto||'Reunião')} · ${fmtData(s.inicio)} · ${s.duracao} min${s.local?' · '+esc(s.local):''}</div></div>
         </div>
         <span class="badge ${s.conflito?'b-no':'b-ok'}" style="flex:none">${s.conflito?'⚠ conflito':'livre ✓'}</span>
       </div>
@@ -713,7 +744,7 @@ async function carregarControle(){
   const res=await fetch('/api/gestor/controle');
   const c=await res.json();ctrlData=c;
   const selC=document.getElementById('ctrl-consultor');
-  if(selC.options.length<=1)selC.innerHTML='<option value="">Todos</option>'+c.consultores.map(x=>`<option>${x.nome}</option>`).join('');
+  if(selC.options.length<=1)selC.innerHTML='<option value="">Todos</option>'+c.consultores.map(x=>`<option>${esc(x.nome)}</option>`).join('');
   document.getElementById('ctrl-tabela').innerHTML =
     '<tr><th style="text-align:left;padding:6px 4px;color:var(--mut);font-weight:500">Consultor</th>'
     + c.dias.map(d=>`<th style="padding:6px 2px;color:var(--mut);font-weight:500;font-size:10px">${d.label}<br>${d.data.slice(0,5)}</th>`).join('')
@@ -737,11 +768,11 @@ function renderTarefas(){
     if(busca&&!ab.length&&!ft.length)return '';
     return `<div class="card">
       <div class="row" style="margin-bottom:6px">
-        <div class="titulo" style="cursor:pointer;color:var(--acc)" onclick="abrirPerfil('${x.email}')">${x.nome}</div>
+        <div class="titulo" style="cursor:pointer;color:var(--acc)" onclick="abrirPerfil('${x.email}')">${esc(x.nome)}</div>
         <div style="display:flex;gap:6px"><span class="badge b-warn">${ab.length} abertas</span><span class="badge b-ok">${ft.length} feitas</span></div>
       </div>
-      ${ab.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--bord)"><span style="font-size:13px">${t.atrasada?'🔴':'🟡'} ${t.titulo}</span><span style="display:flex;gap:6px;align-items:center;white-space:nowrap;margin-left:8px"><span class="mut">${t.status}${t.prazo?' · '+t.prazo.slice(8,10)+'/'+t.prazo.slice(5,7):''}</span>${t.id?`<button class="btn sec2" style="padding:4px 8px;font-size:11px;color:var(--no)" onclick="cancelarAtvGestor('${t.id}')" title="Cancelar">✕</button>`:''}</span></div>`).join('')}
-      ${ft.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--bord);opacity:.55"><span style="font-size:13px">✅ <s>${t.titulo}</s></span><span class="mut">${t.tipo}</span></div>`).join('')}
+      ${ab.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--bord)"><span style="font-size:13px">${t.atrasada?'🔴':'🟡'} ${esc(t.titulo)}</span><span style="display:flex;gap:6px;align-items:center;white-space:nowrap;margin-left:8px"><span class="mut">${t.status}${t.prazo?' · '+t.prazo.slice(8,10)+'/'+t.prazo.slice(5,7):''}</span>${t.id?`<button class="btn sec2" style="padding:4px 8px;font-size:11px;color:var(--no)" onclick="cancelarAtvGestor('${t.id}')" title="Cancelar">✕</button>`:''}</span></div>`).join('')}
+      ${ft.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--bord);opacity:.55"><span style="font-size:13px">✅ <s>${esc(t.titulo)}</s></span><span class="mut">${t.tipo}</span></div>`).join('')}
       ${!ab.length&&!ft.length?'<div class="mut">Sem tarefas nesse filtro</div>':''}
     </div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nada encontrado</div>';
@@ -758,7 +789,7 @@ async function carregarContratacao(){
   }catch(e){el.innerHTML='<div class="mut" style="font-size:12px">Erro ao carregar.</div>';}
 }
 function setFiltroContrat(f){_filtroContrat=f;document.querySelectorAll('[data-cf]').forEach(c=>c.classList.toggle('on',c.dataset.cf===f));renderContratacao();}
-function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function renderContratacao(){
   const d=_contratacao;if(!d||!d.candidatos)return;
   const tot=d.candidatos.length,ct=d.candidatos.filter(c=>c.contatado).length;
@@ -842,7 +873,8 @@ function abrirClienteGC(ci,kj){
   const p=(window._gcCons||[])[ci];if(!p)return;const c=(p.clientes||[])[kj];if(!c)return;
   window._gcCliAtual={ci,kj};
   const linhas=(c.vendas||[]).map(v=>{const s=sitDe(v);const btn=(k,lbl)=>`<button class="btn sec2 sm" style="padding:4px 8px;font-size:11px;${s===k?'border-color:var(--acc);font-weight:700':''}" onclick="setSituacaoCota('${v.id}','${k}')">${lbl}</button>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div style="cursor:pointer" onclick="editarCotaCliente('${v.id}')"><div style="font-weight:700;color:var(--ok)">${moneyG(v.valor)} <span style="font-weight:400">✏️</span></div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''}${v.tamanhoGrupo?(' · '+v.tamanhoGrupo+'p'):''} · ${(v.data||'').split('-').reverse().join('/')}</div></div><div style="flex:none">${sitBadge(s)}</div></div><div style="display:flex;gap:5px;margin-top:7px">${btn('ativo','🟢 Ativa')}${btn('contemplado','🏆 Contemplada')}${btn('cancelado','❌ Cancelada')}</div></div>`;}).join('');
-  abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:4px">Consultor: ${esc(p.nome)}</div><div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s)</div><div class="mut" style="font-size:11px;margin-bottom:8px">Marque a situação de cada cota. Toque no valor (✏️) para editar a cota.</div>${linhas}`);
+  abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:4px">Consultor: ${esc(p.nome)}</div><div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s)</div>${Chama.fichaHTML()}<div class="mut" style="font-size:11px;margin-bottom:8px">Marque a situação de cada cota. Toque no valor (✏️) para editar a cota.</div>${linhas}`);
+  Chama.carregarFicha(c.cpf,c.nome);
 }
 async function setSituacaoCota(id,sit){const r=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,situacao:sit})});const j=await r.json();if(j.ok){toast('Situação atualizada ✓');await carregarClientesG();const a=window._gcCliAtual;if(a)abrirClienteGC(a.ci,a.kj);}else toast(j.erro||'Erro');}
 function editarCotaCliente(id){fecharPop();abrirVendaG(id);}
@@ -876,7 +908,7 @@ function baixarVendasG(){
   toast('Gerando planilha… ⬇️');fecharPop();
 }
 // ===== GESTÃO DE CLIENTE (abas Cliente + Sorteio) =====
-async function carregarGestCli(){setGcTab('cliente');carregarClientesG();carregarGruposSorteio();renderPremiosInputs();popularConsImport();
+async function carregarGestCli(){setGcTab('cliente');carregarClientesG();carregarGruposSorteio();renderPremiosInputs();Chama.carregarLoteria('srt-premio','srt-lot-info');popularConsImport();
   // carrega vendas/consultores em memória p/ permitir editar cota e o seletor de consultor
   try{if(!(window._vgAll||[]).length){const vd=await(await fetch('/api/vendas')).json();window._vgAll=vd.vendas||[];}}catch(e){}
   try{if(!(window._vgDash||[]).length){const dash=await(await fetch('/api/gestor/vendas-dash?mes='+(new Date().toISOString().slice(0,7)))).json();window._vgDash=dash.consultores||[];}}catch(e){}
@@ -1068,7 +1100,7 @@ function abrirVendaG(id){const v=(window._vgAll||[]).find(x=>x.id===id);if(!v)re
 async function carregarRanking(){
   const res=await fetch('/api/gestor/ranking');const r=await res.json();
   document.getElementById('meta-input').value=r.metaSemanal;
-  document.getElementById('ranking-lista').innerHTML=r.ranking.map(x=>`<div class="card"><div class="row"><div class="titulo" style="cursor:pointer;color:var(--acc);display:flex;align-items:center;gap:8px" onclick="abrirPerfil('${x.email}')"><span style="font-weight:700">${x.medalha||x.pos+'º'}</span>${avatarHTML(x.nome,x.cor,28,x.foto)}${x.nome}${x.time?` <span class="mut" style="font-weight:400">· ${x.time}</span>`:''}</div><div style="font-weight:800">${x.pontos}<span class="mut" style="font-weight:400;font-size:11px"> / 200 pts</span></div></div>
+  document.getElementById('ranking-lista').innerHTML=r.ranking.map(x=>`<div class="card"><div class="row"><div class="titulo" style="cursor:pointer;color:var(--acc);display:flex;align-items:center;gap:8px" onclick="abrirPerfil('${x.email}')"><span style="font-weight:700">${x.medalha||x.pos+'º'}</span>${avatarHTML(x.nome,x.cor,28,x.foto)}${esc(x.nome)}${x.time?` <span class="mut" style="font-weight:400">· ${esc(x.time)}</span>`:''}</div><div style="font-weight:800">${x.pontos}<span class="mut" style="font-weight:400;font-size:11px"> / 200 pts</span></div></div>
     <div style="margin-top:8px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>💰 ${moneyG(x.vendido)}${x.metaVenda?(' / '+moneyG(x.metaVenda)):' (sem meta)'}</span><span style="font-weight:700;color:#3E8E6E">${x.vendasPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.vendasPct}%;height:100%;background:#3E8E6E"></div></div></div>
     <div style="margin-top:6px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>✅ Check-in ${x.checkAtual}/${x.checkAlvo}</span><span style="font-weight:700;color:#5175A0">${x.checkPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.checkPct}%;height:100%;background:#5175A0"></div></div></div>
   </div>`).join('')||'<div class="mut" style="padding:0 4px">Sem consultores</div>';
@@ -1165,7 +1197,7 @@ async function abrirChatLista(){
   document.getElementById('chat-thread-wrap').style.display='none';
   document.getElementById('chat-titulo').textContent='💬 Conversas do time';
   const res=await fetch('/api/chat');const j=await res.json();
-  document.getElementById('chat-lista').innerHTML=(j.lista||[]).map(c=>`<div class="card row" style="cursor:pointer" onclick="abrirChatThread('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,'',34,c.foto)}<div class="titulo">${c.nome}</div></div>${c.naoLidas>0?`<span class="badge b-no">${c.naoLidas} nova(s)</span>`:'<span class="mut">›</span>'}</div>`).join('')||'<div class="mut" style="padding:10px">Nenhum consultor no time</div>';
+  document.getElementById('chat-lista').innerHTML=(j.lista||[]).map(c=>`<div class="card row" style="cursor:pointer" onclick="abrirChatThread('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,'',34,c.foto)}<div class="titulo">${esc(c.nome)}</div></div>${c.naoLidas>0?`<span class="badge b-no">${c.naoLidas} nova(s)</span>`:'<span class="mut">›</span>'}</div>`).join('')||'<div class="mut" style="padding:10px">Nenhum consultor no time</div>';
 }
 async function abrirChatThread(login,nome){
   chatConsultor=login;
@@ -1174,7 +1206,7 @@ async function abrirChatThread(login,nome){
   const res=await fetch('/api/chat?consultor='+encodeURIComponent(login));const j=await res.json();
   document.getElementById('chat-titulo').textContent='💬 '+(nome||j.consultor||'');
   const box=document.getElementById('chat-msgs');
-  box.innerHTML=(j.mensagens||[]).map(m=>{const meu=m.de==='gestor';return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px"><div style="font-size:14px">${m.texto}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`}).join('')||'<div class="mut" style="text-align:center;padding:20px">Sem mensagens ainda</div>';
+  box.innerHTML=(j.mensagens||[]).map(m=>{const meu=m.de==='gestor';return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px"><div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`}).join('')||'<div class="mut" style="text-align:center;padding:20px">Sem mensagens ainda</div>';
   box.scrollTop=box.scrollHeight;
 }
 function voltarChatLista(){chatConsultor=null;abrirChatLista()}
@@ -1208,7 +1240,7 @@ async function abrirPerfil(login){
   const av=document.getElementById('pf-avatar');const pf=p.foto||'';
   if(pf){av.textContent='';av.style.cssText='width:48px;height:48px;border-radius:50%;background-image:url('+pf+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
   else{av.textContent=nome.slice(0,2).toUpperCase();av.style.cssText='width:48px;height:48px;font-size:16px';aplicarCorAvatar(av,p.cor);}
-  document.getElementById('pf-nome').innerHTML=p.nome+(p.cargo?` <span style="font-size:11px;${estiloCor(p.cor)};padding:2px 9px;border-radius:10px;font-weight:500">${p.cargo}</span>`:'');
+  document.getElementById('pf-nome').innerHTML=esc(p.nome)+(p.cargo?` <span style="font-size:11px;${estiloCor(p.cor)};padding:2px 9px;border-radius:10px;font-weight:500">${esc(p.cargo)}</span>`:'');
   document.getElementById('pf-time').textContent='Time '+(p.time||'');
   document.getElementById('pf-exec').textContent=p.execucao+'%';
   document.getElementById('pf-exec').style.color=corPct(p.execucao);
@@ -1217,9 +1249,9 @@ async function abrirPerfil(login){
   window._perfil=p;
   document.getElementById('pf-historico').innerHTML=p.historico7d.map((h,i)=>`<div style="flex:1;text-align:center;cursor:pointer" onclick="verDiaCheckin(${i})" title="${h.data}: ${h.feitas}/${h.total}"><div style="font-size:9px;color:var(--mut)">${h.feitas}</div><div id="pf-bar-${i}" style="height:${Math.max(4,h.pct*0.4)}px;background:${corPct(h.pct)};border-radius:4px 4px 0 0;margin:2px 2px 0;border:2px solid transparent"></div><div class="mut" style="font-size:9px;margin-top:3px;line-height:1.2">${h.dia}<br>${h.data.slice(0,5)}</div></div>`).join('');
   verDiaCheckin(p.historico7d.length-1);
-  document.getElementById('pf-atividades').innerHTML=p.atividades.pendentes.map(a=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${a.titulo}</div><div class="mut">${a.tipo} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><span class="badge ${a.prazo<new Date().toISOString().slice(0,10)?'b-no':'b-warn'}">${a.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma pendente ✓</div>';
-  document.getElementById('pf-atividades-feitas').innerHTML=(p.atividades.feitas||[]).map(a=>`<div class="card row" style="opacity:.75"><div class="titulo" style="font-weight:500"><s>${a.titulo}</s></div><span class="mut">${a.tipo}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma concluída ainda</div>';
-  document.getElementById('pf-agendas').innerHTML=(p.agendas||[]).map(r=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${r.assunto}</div><div class="mut">${fmtData(r.inicio)} · ${r.duracao} min · ${r.local||'—'}${r.resposta?' · '+r.resposta:''}</div></div><span class="badge ${r.status==='Aprovada'?'b-ok':r.status==='Pendente'?'b-warn':'b-no'}">${r.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma agenda solicitada</div>';
+  document.getElementById('pf-atividades').innerHTML=p.atividades.pendentes.map(a=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${esc(a.titulo)}</div><div class="mut">${a.tipo} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><span class="badge ${a.prazo<new Date().toISOString().slice(0,10)?'b-no':'b-warn'}">${a.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma pendente ✓</div>';
+  document.getElementById('pf-atividades-feitas').innerHTML=(p.atividades.feitas||[]).map(a=>`<div class="card row" style="opacity:.75"><div class="titulo" style="font-weight:500"><s>${esc(a.titulo)}</s></div><span class="mut">${a.tipo}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma concluída ainda</div>';
+  document.getElementById('pf-agendas').innerHTML=(p.agendas||[]).map(r=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${esc(r.assunto)}</div><div class="mut">${fmtData(r.inicio)} · ${r.duracao} min · ${esc(r.local||'—')}${r.resposta?' · '+esc(r.resposta):''}</div></div><span class="badge ${r.status==='Aprovada'?'b-ok':r.status==='Pendente'?'b-warn':'b-no'}">${r.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma agenda solicitada</div>';
   irAba('perfil');
 }
 function verDiaCheckin(i){
@@ -1242,8 +1274,8 @@ async function carregarDestinatarios(force){
   try{
     const res=await fetch('/api/gestor/destinatarios');const d=await res.json();
     let html='<option value="">Escolha o destinatário…</option>';
-    if((d.consultores||[]).length){html+='<optgroup label="Consultores">'+d.consultores.map(c=>`<option value="${c.login}">${c.nomeCompleto||c.nome}</option>`).join('')+'</optgroup>';}
-    if((d.gestores||[]).length){html+='<optgroup label="Gestores">'+d.gestores.map(g=>`<option value="${g.login}">${g.nome}</option>`).join('')+'</optgroup>';}
+    if((d.consultores||[]).length){html+='<optgroup label="Consultores">'+d.consultores.map(c=>`<option value="${c.login}">${esc(c.nomeCompleto||c.nome)}</option>`).join('')+'</optgroup>';}
+    if((d.gestores||[]).length){html+='<optgroup label="Gestores">'+d.gestores.map(g=>`<option value="${g.login}">${esc(g.nome)}</option>`).join('')+'</optgroup>';}
     sel.innerHTML=html;
     if(atual)sel.value=atual;
   }catch(e){}
@@ -1321,7 +1353,7 @@ async function transferir(id){
   const meuEmail=(painel&&painel.email)||'';
   const gestores=(j.usuarios||[]).filter(u=>u.papel==='gestor'&&u.email!==meuEmail);
   if(!gestores.length){toast('Cadastre outro gestor em ⚙️ Acessos para transferir');return}
-  abrirPop('Transferir para outro gestor',`<div class="mut" style="margin-bottom:8px">Escolha o gestor que vai aprovar na agenda dele:</div><select id="tr-gestor" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">${gestores.map((g,i)=>`<option value="${i}">${g.nome}${g.time?' · '+g.time:''}</option>`).join('')}</select><textarea id="tr-obs" rows="2" placeholder="Observação (opcional)" style="width:100%;margin-top:8px;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"></textarea><button class="btn" style="width:100%;margin-top:10px" onclick="confirmarTransfer('${id}')">Transferir</button>`);
+  abrirPop('Transferir para outro gestor',`<div class="mut" style="margin-bottom:8px">Escolha o gestor que vai aprovar na agenda dele:</div><select id="tr-gestor" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">${gestores.map((g,i)=>`<option value="${i}">${esc(g.nome)}${g.time?' · '+esc(g.time):''}</option>`).join('')}</select><textarea id="tr-obs" rows="2" placeholder="Observação (opcional)" style="width:100%;margin-top:8px;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"></textarea><button class="btn" style="width:100%;margin-top:10px" onclick="confirmarTransfer('${id}')">Transferir</button>`);
   window._gestoresTransf=gestores;
 }
 async function confirmarTransfer(id){
@@ -1371,11 +1403,11 @@ function festaVendaG(msg){
   document.body.appendChild(ov);confetesCairG();setTimeout(()=>{try{ov.remove()}catch(e){}},9500);
 }
 let _avisos=[];let _notifVistos=null;
-function iniciarNotif(){if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();if('serviceWorker'in navigator)navigator.serviceWorker.register('/public/sw.js').catch(()=>{});}
+function iniciarNotif(){Chama.iniciarPWA();}
 function notificarNovos(avisos){
   const naoLidos=avisos.filter(a=>!a.lida);
   if(_notifVistos===null){_notifVistos=new Set(avisos.map(a=>a.id));return;}
-  naoLidos.forEach(a=>{if(!_notifVistos.has(a.id)){_notifVistos.add(a.id);if('Notification'in window&&Notification.permission==='granted'){try{new Notification(a.titulo,{body:a.texto,icon:'/public/icon.png',tag:a.id})}catch(e){}}if((a.titulo||'').toLowerCase().includes('venda fechada'))festaVendaG(a.texto);}});
+  naoLidos.forEach(a=>{if(!_notifVistos.has(a.id)){_notifVistos.add(a.id);if(!Chama.pushLigado()&&'Notification'in window&&Notification.permission==='granted'){try{new Notification(a.titulo,{body:a.texto,icon:'/public/icon-192.png',tag:a.id})}catch(e){}}if((a.titulo||'').toLowerCase().includes('venda fechada'))festaVendaG(a.texto);}});
   avisos.forEach(a=>_notifVistos.add(a.id));
 }
 async function carregarAvisos(){
@@ -1384,15 +1416,15 @@ async function carregarAvisos(){
   const b=document.getElementById('badge-avisos');
   if(j.naoLidas>0){b.textContent=j.naoLidas;b.style.display='block'}else b.style.display='none';
   document.getElementById('lista-avisos').innerHTML=(_avisos.length?`<div style="text-align:right;margin-bottom:8px"><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="apagarAvisos()">Limpar todas</button></div>`:'')+
-    (_avisos.map((a,i)=>`<div class="card row" style="${a.lida?'opacity:.65':''}"><div style="cursor:pointer;flex:1" onclick="abrirAviso(${i})"><div class="titulo">${a.lida?'':'🔵 '}${a.titulo}</div><div class="mut" style="font-size:12px;margin-top:2px">${new Date(a.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div><button onclick="apagarAviso('${a.id}')" title="Apagar" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--mut)">🗑</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum aviso</div>');
+    (_avisos.map((a,i)=>`<div class="card row" style="${a.lida?'opacity:.65':''}"><div style="cursor:pointer;flex:1" onclick="abrirAviso(${i})"><div class="titulo">${a.lida?'':'🔵 '}${esc(a.titulo)}</div><div class="mut" style="font-size:12px;margin-top:2px">${new Date(a.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div><button onclick="apagarAviso('${a.id}')" title="Apagar" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--mut)">🗑</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum aviso</div>');
 }
 function abrirAvisos(){const p=document.getElementById('notif-panel');if(p.style.display==='none'||!p.style.display){p.style.display='block';carregarAvisos()}else p.style.display='none'}
 document.addEventListener('click',e=>{const p=document.getElementById('notif-panel');if(p.style.display==='block'&&!p.contains(e.target)&&!e.target.closest('[onclick*="abrirAvisos"]'))p.style.display='none'});
 function toggleChat(){const box=document.getElementById('chat-box');const abrir=box.style.display==='none'||!box.style.display;box.style.display=abrir?'flex':'none';document.getElementById('chat-fab').style.display=abrir?'none':'block';if(abrir)abrirChatLista()}
-async function abrirAviso(i){const a=_avisos[i];abrirPop(a.titulo,`<div style="font-size:14px;line-height:1.7">${a.texto}</div><div class="mut" style="margin-top:10px;font-size:12px">${new Date(a.data).toLocaleString('pt-BR')}</div><div style="text-align:right;margin-top:12px"><button class="btn sec2" style="padding:6px 12px" onclick="apagarAviso('${a.id}');fecharPop()">🗑 Apagar</button></div>`);if(!a.lida){await fetch('/api/avisos/ler',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id})});carregarAvisos()}}
+async function abrirAviso(i){const a=_avisos[i];abrirPop(a.titulo,`<div style="font-size:14px;line-height:1.7">${esc(a.texto)}</div><div class="mut" style="margin-top:10px;font-size:12px">${new Date(a.data).toLocaleString('pt-BR')}</div><div style="text-align:right;margin-top:12px"><button class="btn sec2" style="padding:6px 12px" onclick="apagarAviso('${a.id}');fecharPop()">🗑 Apagar</button></div>`);if(!a.lida){await fetch('/api/avisos/ler',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id})});carregarAvisos()}}
 async function apagarAviso(id){await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});carregarAvisos()}
 async function apagarAvisos(){if(!confirm('Apagar todas as notificações?'))return;await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({todos:true})});carregarAvisos()}
-function subAcesso(n){document.querySelectorAll('#aba-acessos .sa').forEach(e=>e.style.display='none');const el=document.getElementById('sa-'+n);if(el)el.style.display='block';document.querySelectorAll('[data-sa]').forEach(c=>c.classList.toggle('on',c.dataset.sa===n));if(n==='pedidos')carregarCadastros();}
+function subAcesso(n){document.querySelectorAll('#aba-acessos .sa').forEach(e=>e.style.display='none');const el=document.getElementById('sa-'+n);if(el)el.style.display='block';document.querySelectorAll('[data-sa]').forEach(c=>c.classList.toggle('on',c.dataset.sa===n));if(n==='pedidos')carregarCadastros();if(n==='audit')carregarAuditoria();}
 async function carregarUsuarios(){
   const res=await fetch('/api/gestor/usuarios');const j=await res.json();
   window._usuarios=j.usuarios||[];
@@ -1463,7 +1495,7 @@ async function carregarArquivosG(){
   const el=document.getElementById('lista-arquivos');if(!el)return;
   try{
     const r=await fetch('/api/arquivos');const d=await r.json();
-    el.innerHTML=(d.arquivos||[]).map(a=>{const dr=diasAte(a.expiraEm);const bx=(a.baixadoPor||[]);const bxTxt=bx.length?`✅ baixado por ${bx.join(', ')}`:'⏳ ninguém baixou ainda';return `<div class="card" style="margin-bottom:6px"><div class="row"><div style="min-width:0"><div class="titulo" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.titulo}</div><div class="mut" style="font-size:11px">${a.nome} · ${fmtTam(a.tamanho)} · ${a.destino} · expira em ${dr}d</div></div><div style="display:flex;gap:6px"><a class="btn sec2" style="padding:6px 10px;font-size:12px;text-decoration:none" href="/api/arquivo?id=${a.id}">⬇️</a><button class="btn sec2" style="padding:6px 9px;font-size:12px;color:var(--no)" onclick="excluirArquivo('${a.id}')">🗑</button></div></div><div class="mut" style="font-size:11px;margin-top:6px">${bxTxt}</div></div>`}).join('')||'<div class="mut" style="font-size:12px">Nenhum arquivo enviado ainda</div>';
+    el.innerHTML=(d.arquivos||[]).map(a=>{const dr=diasAte(a.expiraEm);const bx=(a.baixadoPor||[]);const bxTxt=bx.length?`✅ baixado por ${bx.join(', ')}`:'⏳ ninguém baixou ainda';return `<div class="card" style="margin-bottom:6px"><div class="row"><div style="min-width:0"><div class="titulo" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.titulo)}</div><div class="mut" style="font-size:11px">${esc(a.nome)} · ${fmtTam(a.tamanho)} · ${a.destino} · expira em ${dr}d</div></div><div style="display:flex;gap:6px"><a class="btn sec2" style="padding:6px 10px;font-size:12px;text-decoration:none" href="/api/arquivo?id=${a.id}">⬇️</a><button class="btn sec2" style="padding:6px 9px;font-size:12px;color:var(--no)" onclick="excluirArquivo('${a.id}')">🗑</button></div></div><div class="mut" style="font-size:11px;margin-top:6px">${bxTxt}</div></div>`}).join('')||'<div class="mut" style="font-size:12px">Nenhum arquivo enviado ainda</div>';
   }catch(e){}
 }
 async function enviarArquivo(){
@@ -1490,6 +1522,7 @@ function preencherTimes(){
 let _rotinas=[];
 async function carregarRotinasEdit(){
   const res=await fetch('/api/gestor/rotinas');const j=await res.json();_rotinas=j.rotinas||[];renderRotinasEdit();
+  const d=document.getElementById('rot-desc');if(d)d.innerHTML=j.time?`Rotinas do check-in da equipe <b>${esc(j.time)}</b>${j.propria?'':' <span class="mut">(hoje usando a lista padrão — ao salvar, vira a lista desta equipe)</span>'}. A meta semanal (aba Controle) também é por equipe.`:'Rotinas que os consultores marcam todo dia.';
 }
 function renderRotinasEdit(){
   document.getElementById('lista-rotinas-edit').innerHTML=_rotinas.map((r,i)=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="text" value="${(r||'').replace(/"/g,'&quot;')}" onchange="_rotinas[${i}]=this.value" style="flex:1;padding:9px 11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><button onclick="removerRotina(${i})" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--no)">🗑</button></div>`).join('')||'<div class="mut">Nenhuma rotina</div>';
@@ -1566,13 +1599,16 @@ async function salvarEdicaoUsuario(email){
   const res=await fetch('/api/gestor/usuarios/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
   const j=await res.json();fecharPop();toast(j.ok?'Acesso atualizado ✓':(j.erro||'Erro'));carregarUsuarios();
 }
-setInterval(carregarAvisos,30000);carregarAvisos();
+carregarAvisos();
 async function checarChatG(){const res=await fetch('/api/chat');const j=await res.json();const tot=(j.lista||[]).reduce((s,c)=>s+c.naoLidas,0);const b=document.getElementById('badge-chat-g');const aberto=document.getElementById('chat-box').style.display==='flex';if(tot>0&&!aberto){b.textContent=tot;b.style.display='block'}else b.style.display='none';}
-setInterval(()=>{if(!document.hidden){checarChatG();if(document.getElementById('chat-box').style.display==='flex'){if(chatConsultor)abrirChatThread(chatConsultor);else abrirChatLista();}}},10000);checarChatG();
+function mostrarBadgeChatG(tot){const b=document.getElementById('badge-chat-g');const aberto=document.getElementById('chat-box').style.display==='flex';if(tot>0&&!aberto){b.textContent=tot;b.style.display='block'}else b.style.display='none';}
 iniciarNotif();
-// atualização automática do painel (quase tempo real) — pausa fora da aba
-setInterval(()=>{if(!document.hidden){carregar();if(document.getElementById('aba-controle').classList.contains('on'))carregarControle();if(document.getElementById('aba-ranking').classList.contains('on'))carregarRanking();if(document.getElementById('aba-contratacao').classList.contains('on'))carregarContratacao();if(document.getElementById('aba-perfil').classList.contains('on')&&perfilAtual)abrirPerfil(perfilAtual);}},8000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){carregar();carregarAvisos();if(document.getElementById('aba-controle').classList.contains('on'))carregarControle();}});
+// v155: a tela pergunta "mudou algo?" (/api/pulso) a cada 10 s e só recarrega quando mudou (antes: painel a cada 8 s, chat a cada 10 s, avisos a cada 30 s, sempre)
+Chama.iniciarPulso({
+  mudou(){carregar();if(document.getElementById('aba-controle').classList.contains('on'))carregarControle();if(document.getElementById('aba-ranking').classList.contains('on'))carregarRanking();if(document.getElementById('aba-contratacao').classList.contains('on'))carregarContratacao();if(document.getElementById('aba-perfil').classList.contains('on')&&perfilAtual)abrirPerfil(perfilAtual);if(document.getElementById('chat-box').style.display==='flex'){if(chatConsultor)abrirChatThread(chatConsultor);else abrirChatLista();}if(document.getElementById('aba-comissoes').classList.contains('on')&&document.getElementById('cm-receber').style.display==='block')carregarReceber();},
+  avisos(){carregarAvisos();},
+  chat(n){mostrarBadgeChatG(n);}
+});
 carregar();
 // ----- Menu arrastável (cada gestor organiza a própria ordem) -----
 function tornarNavArrastavel(nav,key){

@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agenda do Time — Entrar</title>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#D62839"><link rel="icon" type="image/png" href="/public/favicon-64.png"><link rel="apple-touch-icon" href="/public/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Chama">
+<title>Gestão Chama — Entrar</title>
 <style>
 :root{--bg:#E8E9EC;--card:#FFFFFF;--txt:#23272F;--mut:#7B828C;--acc:#D62839;--acc2:#B71F2E;--accbg:rgba(214,40,57,.10);--bord:#E1E3E7;--r:14px;color-scheme:light}
 *{box-sizing:border-box;margin:0}
@@ -23,8 +24,8 @@ button:active{transform:scale(.98)}
 </head>
 <body>
 <div class="card">
-  <div class="logo">A</div>
-  <h1>Agenda do Time</h1>
+  <img src="/public/icon-192.png" alt="" width="64" height="64" style="display:block;margin:0 auto 12px;border-radius:16px;box-shadow:0 6px 18px rgba(214,40,57,.35)">
+  <h1>Gestão Chama</h1>
   <p class="sub">Gestão de agenda e execução — Ademicon</p>
   <form id="f">
     <label>Usuário</label>
@@ -37,7 +38,10 @@ button:active{transform:scale(.98)}
     <div class="erro" id="erro"></div>
     <button type="submit">Entrar</button>
   </form>
-  <div id="link-cad" style="text-align:center;margin-top:16px;font-size:13px"><a href="#" onclick="mostrarCad(true);return false" style="color:var(--acc);text-decoration:none;font-weight:600">Sou consultor — criar meu acesso</a></div>
+  <div id="link-cad" style="text-align:center;margin-top:16px;font-size:13px"><a href="#" onclick="mostrarCad(true);return false" style="color:var(--acc);text-decoration:none;font-weight:600">Sou consultor — criar meu acesso</a>
+    <div style="margin-top:10px"><a href="#" onclick="esqueci();return false" style="color:var(--mut);text-decoration:none">Esqueci minha senha</a></div>
+    <div id="esq-ok" style="display:none;background:rgba(62,142,110,.12);color:#2E6E54;font-size:13px;padding:10px 12px;border-radius:10px;margin-top:10px;border:1px solid rgba(62,142,110,.3)">✅ Pedido enviado ao seu gestor. Ele vai redefinir sua senha e te passar a nova.</div>
+  </div>
 
   <!-- FORM DE AUTO-CADASTRO (consultor) -->
   <form id="fc" style="display:none">
@@ -57,6 +61,14 @@ button:active{transform:scale(.98)}
   </form>
 </div>
 <script>
+// "esqueci minha senha": avisa o gestor da equipe (e o master), que redefine em Acessos
+async function esqueci(){
+  const login=(document.getElementById('email').value||'').trim()||prompt('Digite seu usuário (login):');
+  if(!login)return;
+  const r=await fetch('/api/esqueci-senha',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login})});
+  const j=await r.json().catch(()=>({}));
+  if(r.ok&&j.ok)document.getElementById('esq-ok').style.display='block';else alert(j.erro||'Não foi possível enviar agora.');
+}
 function mostrarCad(v){document.getElementById('f').style.display=v?'none':'block';document.getElementById('link-cad').style.display=v?'none':'block';document.getElementById('fc').style.display=v?'block':'none';document.querySelector('p.sub').style.display=v?'none':'block';}
 document.getElementById('fc').addEventListener('submit', async (e)=>{
   e.preventDefault();

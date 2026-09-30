@@ -1,10 +1,11 @@
 {
   "name": "agenda-do-time",
-  "version": "1.5.3",
-  "description": "Agenda do Time — gestao de agenda, check-in e atividades",
+  "version": "1.5.6",
+  "description": "Gestão Chama — agenda, vendas, clientes e comissões do time",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test tests/regras.test.js"
   },
   "engines": {
     "node": "20.x"
