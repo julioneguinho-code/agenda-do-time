@@ -393,7 +393,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (p === '/api/gestor/cadastros/decidir' && req.method === 'POST') {
         const b = await readBody(req);
-        const c = ((await notion.listarCadastros(session)).cadastros || []).find(x => x.id === b.id);
+        const c = notion.cadastroPorId(b.id); // lido antes de decidir (a decisão remove o pedido)
         const r = await notion.decidirCadastro(session, b);
         if (r.ok && c) notion.auditar(session, b.aprovar ? 'aprovou pedido de acesso' : 'recusou pedido de acesso', c.nome + ' · time ' + (b.time || c.time || ''), c.email);
         return send(res, 200, r);
