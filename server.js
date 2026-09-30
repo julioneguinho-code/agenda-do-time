@@ -401,15 +401,6 @@ const server = http.createServer(async (req, res) => {
         if (r.ok && c) notion.auditar(session, b.aprovar ? 'aprovou pedido de acesso' : 'recusou pedido de acesso', c.nome + ' · time ' + (b.time || c.time || ''), c.email);
         return send(res, 200, r);
       }
-      if (p === '/api/gestor/contratacao' && req.method === 'GET') {
-        return send(res, 200, await notion.listarContratacao(session));
-      }
-      if (p === '/api/gestor/contratacao/config' && req.method === 'POST') {
-        return send(res, 200, await notion.configContratacao(session, await readBody(req)));
-      }
-      if (p === '/api/gestor/contratacao/marcar' && req.method === 'POST') {
-        return send(res, 200, await notion.marcarContratacao(session, await readBody(req)));
-      }
       // equipes do gestor (vários escritórios no mesmo acesso) — trocar muda só o quadro
       if (p === '/api/gestor/equipes' && req.method === 'GET') return send(res, 200, notion.minhasEquipes(session));
       if (p === '/api/gestor/equipes' && req.method === 'POST') { const b = await readBody(req); const r = notion.criarEquipe(session, b); if (r.ok) notion.auditar(session, r.assumida ? 'assumiu equipe' : 'criou equipe', r.ativa, ''); return send(res, 200, r); }

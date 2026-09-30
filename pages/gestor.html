@@ -71,8 +71,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
     <div class="h" id="h-agend-home" style="display:none;color:var(--acc)">🔔 Agendamentos aguardando seu aceite</div>
     <div id="agend-home" style="margin-bottom:6px"></div>
     <div class="hoje" id="pg-hoje"><div class="mut" style="padding:10px">Carregando…</div></div>
-    <div class="row" style="margin-top:4px"><div class="h" style="margin:6px 0">⭐ Meus atalhos</div><button class="lnk" onclick="Chama.personalizar()">✏️ Personalizar</button></div>
-    <div id="atalhos-home"></div>
     <div style="display:none"><span id="t-atr"></span><span id="t-pen"></span><span id="t-fin"></span></div>
     <div class="h" id="h-minhas-tarefas" style="display:none">📥 Tarefas enviadas para mim</div>
     <div id="minhas-tarefas"></div>
@@ -168,20 +166,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
-<!-- CONTRATAÇÃO -->
-<div class="aba" id="aba-contratacao">
-  <div class="sec">
-    <div class="row"><div class="h">🤝 Contratação — candidatos</div><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="abrirConfigPlanilha()">⚙️ Planilha</button></div>
-    <div id="contratacao-resumo" class="mut" style="font-size:12px;margin-bottom:8px"></div>
-    <div style="display:flex;gap:6px;margin-bottom:10px">
-      <button class="chip on" data-cf="novos" onclick="setFiltroContrat('novos')">A contatar</button>
-      <button class="chip" data-cf="contatados" onclick="setFiltroContrat('contatados')">Contatados</button>
-      <button class="chip" data-cf="todos" onclick="setFiltroContrat('todos')">Todos</button>
-    </div>
-    <div id="contratacao-lista"></div>
-  </div>
-</div>
-
 <!-- VENDAS DO TIME (CRM gestor) -->
 <div class="aba" id="aba-vendasg">
   <div class="sec">
@@ -245,7 +229,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- CONSULTORES -->
 <div class="aba" id="aba-consultores">
   <div class="sec">
-    <div class="row"><div class="h">👥 Minha equipe</div><div style="display:flex;gap:6px"><button class="btn sec2" style="padding:7px 10px" onclick="Chama.abrir('controle')">📋 Controle</button><button class="btn sec2" style="padding:7px 10px" onclick="toggleChat()">💬 Conversas</button></div></div>
+    <div class="row"><div class="h">👥 Minha equipe</div><button class="btn sec2" style="padding:7px 10px" onclick="Chama.abrir('controle')">📋 Controle do check-in</button></div>
     <input type="text" id="cons-busca" placeholder="🔎 Buscar consultor…" oninput="renderConsultores()" style="width:100%;padding:10px 12px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px">
     <div id="lista-consultores"></div>
   </div>
@@ -764,41 +748,8 @@ function renderTarefas(){
     </div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nada encontrado</div>';
 }
-let _contratacao=null,_filtroContrat='novos';
-async function carregarContratacao(){
-  const el=document.getElementById('contratacao-lista');if(!el)return;
-  if(!_contratacao)el.innerHTML='<div class="mut" style="font-size:12px">Carregando…</div>';
-  try{
-    const r=await fetch('/api/gestor/contratacao');const d=await r.json();_contratacao=d;
-    if(!d.config){document.getElementById('contratacao-resumo').textContent='';el.innerHTML='<div class="card"><div class="mut" style="font-size:13px;margin-bottom:8px">Nenhuma planilha vinculada. Clique em ⚙️ Planilha e cole o link da sua planilha de candidatos.</div><button class="btn" onclick="abrirConfigPlanilha()">Vincular planilha</button></div>';return;}
-    if(!d.ativo){const msg=d.motivo==='google-off'?'Conexão com o Google inativa (falta a chave no Render).':'Não foi possível ler a planilha.<br><span style=\"font-size:10px;opacity:.8\">detalhe: '+String(d.erro||'').slice(0,180)+'</span>';document.getElementById('contratacao-resumo').textContent='';el.innerHTML='<div class="card"><div class="mut" style="font-size:13px">'+msg+'</div></div>';return;}
-    renderContratacao();
-  }catch(e){el.innerHTML='<div class="mut" style="font-size:12px">Erro ao carregar.</div>';}
-}
-function setFiltroContrat(f){_filtroContrat=f;document.querySelectorAll('[data-cf]').forEach(c=>c.classList.toggle('on',c.dataset.cf===f));renderContratacao();}
+// escapa texto antes de pôr na tela (anti-XSS) — usado em todo o painel
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-function renderContratacao(){
-  const d=_contratacao;if(!d||!d.candidatos)return;
-  const tot=d.candidatos.length,ct=d.candidatos.filter(c=>c.contatado).length;
-  document.getElementById('contratacao-resumo').textContent=`${tot} candidatos · ${ct} contatados · ${tot-ct} a contatar · atualiza sozinho`;
-  let lista=d.candidatos;
-  if(_filtroContrat==='novos')lista=lista.filter(c=>!c.contatado);
-  else if(_filtroContrat==='contatados')lista=lista.filter(c=>c.contatado);
-  document.getElementById('contratacao-lista').innerHTML=lista.map(c=>`<div class="card" style="${c.contatado?'opacity:.65':''}"><div class="row"><div class="titulo">${esc(c.nome)}${c.idade?` <span class="mut" style="font-weight:400">· ${esc(c.idade)}</span>`:''}</div><span class="badge ${c.contatado?'b-ok':'b-warn'}">${c.contatado?'Contatado':'A contatar'}</span></div><div class="mut" style="font-size:12px;margin-top:4px">${c.pj?('PJ: '+esc(c.pj)+' · '):''}${esc(c.email)}</div>${c.experiencia?`<div style="font-size:12px;margin-top:6px;line-height:1.5">${esc(c.experiencia)}</div>`:''}<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${c.wa?`<a class="btn sec2" style="padding:6px 11px;font-size:12px;text-decoration:none;color:#1E7B4F" href="https://wa.me/${c.wa}" target="_blank">💬 WhatsApp</a>`:''}${c.email?`<a class="btn sec2" style="padding:6px 11px;font-size:12px;text-decoration:none" href="mailto:${esc(c.email)}">✉️ Email</a>`:''}<button class="btn ${c.contatado?'sec2':''}" style="padding:6px 11px;font-size:12px" onclick="marcarContatado('${c.chave}',${!c.contatado})">${c.contatado?'Desmarcar':'✓ Marcar contatado'}</button></div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum candidato neste filtro</div>';
-}
-async function marcarContatado(chave,contatado){
-  const r=await fetch('/api/gestor/contratacao/marcar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chave,contatado})});
-  const j=await r.json();
-  if(j.ok){const c=_contratacao.candidatos.find(x=>x.chave===chave);if(c)c.contatado=contatado;renderContratacao();toast(contatado?'Marcado como contatado ✓':'Desmarcado')}else toast(j.erro||'Erro');
-}
-function abrirConfigPlanilha(){
-  abrirPop('Planilha de candidatos',`<div class="mut" style="font-size:12px;margin-bottom:8px">Cole o link da sua planilha do Google. Importante: a <b>conta de serviço</b> precisa ter acesso de leitura a ela, e a <b>Google Sheets API</b> precisa estar ativada.</div><input type="text" id="pl-url" placeholder="https://docs.google.com/spreadsheets/d/..." autocapitalize="none" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px"><button class="btn" style="width:100%" onclick="salvarPlanilhaContratacao()">Salvar</button>`);
-}
-async function salvarPlanilhaContratacao(){
-  const url=document.getElementById('pl-url').value.trim();if(!url){toast('Cole o link da planilha');return}
-  const r=await fetch('/api/gestor/contratacao/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
-  const j=await r.json();if(j.ok){fecharPop();toast('Planilha vinculada ✓');_contratacao=null;carregarContratacao()}else toast(j.erro||'Erro');
-}
 function moneyG(v){return 'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 let vgMesRef=new Date().toISOString().slice(0,7);
 // filtro de vendas: por TIME (vgTime) ou por CONSULTOR individual (vgConsultor = login)
@@ -1594,7 +1545,7 @@ function mostrarBadgeChatG(tot){const b=document.getElementById('badge-chat-g');
 iniciarNotif();
 // v155: a tela pergunta "mudou algo?" (/api/pulso) a cada 10 s e só recarrega quando mudou (antes: painel a cada 8 s, chat a cada 10 s, avisos a cada 30 s, sempre)
 Chama.iniciarPulso({
-  mudou(){carregar();if(document.getElementById('aba-controle').classList.contains('on'))carregarControle();if(document.getElementById('aba-ranking').classList.contains('on'))carregarRanking();if(document.getElementById('aba-contratacao').classList.contains('on'))carregarContratacao();if(document.getElementById('aba-perfil').classList.contains('on')&&perfilAtual)abrirPerfil(perfilAtual);if(document.getElementById('chat-box').style.display==='flex'){if(chatConsultor)abrirChatThread(chatConsultor);else abrirChatLista();}if(document.getElementById('aba-comissoes').classList.contains('on')&&document.getElementById('cm-receber').style.display==='block')carregarReceber();},
+  mudou(){carregar();if(document.getElementById('aba-controle').classList.contains('on'))carregarControle();if(document.getElementById('aba-ranking').classList.contains('on'))carregarRanking();if(document.getElementById('aba-perfil').classList.contains('on')&&perfilAtual)abrirPerfil(perfilAtual);if(document.getElementById('chat-box').style.display==='flex'){if(chatConsultor)abrirChatThread(chatConsultor);else abrirChatLista();}if(document.getElementById('aba-comissoes').classList.contains('on')&&document.getElementById('cm-receber').style.display==='block')carregarReceber();},
   avisos(){carregarAvisos();},
   chat(n){mostrarBadgeChatG(n);}
 });
@@ -1608,12 +1559,10 @@ const CAT_G=[
   {id:'mural',ic:'🏅',nome:'Mural',aba:'mural',abrir(){irAba('mural');carregarMural();}},
   {id:'ranking',ic:'🏆',nome:'Premiação',aba:'ranking',abrir(){irAba('ranking');carregarRanking();}},
   {id:'controle',ic:'📋',nome:'Controle do check-in',curto:'Controle',aba:'controle',abrir(){irAba('controle');carregarControle();}},
-  {id:'contratacao',ic:'🤝',nome:'Contratação',aba:'contratacao',abrir(){irAba('contratacao');carregarContratacao();}},
   {id:'simuladores',ic:'🧮',nome:'Simuladores',curto:'Simular',aba:'simuladores',abrir(){irAba('simuladores');}},
   {id:'config',ic:'⚙️',nome:'Configurações',aba:'acessos',abrir(){irAba('acessos');carregarUsuarios();}},
   {id:'novaatividade',ic:'📝',nome:'Nova atividade',abrir(){irAba('painel');abrirNovaAtividade();}},
   {id:'novavenda',ic:'➕',nome:'Nova venda',abrir(){irAba('vendasg');carregarVendasG();novaVendaG();}},
-  {id:'chat',ic:'💬',nome:'Conversas',abrir(){toggleChat();}},
 ];
 function badgeG(id){
   if(!painel)return '';

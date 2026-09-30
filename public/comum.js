@@ -302,7 +302,8 @@
   C.personalizar = function () { TMP = favoritos().slice(); desenharPers(); };
   function desenharPers() {
     const outros = CAT.filter(r => !TMP.includes(r.id));
-    let h = '<div class="mut" style="font-size:12px;margin-bottom:8px">Marque ⭐ o que você mais usa e ajuste a ordem com ▲▼. Os <b>3 primeiros</b> ficam na barra de baixo do celular; todos aparecem nos atalhos do início (até ' + MAX_FAV + ').</div>';
+    const temInicio = !!document.getElementById('atalhos-home');
+    let h = '<div class="mut" style="font-size:12px;margin-bottom:8px">Marque ⭐ o que você mais usa (até ' + MAX_FAV + ') e ajuste a ordem com ▲▼. Os <b>3 primeiros</b> ficam na barra de baixo do celular; no computador, todos ficam no topo do menu lateral' + (temInicio ? ' e nos atalhos do Início' : '') + '.</div>';
     h += '<div style="font-weight:700;font-size:13px;margin:6px 0 2px">⭐ Meus atalhos</div>';
     h += TMP.length ? TMP.map((id, i) => { const r = MAPA[id]; return '<div class="pers-li"><button class="st" title="Tirar dos atalhos" onclick="Chama._persTog(\'' + id + '\')">⭐</button><span class="nm">' + r.ic + ' ' + escH(r.nome) + (i < NA_BARRA ? ' <span class="tag-barra">barra</span>' : '') + '</span><button ' + (i === 0 ? 'disabled' : '') + ' onclick="Chama._persMov(' + i + ',-1)" aria-label="Subir">▲</button><button ' + (i === TMP.length - 1 ? 'disabled' : '') + ' onclick="Chama._persMov(' + i + ',1)" aria-label="Descer">▼</button></div>'; }).join('')
       : '<div class="mut" style="font-size:12px;padding:6px 4px">Nenhum ainda — marque abaixo.</div>';
