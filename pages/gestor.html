@@ -60,11 +60,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   <div style="min-width:0;flex:1 1 auto;cursor:pointer" onclick="abrirEquipes()" title="Trocar ou criar equipe"><div class="sub" id="time-sub">Painel do gestor</div><div class="nome" style="display:flex;align-items:center;gap:4px;min-width:0"><span id="time" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">…</span><span style="flex:none;font-size:13px;color:var(--mut)">▾</span></div></div>
   <div style="display:flex;align-items:center;gap:8px">
     <button onclick="abrirAvisos()" title="Avisos" style="position:relative;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔔<span id="badge-avisos" style="display:none;position:absolute;top:-5px;right:-5px;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:17px;height:17px;line-height:17px;text-align:center"></span></button>
-    <button onclick="irAba('acessos');carregarUsuarios()" title="Acessos e identidade" style="border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">⚙️</button>
-    <button onclick="carregar();toast('Atualizado ✓')" title="Atualizar" style="border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔄</button>
-    <div class="avatar" id="avatar" title="Trocar minha foto" style="cursor:pointer" onclick="document.getElementById('minha-foto-file').click()"></div>
+    <div class="avatar" id="avatar" title="Meu perfil" style="cursor:pointer" onclick="abrirPerfilG()"></div>
     <input id="minha-foto-file" type="file" accept="image/*" style="display:none" onchange="trocarMinhaFoto(this)">
-    <button onclick="sair()" style="border:1px solid var(--bord);background:var(--card);color:var(--mut);border-radius:12px;padding:8px 12px;font-size:12px;cursor:pointer">Sair</button>
   </div>
 </div>
 
@@ -73,20 +70,18 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   <div class="sec">
     <div class="h" id="h-agend-home" style="display:none;color:var(--acc)">🔔 Agendamentos aguardando seu aceite</div>
     <div id="agend-home" style="margin-bottom:6px"></div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
-      <div onclick="irControleFiltro('atrasadas')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--no)" id="t-atr">0</div><div style="font-size:12px;color:var(--no)">Atrasadas</div></div>
-      <div onclick="irControleFiltro('abertas')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--warn)" id="t-pen">0</div><div style="font-size:12px;color:var(--warn)">Pendentes</div></div>
-      <div onclick="irControleFiltro('feitas')" style="cursor:pointer;background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:22px;font-weight:700;color:var(--ok)" id="t-fin">0</div><div style="font-size:12px;color:var(--ok)">Finalizadas</div></div>
-    </div>
-    <button class="btn sec2" style="width:100%;padding:10px;margin-bottom:10px" onclick="irAba('controle');carregarControle()">📋 Abrir Controle (check-in do time)</button>
+    <div class="hoje" id="pg-hoje"><div class="mut" style="padding:10px">Carregando…</div></div>
+    <div class="row" style="margin-top:4px"><div class="h" style="margin:6px 0">⭐ Meus atalhos</div><button class="lnk" onclick="Chama.personalizar()">✏️ Personalizar</button></div>
+    <div id="atalhos-home"></div>
+    <div style="display:none"><span id="t-atr"></span><span id="t-pen"></span><span id="t-fin"></span></div>
     <div class="h" id="h-minhas-tarefas" style="display:none">📥 Tarefas enviadas para mim</div>
     <div id="minhas-tarefas"></div>
     <div class="h">Execução por consultor · semana</div>
     <div class="card" id="execucao"></div>
     <div class="h" id="bloco-atrasadas">Atividades atrasadas · por consultor</div>
     <div id="atrasadas"></div>
-    <div class="h">＋ Nova atividade</div>
-    <div class="card">
+    <div class="row"><div class="h">📝 Nova atividade</div><button class="btn" style="padding:7px 12px" onclick="alternarNovaAtividade()">＋ Criar</button></div>
+    <div class="card" id="na-card" style="display:none">
       <select id="na-consultor" style="width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#F7F8FA"></select>
       <input type="text" id="na-titulo" placeholder="O que precisa ser feito" style="width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px;font-size:14px;background:#F7F8FA;margin-top:8px">
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -96,6 +91,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--txt);cursor:pointer"><input type="checkbox" id="na-recorrente" style="width:18px;height:18px;accent-color:var(--acc)"> 🔁 Repetir toda semana (recria ao concluir)</label>
       <button class="btn" style="width:100%;margin-top:10px" onclick="novaAtividade()">Criar atividade</button>
     </div>
+  </div>
+</div>
+
+<!-- MAIS (v159): todos os recursos -->
+<div class="aba" id="aba-mais">
+  <div class="sec">
+    <div class="row"><div class="h">☰ Todos os recursos</div><button class="lnk" onclick="Chama.personalizar()">✏️ Personalizar atalhos</button></div>
+    <div id="mais-grid"></div>
   </div>
 </div>
 
@@ -152,9 +155,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- RANKING -->
 <div class="aba" id="aba-ranking">
   <div class="sec">
+    <div class="chips-linha"><button class="chip" onclick="Chama.abrir('mural')">🏅 Vendas do mês</button><button class="chip on">🏆 Premiação</button></div>
     <div class="h">🏆 Premiação — vendas + check-in (todos os times)</div>
     <div class="card" style="margin-bottom:10px">
-      <div class="row"><span class="mut">Meta semanal (rotinas por consultor)</span><span></span></div>
+      <div class="row"><span class="mut" id="meta-rotulo">Meta semanal (rotinas por consultor)</span><span></span></div>
       <div style="display:flex;gap:8px;margin-top:8px">
         <input type="number" id="meta-input" min="1" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
         <button class="btn" onclick="salvarMeta()">Salvar meta</button>
@@ -241,7 +245,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- CONSULTORES -->
 <div class="aba" id="aba-consultores">
   <div class="sec">
-    <div class="h">👥 Consultores do time</div>
+    <div class="row"><div class="h">👥 Minha equipe</div><div style="display:flex;gap:6px"><button class="btn sec2" style="padding:7px 10px" onclick="Chama.abrir('controle')">📋 Controle</button><button class="btn sec2" style="padding:7px 10px" onclick="toggleChat()">💬 Conversas</button></div></div>
     <input type="text" id="cons-busca" placeholder="🔎 Buscar consultor…" oninput="renderConsultores()" style="width:100%;padding:10px 12px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px">
     <div id="lista-consultores"></div>
   </div>
@@ -251,7 +255,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-acessos">
   <div class="sec">
     <div class="row" style="margin-bottom:10px"><div class="h" style="margin:0">⚙️ Configurações</div><button class="btn sec2" style="padding:6px 12px" onclick="irAba('painel')">← Voltar</button></div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+    <div class="chips-linha">
       <button class="chip on" data-sa="acessos" onclick="subAcesso('acessos')">👥 Acessos</button>
       <button class="chip" data-sa="pedidos" onclick="subAcesso('pedidos')">📩 Pedidos <span id="cad-badge" class="badge b-no" style="display:none;margin-left:2px">0</span></button>
       <button class="chip" data-sa="novo" onclick="subAcesso('novo')">➕ Novo</button>
@@ -266,8 +270,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
         <input type="text" id="us-busca" placeholder="🔎 Buscar consultor ou gestor…" oninput="renderUsuarios()" style="flex:1;padding:9px 12px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#F7F8FA">
         <select id="us-filtro" onchange="renderUsuarios()" style="padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:#F7F8FA"><option value="">Todos</option><option value="ativo">Só ativos</option><option value="inativo">Só inativos</option></select>
       </div>
-      <button class="btn sec2" id="btn-reset-todos" style="width:100%;margin-bottom:10px;color:var(--no)" onclick="resetSenhasConsultores()">🔑 Redefinir senha de TODOS os consultores para 1234</button>
       <div id="lista-usuarios"></div>
+      <div class="card" style="margin-top:18px;border-color:rgba(196,55,55,.35)">
+        <div style="font-weight:700;color:var(--no);margin-bottom:4px">⚠️ Ações perigosas</div>
+        <div class="mut" style="font-size:12px;margin-bottom:10px">Afetam todos os consultores de uma vez. Pede confirmação digitada.</div>
+        <button class="btn sec2" id="btn-reset-todos" style="width:100%;color:var(--no)" onclick="resetSenhasConsultores()">🔑 Redefinir senha de TODOS os consultores para 1234</button>
+      </div>
     </div>
 
     <div class="sa" id="sa-pedidos" style="display:none">
@@ -336,6 +344,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 
 <div class="aba" id="aba-mural">
   <div class="sec">
+    <div class="chips-linha"><button class="chip on">🏅 Vendas do mês</button><button class="chip" onclick="Chama.abrir('ranking')">🏆 Premiação</button></div>
     <div class="row" style="align-items:center"><div class="h" style="margin:0">🏅 Mural</div><div style="display:flex;gap:6px;align-items:center"><button class="btn sec2" id="mural-edit" style="padding:6px 12px;display:none" onclick="abrirEditMural()">✏️ Editar</button></div></div>
     <div id="mural-nav" style="display:none;align-items:center;justify-content:center;gap:10px;margin:4px 0 10px"><button class="btn sec2" style="padding:5px 12px" onclick="muralMes(-1)">◀</button><div style="font-weight:700" id="mural-mes-lbl">—</div><button class="btn sec2" style="padding:5px 12px" onclick="muralMes(1)">▶</button></div>
     <div id="mural-recado"></div>
@@ -490,16 +499,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
-<div class="nav">
-  <a href="#" class="on" data-aba="painel" onclick="irAba('painel');return false"><span class="ic">📊</span>Painel</a>
-  <a href="#" data-aba="agenda" onclick="irAba('agenda');return false"><span class="ic">📅</span>Agenda</a>
-  <a href="#" data-aba="vendasg" onclick="irAba('vendasg');carregarVendasG();return false"><span class="ic">💰</span>Vendas</a>
-  <a href="#" data-aba="gestcli" onclick="irAba('gestcli');carregarGestCli();return false"><span class="ic">👥</span>Clientes</a>
-  <a href="#" data-aba="comissoes" onclick="irAba('comissoes');carregarComissoes();return false"><span class="ic">💸</span>Comissões</a>
-  <a href="#" data-aba="ranking" onclick="irAba('ranking');carregarRanking();return false"><span class="ic">🏆</span>Ranking</a>
-  <a href="#" data-aba="mural" onclick="irAba('mural');carregarMural();return false"><span class="ic">🏅</span>Mural</a>
-  <a href="#" data-aba="simuladores" onclick="irAba('simuladores');return false"><span class="ic">🧮</span>Simular</a>
-</div>
+<div class="nav"></div>
 
 <!-- BALÃO DE NOTIFICAÇÕES (flutuante) -->
 <div id="notif-panel" style="display:none;position:fixed;top:64px;right:12px;width:min(360px,92vw);max-height:70vh;overflow:auto;background:var(--card);border:1px solid var(--bord);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);z-index:9997;padding:12px">
@@ -707,6 +707,8 @@ async function carregar(){
   document.getElementById('h-agend-home').style.display=pend.length?'block':'none';
   document.getElementById('agend-home').innerHTML=pend.map(cardPendente).join('');
   carregarAgenda();
+  renderHojeG();
+  Chama.atualizarCasca();
 }
 function cardPendente(s){return `
     <div class="card" style="border-color:rgba(214,40,57,.35)">
@@ -1085,6 +1087,7 @@ function abrirVendaG(id){const v=(window._vgAll||[]).find(x=>x.id===id);if(!v)re
 async function carregarRanking(){
   const res=await fetch('/api/gestor/ranking');const r=await res.json();
   document.getElementById('meta-input').value=r.metaSemanal;
+  {const ml=document.getElementById('meta-rotulo');if(ml)ml.textContent=r.metaTime?('Meta semanal da equipe '+r.metaTime+' (rotinas por consultor)'):'Meta semanal (rotinas por consultor)';}
   document.getElementById('ranking-lista').innerHTML=r.ranking.map(x=>`<div class="card"><div class="row"><div class="titulo" style="cursor:pointer;color:var(--acc);display:flex;align-items:center;gap:8px" onclick="abrirPerfil('${x.email}')"><span style="font-weight:700">${x.medalha||x.pos+'º'}</span>${avatarHTML(x.nome,x.cor,28,x.foto)}${esc(x.nome)}${x.time?` <span class="mut" style="font-weight:400">· ${esc(x.time)}</span>`:''}</div><div style="font-weight:800">${x.pontos}<span class="mut" style="font-weight:400;font-size:11px"> / 200 pts</span></div></div>
     <div style="margin-top:8px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>💰 ${moneyG(x.vendido)}${x.metaVenda?(' / '+moneyG(x.metaVenda)):' (sem meta)'}</span><span style="font-weight:700;color:#3E8E6E">${x.vendasPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.vendasPct}%;height:100%;background:#3E8E6E"></div></div></div>
     <div style="margin-top:6px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>✅ Check-in ${x.checkAtual}/${x.checkAlvo}</span><span style="font-weight:700;color:#5175A0">${x.checkPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.checkPct}%;height:100%;background:#5175A0"></div></div></div>
@@ -1507,7 +1510,7 @@ function preencherTimes(){
 let _rotinas=[];
 async function carregarRotinasEdit(){
   const res=await fetch('/api/gestor/rotinas');const j=await res.json();_rotinas=j.rotinas||[];renderRotinasEdit();
-  const d=document.getElementById('rot-desc');if(d)d.innerHTML=j.time?`Rotinas do check-in da equipe <b>${esc(j.time)}</b>${j.propria?'':' <span class="mut">(hoje usando a lista padrão — ao salvar, vira a lista desta equipe)</span>'}. A meta semanal (aba Controle) também é por equipe.`:'Rotinas que os consultores marcam todo dia.';
+  const d=document.getElementById('rot-desc');if(d)d.innerHTML=j.time?`Rotinas do check-in da equipe <b>${esc(j.time)}</b>${j.propria?'':' <span class="mut">(hoje usando a lista padrão — ao salvar, vira a lista desta equipe)</span>'}. A meta semanal (aba Premiação) também é por equipe.`:'Rotinas que os consultores marcam todo dia.';
 }
 function renderRotinasEdit(){
   document.getElementById('lista-rotinas-edit').innerHTML=_rotinas.map((r,i)=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="text" value="${(r||'').replace(/"/g,'&quot;')}" onchange="_rotinas[${i}]=this.value" style="flex:1;padding:9px 11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><button onclick="removerRotina(${i})" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--no)">🗑</button></div>`).join('')||'<div class="mut">Nenhuma rotina</div>';
@@ -1543,7 +1546,8 @@ async function criarUsuario(){
 async function removerUsuario(email){if(!confirm('Remover o acesso de '+email+'?'))return;const res=await fetch('/api/gestor/usuarios/remover',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});const j=await res.json();toast(j.ok?'Removido ✓':(j.erro||'Erro'));carregarUsuarios()}
 async function resetSenha(email){const senha=prompt('Nova senha para '+email+':');if(!senha)return;await fetch('/api/gestor/usuarios/senha',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,senha})});toast('Senha redefinida ✓')}
 async function resetSenhasConsultores(){
-  if(!confirm('Redefinir a senha de TODOS os consultores para 1234? Cada um poderá trocar depois.'))return;
+  const ok=prompt('Isto vai redefinir a senha de TODOS os consultores para 1234 e desconectar todos eles.\n\nPara confirmar, digite CONFIRMAR:');
+  if(String(ok||'').trim().toUpperCase()!=='CONFIRMAR'){toast('Cancelado — nada foi alterado');return;}
   const r=await fetch('/api/gestor/reset-senhas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({papel:'consultor',senha:'1234'})});
   const j=await r.json();
   toast(j.ok?(j.alterados+' consultores agora com senha 1234 ✓'):(j.erro||'Erro'));
@@ -1594,22 +1598,61 @@ Chama.iniciarPulso({
   avisos(){carregarAvisos();},
   chat(n){mostrarBadgeChatG(n);}
 });
-carregar();
-// ----- Menu arrastável (cada gestor organiza a própria ordem) -----
-function tornarNavArrastavel(nav,key){
-  if(!nav)return;
-  try{const ord=JSON.parse(localStorage.getItem(key)||'[]');ord.forEach(a=>{const el=nav.querySelector('a[data-aba="'+a+'"]');if(el)nav.appendChild(el);});}catch(e){}
-  let drag=null,startX=0,moved=false,justDragged=false;
-  nav.addEventListener('click',e=>{if(justDragged){e.preventDefault();e.stopPropagation();justDragged=false;}},true);
-  nav.querySelectorAll('a').forEach(a=>{
-    a.style.touchAction='none';
-    a.addEventListener('pointerdown',e=>{drag=a;startX=e.clientX;moved=false;try{a.setPointerCapture(e.pointerId);}catch(_){}});
-    a.addEventListener('pointermove',e=>{if(!drag)return;if(!moved&&Math.abs(e.clientX-startX)>8)moved=true;if(!moved)return;drag.style.opacity='.55';const els=[...nav.querySelectorAll('a')];for(const el of els){if(el===drag)continue;const r=el.getBoundingClientRect();if(e.clientX>=r.left&&e.clientX<=r.right){if(e.clientX<r.left+r.width/2)nav.insertBefore(drag,el);else nav.insertBefore(drag,el.nextSibling);break;}}});
-    const end=()=>{if(!drag)return;drag.style.opacity='';if(moved){justDragged=true;setTimeout(()=>justDragged=false,400);try{localStorage.setItem(key,JSON.stringify([...nav.querySelectorAll('a')].map(x=>x.dataset.aba)));}catch(_){}}drag=null;};
-    a.addEventListener('pointerup',end);a.addEventListener('pointercancel',end);
-  });
+// ================= v159: MENU PERSONALIZÁVEL + PAINEL COM OS NÚMEROS DA EQUIPE =================
+const CAT_G=[
+  {id:'vendas',ic:'💰',nome:'Vendas da equipe',curto:'Vendas',aba:'vendasg',abrir(){irAba('vendasg');carregarVendasG();}},
+  {id:'agenda',ic:'📅',nome:'Agenda',aba:'agenda',abrir(){irAba('agenda');}},
+  {id:'equipe',ic:'👥',nome:'Minha equipe',curto:'Equipe',aba:'consultores',abrir(){irAba('consultores');carregarConsultores();}},
+  {id:'clientes',ic:'🗂️',nome:'Clientes',aba:'gestcli',abrir(){irAba('gestcli');carregarGestCli();}},
+  {id:'comissoes',ic:'💸',nome:'Comissões',aba:'comissoes',abrir(){irAba('comissoes');carregarComissoes();}},
+  {id:'mural',ic:'🏅',nome:'Mural',aba:'mural',abrir(){irAba('mural');carregarMural();}},
+  {id:'ranking',ic:'🏆',nome:'Premiação',aba:'ranking',abrir(){irAba('ranking');carregarRanking();}},
+  {id:'controle',ic:'📋',nome:'Controle do check-in',curto:'Controle',aba:'controle',abrir(){irAba('controle');carregarControle();}},
+  {id:'contratacao',ic:'🤝',nome:'Contratação',aba:'contratacao',abrir(){irAba('contratacao');carregarContratacao();}},
+  {id:'simuladores',ic:'🧮',nome:'Simuladores',curto:'Simular',aba:'simuladores',abrir(){irAba('simuladores');}},
+  {id:'config',ic:'⚙️',nome:'Configurações',aba:'acessos',abrir(){irAba('acessos');carregarUsuarios();}},
+  {id:'novaatividade',ic:'📝',nome:'Nova atividade',abrir(){irAba('painel');abrirNovaAtividade();}},
+  {id:'novavenda',ic:'➕',nome:'Nova venda',abrir(){irAba('vendasg');carregarVendasG();novaVendaG();}},
+  {id:'chat',ic:'💬',nome:'Conversas',abrir(){toggleChat();}},
+];
+function badgeG(id){
+  if(!painel)return '';
+  const rs=painel.resumo||{};
+  if(id==='agenda'){const n=(painel.pendentes||[]).length;return n?String(n):'';}
+  if(id==='config')return rs.cadastros?String(rs.cadastros):'';
+  return '';
 }
-tornarNavArrastavel(document.querySelector('.nav'),'nav-ordem-gestor');
+Chama.iniciarCasca({catalogo:CAT_G,padrao:['vendas','agenda','equipe','clientes','comissoes','novaatividade'],inicio:{ic:'📊',nome:'Painel',aba:'painel',abrir(){irAba('painel');}},badge:badgeG});
+const MESES_G=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+// Painel: vendas da equipe no mês, o que precisa de você e o check-in de hoje
+async function renderHojeG(){
+  const el=document.getElementById('pg-hoje');if(!el||!painel)return;
+  let d=null;try{d=await(await fetch('/api/gestor/vendas-dash')).json();}catch(e){}
+  d=d&&!d.erro?d:{mes:'',totalTime:0,totalMeta:0,bateram:0,consultores:[]};
+  const neg=(d.consultores||[]).reduce((s,c)=>s+(+c.negociando||0),0);
+  const pct=d.totalMeta?Math.round(100*d.totalTime/d.totalMeta):0;
+  const mesNome=d.mes?MESES_G[+d.mes.slice(5,7)-1]:'mês';
+  const rs=painel.resumo||{};
+  const nReun=(painel.pendentes||[]).length,nAtr=(painel.tarefas||{}).atrasadas||0,nCad=rs.cadastros||0,nSen=rs.senhas||0;
+  let h='<div class="cd esc larga" onclick="Chama.abrir(\'vendas\')"><div class="t">💰 Vendas da equipe · '+mesNome+'</div>';
+  if(d.totalMeta>0)h+=`<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><span class="v">${moneyG(d.totalTime)}</span><span style="font-size:12px;color:#B8BCC6">meta ${moneyG(d.totalMeta)} · ${pct}%</span></div><div class="br"><div style="width:${Math.min(100,pct)}%;background:#57B36A"></div></div>`;
+  else h+=`<div class="v">${moneyG(d.totalTime)}</div>`;
+  h+=`<div style="font-size:12px;color:#B8BCC6;margin-top:6px">${d.bateram||0} bateram a meta · ${moneyG(neg)} em negociação${d.totalMeta>0?'':' · metas individuais não definidas'}</div></div>`;
+  const ln=(ic,txt,n,acao)=>`<div class="ln" style="cursor:pointer" onclick="event.stopPropagation();${acao}"><span>${ic} ${txt}</span>${n?`<span class="pl">${n}</span>`:'<span class="mut" style="font-size:12px">0</span>'}</div>`;
+  const tot=nReun+nCad+nSen+nAtr;
+  h+=`<div class="cd"><div class="t">🔔 Precisa de você${tot?'':' · tudo em dia 🎉'}</div>`
+    +ln('📅','Reuniões para aprovar',nReun,"Chama.abrir('agenda')")
+    +ln('📩','Pedidos de acesso',nCad,"Chama.abrir('config');subAcesso('pedidos')")
+    +ln('🔑','Pedidos de nova senha',nSen,'abrirAvisos()')
+    +ln('📋','Atividades atrasadas do time',nAtr,"irControleFiltro('atrasadas')")+'</div>';
+  const ckPct=rs.ckTotal?Math.round(100*(rs.ckEnviaram||0)/rs.ckTotal):0;
+  h+=`<div class="cd" onclick="Chama.abrir('controle')"><div class="t">✅ Check-in da equipe hoje</div><div class="v">${rs.ckEnviaram||0} de ${rs.ckTotal||0} <span style="font-size:13px;font-weight:600;color:var(--mut)">enviaram</span></div><div class="br"><div style="width:${ckPct}%;background:#5175A0"></div></div><div class="mut" style="font-size:12px;margin-top:6px">Média das rotinas feitas: ${rs.ckMedia||0}%</div></div>`;
+  el.innerHTML=h;
+}
+function abrirPerfilG(){Chama.abrirPerfil({nome:painel?painel.nome:'',foto:painel?painel.foto:'',sub:'Gestor'+(painel&&painel.time?' · '+painel.time:'')},[{ic:'⚙️',nome:'Configurações',acao:"Chama.abrir('config')"},{ic:'🏢',nome:'Minhas equipes',acao:'abrirEquipes()'}]);}
+function abrirNovaAtividade(){const c=document.getElementById('na-card');c.style.display='block';c.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>{const t=document.getElementById('na-titulo');if(t)t.focus();},300);}
+function alternarNovaAtividade(){const c=document.getElementById('na-card');if(c.style.display==='none')abrirNovaAtividade();else c.style.display='none';}
+carregar();
 </script>
 </body>
 </html>

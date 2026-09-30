@@ -8,7 +8,8 @@
 <style>
 :root{--bg:#E8E9EC;--card:#FFFFFF;--card2:#F2F3F5;--txt:#23272F;--mut:#7B828C;--acc:#D62839;--acc2:#B71F2E;--accbg:rgba(214,40,57,.10);--ok:#3E8E6E;--okbg:rgba(62,142,110,.13);--warn:#A9772F;--warnbg:rgba(169,119,47,.14);--no:#C0484E;--nobg:rgba(192,72,78,.12);--bord:#E1E3E7;--r:14px;color-scheme:light}
 *{box-sizing:border-box;margin:0}
-body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:130px}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:96px}
+.gamif{display:none!important} /* v158: meta e check-in passaram para os cards do Início */
 .gamif{position:fixed;left:0;right:0;bottom:56px;background:var(--card);border-top:1px solid var(--bord);padding:7px 14px;z-index:8;box-shadow:0 -2px 8px rgba(0,0,0,.05)}
 .gbar{display:flex;align-items:center;gap:8px;margin:3px 0}
 .gbar .gl{font-size:11px;width:92px;color:var(--txt);white-space:nowrap;font-weight:600}
@@ -65,33 +66,21 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 </div>
 <div class="top">
   <div style="display:flex;align-items:center;gap:8px">
-    <button id="btn-voltar" onclick="irAba('inicio')" title="Voltar ao início" style="display:none;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 12px;font-size:14px;font-weight:600;cursor:pointer">‹ Voltar</button>
     <div><div class="ola" id="saud">Olá,</div><div class="nome" id="nome">…</div></div>
   </div>
   <div style="display:flex;align-items:center;gap:8px">
     <button onclick="abrirAvisos()" title="Avisos" style="position:relative;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔔<span id="badge-avisos" style="display:none;position:absolute;top:-5px;right:-5px;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:17px;height:17px;line-height:17px;text-align:center"></span></button>
-    <button onclick="carregar();toast('Atualizado ✓')" title="Atualizar" style="border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔄</button>
-    <button onclick="abrirSenha()" title="Trocar senha" style="border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">⚙️</button>
-    <div class="avatar" id="avatar" title="Trocar minha foto" style="cursor:pointer" onclick="document.getElementById('minha-foto-file').click()"></div>
+    <div class="avatar" id="avatar" title="Meu perfil" style="cursor:pointer" onclick="abrirPerfilC()"></div>
     <input id="minha-foto-file" type="file" accept="image/*" style="display:none" onchange="trocarMinhaFoto(this)">
-    <button onclick="sair()" style="border:1px solid var(--bord);background:var(--card);color:var(--mut);border-radius:12px;padding:8px 12px;font-size:12px;cursor:pointer">Sair</button>
   </div>
 </div>
 
-<!-- INÍCIO (menu de blocos) -->
+<!-- INÍCIO (v158): o dia do consultor + atalhos escolhidos por ele -->
 <div class="aba on" id="aba-inicio">
   <div class="sec">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px">
-      <div class="tile" onclick="irAba('agenda')"><div class="emo">📅</div><div class="lbl">Agenda</div></div>
-      <div class="tile" onclick="irAba('vendas');carregarVendas()"><div class="emo">💰</div><div class="lbl">Vendas</div></div>
-      <div class="tile" onclick="irAba('clientes');carregarClientesTab()"><div class="emo">👥</div><div class="lbl">Clientes</div></div>
-      <div class="tile" onclick="irAba('checkin')"><span class="bad" id="tile-ck">–</span><div class="emo">✅</div><div class="lbl">Check-in</div></div>
-      <div class="tile" onclick="irAba('atividades')"><span class="bad" id="tile-atv">0</span><div class="emo">📋</div><div class="lbl">Atividades</div></div>
-      <div class="tile" onclick="abrirArquivosPop()"><div class="emo">📎</div><div class="lbl">Arquivos</div></div>
-      <div class="tile" onclick="irAba('mural');carregarMuralC()"><div class="emo">🏅</div><div class="lbl">Mural</div></div>
-      <div class="tile" onclick="irAba('simuladores')"><div class="emo">🧮</div><div class="lbl">Simuladores</div></div>
-      <div class="tile" onclick="irAba('comissoes');carregarExtrato()" style="grid-column:1/-1;min-height:92px"><span class="bad" id="tile-com" style="display:none"></span><div class="emo">💸</div><div class="lbl">Minhas comissões</div></div>
-    </div>
+    <div class="hoje" id="hoje"><div class="mut" style="padding:10px">Carregando…</div></div>
+    <div class="row" style="margin-top:4px"><div class="h" style="margin:6px 0">⭐ Meus atalhos</div><button class="lnk" onclick="Chama.personalizar()">✏️ Personalizar</button></div>
+    <div id="atalhos-home"></div>
   </div>
   <!-- dados carregados pelo app (usados nas telas internas) -->
   <div id="home-data" style="display:none">
@@ -101,11 +90,20 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
+<!-- MAIS (v158): todos os recursos -->
+<div class="aba" id="aba-mais">
+  <div class="sec">
+    <div class="row"><div class="h">☰ Todos os recursos</div><button class="lnk" onclick="Chama.personalizar()">✏️ Personalizar atalhos</button></div>
+    <div id="mais-grid"></div>
+  </div>
+</div>
+
 <!-- AGENDA -->
 <div class="aba" id="aba-agenda">
   <div class="sec">
-    <div class="h">Solicitar reunião</div>
-    <div class="card">
+    <div class="row"><div class="h">📅 Minhas reuniões</div><button class="btn" style="padding:7px 12px" onclick="alternarFormReuniao()">＋ Pedir reunião</button></div>
+    <div id="lista-solicitacoes"></div>
+    <div class="card" id="form-reuniao" style="display:none;margin-top:10px">
       <div class="row" style="margin-bottom:6px"><div class="mut" id="dispo-titulo">Disponibilidade da semana do gestor</div></div>
       <div id="dispo-semana" style="margin-bottom:12px"><div class="mut" style="font-size:12px">Carregando…</div></div>
       <label>Assunto</label>
@@ -121,8 +119,6 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <select id="s-para"><option value="">Meu gestor (padrão)</option><option value="__none__">Só registrar (não enviar p/ ninguém)</option></select>
       <button class="btn full" onclick="solicitar()" style="background:var(--ok)" id="btn-solicitar">Enviar solicitação</button>
     </div>
-    <div class="h">Minhas solicitações</div>
-    <div id="lista-solicitacoes"></div>
   </div>
 </div>
 
@@ -143,8 +139,8 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <!-- ATIVIDADES -->
 <div class="aba" id="aba-atividades">
   <div class="sec">
-    <div class="h">Minhas atividades</div>
-    <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+    <div class="row"><div class="h">📋 Minhas atividades</div><button class="btn" style="padding:7px 12px" onclick="novaTarefaPropria()">＋ Nova tarefa</button></div>
+    <div class="chips-linha">
       <button class="chip" data-f="todas" onclick="setFiltroAtv('todas')">Todas</button>
       <button class="chip" data-f="atrasadas" onclick="setFiltroAtv('atrasadas')">Atrasadas</button>
       <button class="chip" data-f="pendentes" onclick="setFiltroAtv('pendentes')">Pendentes</button>
@@ -159,10 +155,13 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   <div class="sec">
     <div class="row"><div class="h">💼 Minhas vendas</div><button class="btn" style="padding:7px 12px" onclick="novaVenda()">+ Nova venda</button></div>
     <div class="card" id="vd-filtro-card" style="padding:10px 12px">
-      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-        <input type="text" id="vd-busca" placeholder="🔎 Cliente ou CPF" oninput="renderVendas()" style="flex:1;min-width:120px">
-        <input type="date" id="vd-de" onchange="carregarVendas()" title="Data inicial">
-        <input type="date" id="vd-ate" onchange="carregarVendas()" title="Data final">
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="vd-busca" placeholder="🔎 Cliente ou CPF" oninput="renderVendas()" style="flex:1;min-width:0">
+        <button class="btn sec2" style="padding:9px 11px;flex:none" onclick="const e=document.getElementById('vd-periodo');e.style.display=e.style.display==='none'?'flex':'none'" title="Filtrar por período">📅 Período</button>
+      </div>
+      <div id="vd-periodo" style="display:none;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px">
+        <input type="date" id="vd-de" onchange="carregarVendas()" title="Data inicial" style="flex:1;min-width:130px">
+        <input type="date" id="vd-ate" onchange="carregarVendas()" title="Data final" style="flex:1;min-width:130px">
         <button class="btn sec2" style="padding:9px 11px" onclick="limparFiltroVendas()">Limpar</button>
       </div>
       <div class="mut" id="vd-total" style="margin-top:8px">—</div>
@@ -183,12 +182,10 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
     </div>
     <div id="cc-cliente">
       <div class="card" style="padding:12px;margin-bottom:10px;background:linear-gradient(135deg,#0f8a5f,#0b6e4c);color:#fff"><div style="font-size:12px;opacity:.9">💼 Carteira total <span style="opacity:.8">(sem canceladas)</span></div><div id="vd-carteira-total" style="font-size:22px;font-weight:800;margin-top:2px">—</div><div id="vd-carteira-sub" class="mut" style="color:rgba(255,255,255,.85);font-size:11px;margin-top:2px"></div></div>
-      <button class="btn full" style="background:var(--ok);margin-bottom:8px" onclick="novaClienteAntigo()">➕ Cadastro de cliente</button>
-      <div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sec2" style="flex:1;padding:9px" onclick="baixarModeloClientesC()">⬇️ Baixar modelo</button><button class="btn sec2" style="flex:1;padding:9px" onclick="document.getElementById('cs-upload').click()">⬆️ Subir planilha</button></div>
-      <button class="btn sec2 full" style="padding:9px;margin-bottom:10px" onclick="Chama.exportarClientes()">📤 Exportar minha carteira (Excel)</button>
+      <div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn" style="flex:1;background:var(--ok)" onclick="novaClienteAntigo()">➕ Cadastro de cliente</button><button class="btn sec2" style="flex:none;padding:9px 14px" onclick="menuPlanilhaC()" title="Planilha: modelo, importar, exportar">⋯</button></div>
       <input type="file" id="cs-upload" accept=".xlsx" style="display:none" onchange="subirPlanilhaClientesC(this)">
       <input type="text" id="cc-busca" placeholder="🔎 Buscar cliente ou CPF" oninput="renderClientes()" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px">
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><button class="btn sec2 sm csit on" id="csit-todos" onclick="setSitFiltroC('todos')">Todos</button><button class="btn sec2 sm csit" id="csit-ativo" onclick="setSitFiltroC('ativo')">🟢 Ativas</button><button class="btn sec2 sm csit" id="csit-contemplado" onclick="setSitFiltroC('contemplado')">🏆 Contempladas</button><button class="btn sec2 sm csit" id="csit-cancelado" onclick="setSitFiltroC('cancelado')">❌ Canceladas</button></div>
+      <div class="chips-linha"><button class="btn sec2 sm csit on" id="csit-todos" onclick="setSitFiltroC('todos')">Todos</button><button class="btn sec2 sm csit" id="csit-ativo" onclick="setSitFiltroC('ativo')">🟢 Ativas</button><button class="btn sec2 sm csit" id="csit-contemplado" onclick="setSitFiltroC('contemplado')">🏆 Contempladas</button><button class="btn sec2 sm csit" id="csit-cancelado" onclick="setSitFiltroC('cancelado')">❌ Canceladas</button></div>
       <div class="mut" id="cc-total" style="font-size:12px;margin-bottom:8px">—</div>
       <div id="vd-clientes"></div>
     </div>
@@ -295,15 +292,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   </div>
 </div>
 
-<div class="nav">
-  <a href="#" class="on" data-aba="inicio" onclick="irAba('inicio');return false"><span class="ic">🏠</span>Início</a>
-  <a href="#" data-aba="agenda" onclick="irAba('agenda');return false"><span class="ic">📅</span>Agenda</a>
-  <a href="#" data-aba="checkin" onclick="irAba('checkin');return false"><span class="ic">✅</span>Check-in</a>
-  <a href="#" data-aba="atividades" onclick="irAba('atividades');return false"><span class="ic">📋</span>Atividades</a>
-  <a href="#" data-aba="vendas" onclick="irAba('vendas');carregarVendas();return false"><span class="ic">💼</span>Vendas</a>
-  <a href="#" data-aba="clientes" onclick="irAba('clientes');carregarClientesTab();return false"><span class="ic">👥</span>Clientes</a>
-  <a href="#" data-aba="simuladores" onclick="irAba('simuladores');return false"><span class="ic">🧮</span>Simular</a>
-</div>
+<div class="nav"></div>
 
 <!-- BALÃO DE NOTIFICAÇÕES (flutuante) -->
 <div id="notif-panel" style="display:none;position:fixed;top:64px;right:12px;width:min(340px,92vw);max-height:70vh;overflow:auto;background:var(--card);border:1px solid var(--bord);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);z-index:9997;padding:12px">
@@ -313,8 +302,8 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 </div>
 
 <!-- CHAT FLUTUANTE (canto inferior direito) -->
-<button id="chat-fab" onclick="toggleChat()" style="position:fixed;bottom:126px;right:16px;width:56px;height:56px;border-radius:50%;background:var(--acc);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:9996">💬<span id="badge-chat" style="display:none;position:absolute;top:-2px;right:-2px;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:18px;height:18px;line-height:18px;text-align:center">0</span></button>
-<div id="chat-box" style="display:none;position:fixed;bottom:126px;right:16px;width:min(340px,92vw);height:min(460px,70vh);background:var(--card);border:1px solid var(--bord);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.25);z-index:9997;flex-direction:column;overflow:hidden">
+<button id="chat-fab" onclick="toggleChat()" style="position:fixed;bottom:84px;right:16px;width:56px;height:56px;border-radius:50%;background:var(--acc);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:9996">💬<span id="badge-chat" style="display:none;position:absolute;top:-2px;right:-2px;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:18px;height:18px;line-height:18px;text-align:center">0</span></button>
+<div id="chat-box" style="display:none;position:fixed;bottom:84px;right:16px;width:min(340px,92vw);height:min(460px,70vh);background:var(--card);border:1px solid var(--bord);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.25);z-index:9997;flex-direction:column;overflow:hidden">
   <div style="background:var(--acc);color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:14px">💬 Conversa com seu gestor</span><button onclick="toggleChat()" style="border:none;background:transparent;color:#fff;font-size:18px;cursor:pointer">✕</button></div>
   <div id="chat-msgs" style="flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--bg)"></div>
   <div style="display:flex;gap:8px;padding:10px;border-top:1px solid var(--bord)">
@@ -327,7 +316,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <script>
 let dados = null;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
-function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n));const bv=document.getElementById('btn-voltar');if(bv)bv.style.display=n==='inicio'?'none':'block';window.scrollTo(0,0);if(n==='agenda'){carregarDispo();carregarGestores()}}
+function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('on'));document.getElementById('aba-'+n).classList.add('on');document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.aba===n));window.scrollTo(0,0);if(n==='agenda'){carregarDispo();carregarGestores()}}
 // ===== SIMULADORES =====
 function simNum(id){let v=(document.getElementById(id).value||'').trim().replace(/\s|R\$|%/g,'');if(!v)return NaN;const taxa=/(adm|fundo|juros|indicepct)$/.test(id);/* taxa (%): ponto é sempre decimal — "1.125" = 1,125% */if(v.includes(','))v=v.replace(/\./g,'').replace(',','.');else if(!taxa&&/^\d{1,3}(\.\d{3})+$/.test(v))v=v.replace(/\./g,'');return parseFloat(v);}
 function simBRL(v){return (isFinite(v)?v:0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
@@ -749,7 +738,7 @@ async function carregar(){
     return `<div class="card row"><div><div class="titulo" style="font-weight:500">${esc(a.titulo)}</div><div class="mut">${a.tipo} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><div style="display:flex;gap:6px;align-items:center">${a.status!=='Feito'?`<button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="mudarAtv('${a.id}','${a.status==='A fazer'?'Fazendo':'Feito'}')">${a.status==='A fazer'?'Iniciar':'Concluir'}</button><button class="btn sec2" style="padding:6px 9px;font-size:12px;color:var(--warn)" onclick="cancelarAtv('${a.id}')" title="Cancelar">✕</button>`:`<span class="badge b-ok">Feito</span>`}</div></div>`;
   };
   window._todasAtv=dados.atividades||[];window._rndAtv=rndAtv;
-  const hojeStr=new Date().toISOString().slice(0,10);
+  const hojeStr=Chama.hojeBR();
   const atrasadas=window._todasAtv.filter(a=>a.status!=='Feito'&&a.status!=='Cancelada'&&a.prazo<hojeStr);
   const pendentes=window._todasAtv.filter(a=>a.status!=='Feito'&&a.status!=='Cancelada'&&a.prazo>=hojeStr);
   const finalizadas=window._todasAtv.filter(a=>a.status==='Feito');
@@ -760,15 +749,17 @@ async function carregar(){
   atualizarGamif();
   document.getElementById('lista-atividades-mini').innerHTML = window._todasAtv.filter(a=>a.status!=='Feito'&&a.status!=='Cancelada').slice(0,3).map(rndAtv).join('')||'<div class="mut" style="padding:0 4px">Tudo em dia 🎉</div>';
   renderAtividades();
+  renderHoje();
+  Chama.atualizarCasca();
 }
 let _filtroAtv='todas';
 function renderAtividades(){
-  const hojeStr=new Date().toISOString().slice(0,10);
+  const hojeStr=Chama.hojeBR();
   let lista=window._todasAtv||[];
   if(_filtroAtv==='atrasadas')lista=lista.filter(a=>a.status!=='Feito'&&a.status!=='Cancelada'&&a.prazo<hojeStr);
   else if(_filtroAtv==='pendentes')lista=lista.filter(a=>a.status!=='Feito'&&a.status!=='Cancelada'&&a.prazo>=hojeStr);
   else if(_filtroAtv==='finalizadas')lista=lista.filter(a=>a.status==='Feito');
-  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.f===_filtroAtv));
+  document.querySelectorAll('#aba-atividades .chip').forEach(c=>c.classList.toggle('on',c.dataset.f===_filtroAtv));
   document.getElementById('lista-atividades').innerHTML=lista.map(window._rndAtv).join('')||'<div class="mut" style="padding:0 4px">Nenhuma atividade nesse filtro</div>';
 }
 function setFiltroAtv(f){_filtroAtv=f;renderAtividades()}
@@ -896,22 +887,63 @@ function renderExtrato(){
 async function cancelar(id){if(!confirm('Cancelar este compromisso? Ele sai da sua agenda e da agenda do gestor.'))return;const res=await fetch('/api/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Cancelado ✓':(j.erro||'Erro'));carregar()}
 async function excluirSolic(id){if(!confirm('Excluir esta solicitação da lista?'))return;const res=await fetch('/api/solicitacao/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Excluída ✓':(j.erro||'Erro'));carregar()}
 async function cancelarAtv(id){const justificativa=prompt('Por que você está cancelando esta atividade? (obrigatório — o gestor será avisado)');if(justificativa===null)return;if(!justificativa.trim()){toast('Justificativa obrigatória');return}const res=await fetch('/api/atividade/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,justificativa})});const j=await res.json();toast(j.ok?'Atividade cancelada ✓':(j.erro||'Erro'));carregar()}
-carregar();
-// ----- Menu arrastável (cada um organiza a própria ordem) -----
-function tornarNavArrastavel(nav,key){
-  if(!nav)return;
-  try{const ord=JSON.parse(localStorage.getItem(key)||'[]');ord.forEach(a=>{const el=nav.querySelector('a[data-aba="'+a+'"]');if(el)nav.appendChild(el);});}catch(e){}
-  let drag=null,startX=0,moved=false,justDragged=false;
-  nav.addEventListener('click',e=>{if(justDragged){e.preventDefault();e.stopPropagation();justDragged=false;}},true);
-  nav.querySelectorAll('a').forEach(a=>{
-    a.style.touchAction='none';
-    a.addEventListener('pointerdown',e=>{drag=a;startX=e.clientX;moved=false;try{a.setPointerCapture(e.pointerId);}catch(_){}});
-    a.addEventListener('pointermove',e=>{if(!drag)return;if(!moved&&Math.abs(e.clientX-startX)>8)moved=true;if(!moved)return;drag.style.opacity='.55';const els=[...nav.querySelectorAll('a')];for(const el of els){if(el===drag)continue;const r=el.getBoundingClientRect();if(e.clientX>=r.left&&e.clientX<=r.right){if(e.clientX<r.left+r.width/2)nav.insertBefore(drag,el);else nav.insertBefore(drag,el.nextSibling);break;}}});
-    const end=()=>{if(!drag)return;drag.style.opacity='';if(moved){justDragged=true;setTimeout(()=>justDragged=false,400);try{localStorage.setItem(key,JSON.stringify([...nav.querySelectorAll('a')].map(x=>x.dataset.aba)));}catch(_){}}drag=null;};
-    a.addEventListener('pointerup',end);a.addEventListener('pointercancel',end);
-  });
+// ================= v158: MENU PERSONALIZÁVEL + INÍCIO COM O DIA DO CONSULTOR =================
+const CAT_C=[
+  {id:'vendas',ic:'💼',nome:'Vendas',aba:'vendas',abrir(){irAba('vendas');carregarVendas();}},
+  {id:'clientes',ic:'👥',nome:'Clientes',aba:'clientes',abrir(){irAba('clientes');carregarClientesTab();}},
+  {id:'agenda',ic:'📅',nome:'Agenda',aba:'agenda',abrir(){irAba('agenda');}},
+  {id:'checkin',ic:'✅',nome:'Check-in',aba:'checkin',abrir(){irAba('checkin');}},
+  {id:'atividades',ic:'📋',nome:'Atividades',aba:'atividades',abrir(){irAba('atividades');}},
+  {id:'simuladores',ic:'🧮',nome:'Simuladores',curto:'Simular',aba:'simuladores',abrir(){irAba('simuladores');}},
+  {id:'mural',ic:'🏅',nome:'Mural',aba:'mural',abrir(){irAba('mural');carregarMuralC();}},
+  {id:'comissoes',ic:'💸',nome:'Minhas comissões',curto:'Comissões',aba:'comissoes',abrir(){irAba('comissoes');carregarExtrato();}},
+  {id:'sorteio',ic:'🎯',nome:'Sorteio',abrir(){irAba('clientes');carregarClientesTab().then(()=>setCcTab('sorteio'));}},
+  {id:'arquivos',ic:'📎',nome:'Arquivos do gestor',curto:'Arquivos',abrir(){abrirArquivosPop();}},
+  {id:'novavenda',ic:'➕',nome:'Nova venda',abrir(){irAba('vendas');carregarVendas();novaVenda();}},
+  {id:'novocliente',ic:'🆕',nome:'Novo cliente',abrir(){irAba('clientes');carregarClientesTab();novaClienteAntigo();}},
+  {id:'novatarefa',ic:'📝',nome:'Nova tarefa',abrir(){irAba('atividades');novaTarefaPropria();}},
+  {id:'chat',ic:'💬',nome:'Falar com o gestor',curto:'Chat',abrir(){toggleChat();}},
+];
+// número no canto do atalho (o que está pendente)
+function badgeC(id){
+  if(!dados)return '';
+  if(id==='checkin'){const c=dados.checkin;return c&&!c.finalizado&&c.feitas<c.total?(c.feitas+'/'+c.total):'';}
+  if(id==='atividades'){const hj=Chama.hojeBR();const n=(window._todasAtv||[]).filter(a=>a.status!=='Feito'&&a.status!=='Cancelada'&&a.prazo<=hj).length;return n?String(n):'';}
+  return '';
 }
-tornarNavArrastavel(document.querySelector('.nav'),'nav-ordem-consultor');
+Chama.iniciarCasca({catalogo:CAT_C,padrao:['vendas','clientes','agenda','checkin','novavenda','simuladores'],inicio:{ic:'🏠',nome:'Início',aba:'inicio',abrir(){irAba('inicio');}},badge:badgeC});
+// cards do Início: vendas do mês, check-in, próxima reunião e atividades — tudo que antes exigia abrir várias telas
+function renderHoje(){
+  const el=document.getElementById('hoje');if(!el||!dados)return;
+  const mv=dados.metaVendas||{feito:0,alvo:0,pct:0},rk=dados.ranking||{},ck=dados.checkin||{feitas:0,total:0},sem=dados.meta||{atual:0,alvo:0};
+  const hj=Chama.hojeBR();
+  const abertas=(window._todasAtv||[]).filter(a=>a.status!=='Feito'&&a.status!=='Cancelada');
+  const atr=abertas.filter(a=>a.prazo<hj),doDia=abertas.filter(a=>a.prazo===hj);
+  const r=(window._reunioes||[])[0];
+  const pos=rk.posicao&&rk.posicao!=='-'?' · '+rk.posicao+'º no ranking':'';
+  let h='<div class="cd esc larga" onclick="Chama.abrir(\'vendas\')"><div class="t">💰 Vendas do mês</div>';
+  if(mv.alvo>0)h+=`<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><span class="v">${money(mv.feito)}</span><span style="font-size:12px;color:#B8BCC6">meta ${money(mv.alvo)} · ${mv.pct}%</span></div><div class="br"><div style="width:${Math.min(100,mv.pct)}%;background:#57B36A"></div></div><div style="font-size:12px;color:#B8BCC6;margin-top:6px">${mv.feito>=mv.alvo?'🏆 Meta batida!':'Faltam '+money(mv.alvo-mv.feito)}${pos}</div>`;
+  else h+=`<div class="v">${money(mv.feito)}</div><div style="font-size:12px;color:#B8BCC6;margin-top:4px">Meta do mês ainda não definida pelo gestor${pos}</div>`;
+  h+='</div>';
+  const pctCk=ck.total?Math.round(100*ck.feitas/ck.total):0;
+  h+=`<div class="cd" onclick="Chama.abrir('checkin')"><div class="t">✅ Check-in de hoje</div><div style="display:flex;justify-content:space-between;align-items:center"><span class="v">${ck.feitas} de ${ck.total}</span>${ck.finalizado?'<span class="mut" style="font-size:12px">🔒 dia finalizado</span>':'<span class="btn" style="padding:6px 12px;font-size:12px">Continuar</span>'}</div><div class="br"><div style="width:${pctCk}%;background:#5175A0"></div></div><div class="mut" style="font-size:12px;margin-top:6px">Semana: ${sem.atual} de ${sem.alvo} rotinas</div></div>`;
+  h+=`<div class="cd" onclick="${r?'verReuniao(0)':"Chama.abrir('agenda')"}"><div class="t">📅 Próxima reunião</div>`+(r?`<div style="font-size:15px;font-weight:700">${fmtData(r.inicio)}</div><div class="mut" style="font-size:13px;margin-top:2px">${esc(r.assunto||'Reunião')}${r.local?' · '+esc(r.local):''}</div>`:'<div class="mut" style="font-size:13px">Nenhuma marcada · <span style="color:var(--acc);font-weight:600">pedir reunião</span></div>')+'</div>';
+  const lista=[...atr.map(a=>({a,atr:true})),...doDia.map(a=>({a,atr:false}))];
+  h+=`<div class="cd" onclick="irFiltroAtv('${atr.length?'atrasadas':'pendentes'}')"><div class="t">📋 Atividades</div>`;
+  h+=lista.length?lista.slice(0,3).map(x=>`<div class="ln"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.a.titulo)}</span><span style="font-size:11px;font-weight:700;color:${x.atr?'var(--no)':'var(--mut)'};flex:none;margin-left:8px">${x.atr?'atrasada':'hoje'}</span></div>`).join('')+(lista.length>3?`<div class="mut" style="font-size:12px;margin-top:4px">+ ${lista.length-3} outra(s)</div>`:''):`<div class="mut" style="font-size:13px">${abertas.length?abertas.length+' pendente(s), nenhuma para hoje':'Tudo em dia 🎉'}</div>`;
+  h+='</div>';
+  el.innerHTML=h;
+}
+// "Meu perfil" (toque na foto do topo): foto, senha, notificações, atalhos e sair
+function abrirPerfilC(){Chama.abrirPerfil({nome:dados?dados.nome:'',foto:dados?dados.foto:'',sub:dados&&dados.cargo?dados.cargo:'Consultor'},[]);}
+// Agenda: o formulário de pedido de reunião abre no toque
+function alternarFormReuniao(){const f=document.getElementById('form-reuniao');const abrir=f.style.display==='none';f.style.display=abrir?'block':'none';if(abrir){carregarDispo();f.scrollIntoView({behavior:'smooth',block:'start'});}}
+// Atividades: tarefa para mim mesmo
+function novaTarefaPropria(){abrirPop('📝 Nova tarefa',`<label>O que você precisa fazer</label><input type="text" id="nt-titulo" class="inp2" placeholder="Ex.: ligar para o cliente, enviar proposta…" maxlength="200"><label style="margin-top:8px;display:block">Prazo</label><input type="date" id="nt-prazo" class="inp2" value="${Chama.hojeBR()}"><div id="nt-erro" style="display:none;color:var(--no);font-size:13px;margin-top:6px">Escreva o que precisa ser feito.</div><button class="btn full" style="margin-top:12px" onclick="salvarTarefaPropria()">Criar tarefa</button>`);setTimeout(()=>{const i=document.getElementById('nt-titulo');if(i)i.focus();},50);}
+async function salvarTarefaPropria(){const t=document.getElementById('nt-titulo').value.trim();if(!t){document.getElementById('nt-erro').style.display='block';return;}const r=await fetch('/api/atividade/propria',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({titulo:t,prazo:document.getElementById('nt-prazo').value,tipo:'Pessoal'})});const j=await r.json();if(j.ok){fecharPop();toast('Tarefa criada ✓');carregar();}else toast(j.erro||'Erro');}
+// Clientes: planilha (modelo, importar, exportar) num menu só
+function menuPlanilhaC(){abrirPop('📄 Planilha de clientes',`<button class="btn sec2 full" style="margin-bottom:8px;text-align:left" onclick="fecharPop();baixarModeloClientesC()">⬇️ Baixar planilha modelo</button><button class="btn sec2 full" style="margin-bottom:8px;text-align:left" onclick="fecharPop();document.getElementById('cs-upload').click()">⬆️ Importar clientes da planilha</button><button class="btn sec2 full" style="text-align:left" onclick="fecharPop();Chama.exportarClientes()">📤 Exportar minha carteira (Excel)</button>`);}
+carregar();
 </script>
 </body>
 </html>

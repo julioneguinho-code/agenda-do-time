@@ -204,6 +204,9 @@ const server = http.createServer(async (req, res) => {
       if (!session) return send(res, 401, { erro: 'Não autenticado' });
       // pulso: a tela pergunta "mudou algo?" a cada 10 s e só recarrega o resto se mudou
       if (p === '/api/pulso') return send(res, 200, notion.pulso(session), { 'Cache-Control': 'no-store' });
+      // atalhos do menu escolhidos por cada pessoa
+      if (p === '/api/preferencias' && req.method === 'GET') return send(res, 200, notion.lerPreferencias(session), { 'Cache-Control': 'no-store' });
+      if (p === '/api/preferencias' && req.method === 'POST') return send(res, 200, notion.salvarPreferencias(session, await readBody(req)));
       // notificações push
       if (p === '/api/push/chave') return send(res, 200, { chave: require('./lib/push').chavePublica() });
       if (p === '/api/push/inscrever' && req.method === 'POST') return send(res, 200, notion.inscreverPush(session, await readBody(req)));
