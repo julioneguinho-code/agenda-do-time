@@ -167,7 +167,9 @@
   };
   (function estilosChama() {
     const css = '.chm{position:relative;display:inline-block;flex:none;width:calc(var(--s)*1.9);height:calc(var(--s)*1.95);margin:calc(var(--s)*-.05) calc(var(--s)*-.45) calc(var(--s)*-.12);isolation:isolate}'
-      + '.chm>i{position:absolute;left:50%;bottom:0;background-size:100% 100%;background-repeat:no-repeat;transform-origin:50% 100%;animation:var(--an) var(--t) ease-in-out infinite alternate;animation-delay:var(--d)}'
+      + '.chm>i{position:absolute;left:50%;bottom:0;background-size:100% 100%;background-repeat:no-repeat;transform-origin:50% 100%;transform:translateX(-50%);animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}'
+      // nome da animação por CLASSE (o Safari do iPhone não aceita var() no nome da animação)
+      + '.chm>.anA{animation-name:chmA}.chm>.anB{animation-name:chmB}.chm>.anC{animation-name:chmC}.chm>.anP{animation-name:chmP}'
       + '.chm>.chm-foto{position:absolute;left:50%;bottom:10%;width:var(--s);height:var(--s);margin-left:calc(var(--s)/-2);border-radius:50%;box-shadow:0 0 0 3px ' + CONTORNO + ';z-index:5}'
       + '.chm>.chm-foto>*{width:100%!important;height:100%!important;margin:0!important}'
       + '.chm-ext{background-image:' + svgUrl(caminho(F.ext, '#E5341B', 3.5)) + '}'
@@ -187,7 +189,7 @@
     const st = document.createElement('style'); st.id = 'chama-css'; st.textContent = css; document.head.appendChild(st);
   })();
   const aleat = (a, b) => (a + Math.random() * (b - a)).toFixed(2);
-  const camada = (cls, an, w, h, extra, z) => '<i class="chm-' + cls + '" style="--an:' + an + ';--t:' + aleat(.5, .9) + 's;--d:-' + aleat(0, 1) + 's;width:' + w + '%;height:' + h + '%;z-index:' + z + ';' + (extra || '') + '"></i>';
+  const camada = (cls, an, w, h, extra, z) => '<i class="chm-' + cls + ' an' + an.slice(-1) + '" style="animation-duration:' + aleat(.5, .9) + 's;animation-delay:-' + aleat(0, 1) + 's;width:' + w + '%;height:' + h + '%;z-index:' + z + ';' + (extra || '') + '"></i>';
   // inner = HTML da foto (avatar) · tam = tamanho da foto em px
   C.chamaHTML = function (inner, tam) {
     const h = camada('pq', 'chmP', 24, 44, 'left:14%;bottom:6%', 0) + camada('pq', 'chmP', 22, 40, 'left:86%;bottom:6%', 0)
