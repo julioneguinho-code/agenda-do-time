@@ -244,8 +244,17 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
         <div style="font-size:26px">🧾</div>
         <div><div style="font-weight:700;font-size:14px">Crédito → Parcela</div><div class="mut" style="font-size:12px">Parcela mensal do consórcio</div></div>
       </div>
-      <div class="card" style="padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:center;align-items:center;border:1px dashed var(--bord);color:var(--mut)"><div style="font-size:24px">➕</div><div style="font-size:12px;margin-top:6px">Novos simuladores em breve</div></div>
+      <div class="card" onclick="abrirSimulador('carta')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
+        <div style="font-size:26px">💰</div>
+        <div><div style="font-weight:700;font-size:14px">Venda da Carta × CDI</div><div class="mut" style="font-size:12px">Lucro de vender a carta contemplada vs. CDI</div></div>
+      </div>
+      <div class="card" onclick="abrirSimulador('incc')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
+        <div style="font-size:26px">🏗️</div>
+        <div><div style="font-weight:700;font-size:14px">INCC e Assunção</div><div class="mut" style="font-size:12px">Correção do saldo e custo para assumir a cota</div></div>
+      </div>
     </div>
+    <div id="sim-carta" class="sim-panel" style="display:none"><button class="btn sec2" style="padding:6px 12px;margin-bottom:10px" onclick="voltarSimHub()">← Voltar aos simuladores</button><div class="sim-plan" data-sim="carta"></div></div>
+    <div id="sim-incc" class="sim-panel" style="display:none"><button class="btn sec2" style="padding:6px 12px;margin-bottom:10px" onclick="voltarSimHub()">← Voltar aos simuladores</button><div class="sim-plan" data-sim="incc"></div></div>
     <div id="sim-parcela" class="sim-panel" style="display:none">
       <button class="btn sec2" style="padding:6px 12px;margin-bottom:10px" onclick="voltarSimHub()">← Voltar aos simuladores</button>
       <div class="card" style="padding:12px;margin-bottom:10px">
@@ -313,6 +322,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 </div>
 
 <script src="/public/comum.js"></script>
+<script src="/public/simuladores.js"></script>
 <script>
 let dados = null;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
@@ -320,7 +330,7 @@ function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remov
 // ===== SIMULADORES =====
 function simNum(id){let v=(document.getElementById(id).value||'').trim().replace(/\s|R\$|%/g,'');if(!v)return NaN;const taxa=/(adm|fundo|juros|indicepct)$/.test(id);/* taxa (%): ponto é sempre decimal — "1.125" = 1,125% */if(v.includes(','))v=v.replace(/\./g,'').replace(',','.');else if(!taxa&&/^\d{1,3}(\.\d{3})+$/.test(v))v=v.replace(/\./g,'');return parseFloat(v);}
 function simBRL(v){return (isFinite(v)?v:0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
-function abrirSimulador(id){document.getElementById('sim-hub').style.display='none';document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');const el=document.getElementById('sim-'+id);if(el)el.style.display='block';if(id==='cxf')carregarMercado();}
+function abrirSimulador(id){document.getElementById('sim-hub').style.display='none';document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');const el=document.getElementById('sim-'+id);if(el)el.style.display='block';if(id==='cxf')carregarMercado();if((id==='carta'||id==='incc')&&window.SimPlan)SimPlan.montar(id,el.querySelector('.sim-plan'));}
 function voltarSimHub(){document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');document.getElementById('sim-hub').style.display='grid';}
 let _mercado=null;
 async function carregarMercado(){const box=document.getElementById('cxf-mercado');if(!box)return;if(_mercado){renderMercado();return;}box.textContent='📊 Buscando taxas de mercado (BCB)…';try{_mercado=await(await fetch('/api/mercado')).json();}catch(e){_mercado={};}renderMercado();}
@@ -513,7 +523,10 @@ function cardGrupo(g){const fechada=g.status==='fechada';const n=g.vendas.length
   <div class="mut" style="margin-top:4px;font-size:11px">${fmtDataBR(dt)}${n===1&&g.vendas[0].grupo?` · Gr ${esc(g.vendas[0].grupo)}`:''}</div>
   ${g.tipo?`<div style="margin-top:5px">${tipoPill(g.tipo)}</div>`:''}
 </div>`;}
-function abrirGrupoV(i){const g=(window._gruposV||[])[i];if(!g)return;if(g.vendas.length===1)return abrirVenda(g.vendas[0].id);const c=g.cliente||{};const linhas=g.vendas.map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="fecharPop();abrirVenda('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:700;color:var(--ok)">${money(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${fmtDataBR(v.data)}</div></div><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅':'🤝'}</span></div></div>`).join('');abrirPop((c.nome||'Cliente')+(g.tipo?' · '+(tipoInfo(g.tipo)?tipoInfo(g.tipo).label:''):''),`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${g.vendas.length} cota(s) · total ${money(g.total)}</div>${linhas}<button class="btn full" style="background:var(--ok);margin-top:8px" onclick="novaVendaCliente('${encodeURIComponent(c.nome||'')}','${(c.cpf||'')}')">+ Nova cota para este cliente</button>`);}
+function abrirGrupoV(i){const g=(window._gruposV||[])[i];if(!g)return;if(g.vendas.length===1)return abrirVenda(g.vendas[0].id);const c=g.cliente||{};const linhas=g.vendas.map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="fecharPop();abrirVenda('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:700;color:var(--ok)">${money(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${fmtDataBR(v.data)}</div></div><div style="display:flex;gap:6px;align-items:center;flex:none"><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅':'🤝'}</span><button class="btn sec2" title="Excluir esta cota" style="padding:4px 8px;font-size:13px;color:var(--no)" onclick="event.stopPropagation();excluirCotaGrupoC('${v.id}')">🗑</button></div></div></div>`).join('');abrirPop((c.nome||'Cliente')+(g.tipo?' · '+(tipoInfo(g.tipo)?tipoInfo(g.tipo).label:''):''),`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${g.vendas.length} cota(s) · total ${money(g.total)}</div>${linhas}<button class="btn full" style="background:var(--ok);margin-top:8px" onclick="novaVendaCliente('${encodeURIComponent(c.nome||'')}','${(c.cpf||'')}')">+ Nova cota para este cliente</button><button class="btn sec2 full" style="color:var(--no);margin-top:8px" onclick="excluirGrupoC(${i})">🗑 Excluir as ${g.vendas.length} cotas deste cliente</button>`);}
+// Excluir uma cota direto da janela do grupo, ou o grupo inteiro (todas as cotas do cliente). v162
+async function excluirCotaGrupoC(id){if(!confirm('Excluir esta cota?'))return;const j=await(await fetch('/api/vendas/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})})).json();if(j.ok){fecharPop();toast('Cota excluída ✓');carregarVendas();}else toast(j.erro||'Erro');}
+async function excluirGrupoC(i){const g=(window._gruposV||[])[i];if(!g)return;const n=g.vendas.length;const nome=(g.cliente&&g.cliente.nome)||'este cliente';if(!confirm('Excluir as '+n+' cotas de '+nome+'?\n\nIsso não pode ser desfeito.'))return;const j=await(await fetch('/api/vendas/excluir-lote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:g.vendas.map(v=>v.id)})})).json();if(j.ok){fecharPop();toast(j.qtd+' cota(s) excluída(s) ✓');carregarVendas();}else toast(j.erro||'Erro');}
 async function toggleGrupoFechada(i,checked){const g=(window._gruposV||[])[i];if(!g)return;const cpf=(g.cliente&&g.cliente.cpf)||'';if(checked&&!cpfValido(cpf)){toast('Para efetivar, informe um CPF válido do cliente');return abrirGrupoV(i);}const st=checked?'fechada':'negociacao';for(const v of g.vendas){await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:v.id,status:st})});}toast(checked?'Fechada(s) ✅':'Voltou para negociação');carregarVendas();}
 // aba Clientes (separada de Vendas) com sub-abas Cliente | Sorteio
 async function carregarClientesTab(){setCcTab('cliente');try{if(!(_vendas||[]).length){const d=await(await fetch('/api/vendas')).json();_vendas=d.vendas||[];}}catch(e){}renderClientes();}

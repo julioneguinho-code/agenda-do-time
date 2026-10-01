@@ -99,3 +99,22 @@ test('acessos: login inválido é recusado e senha trocada derruba sessão antig
   assert.ok(auth.getSession({ headers: { cookie: t.cookie.split(';')[0] } }));  // cookie novo vale
   assert.strictEqual(await auth.login('cons1', 'velha1'), null);
 });
+
+test('simuladores de planilha: Venda da Carta × CDI e INCC/assunção (Excel + correções v164)', () => {
+  const S = require('../public/simuladores.js');
+  const c = S.calcCarta({ credito: 100000, prazo: 220, taxaAdm: .242, reducao: .5, lanceParcelas: 44, incc: .06, recompra: .5, cdi: .145 });
+  const perto = (a, b) => assert.ok(Math.abs(a - b) < 1e-6 * Math.max(1, Math.abs(b)), a + ' ≠ ' + b);
+  perto(c.parcelaLiberada, 337.27272727272725);
+  perto(c.linhas[12].credito, 106000); perto(c.linhas[12].credLance, 79669.6);   // 13º mês: 1º reajuste INCC
+  perto(c.linhas[219].lucroL, -21668.302314494038);
+  // v164: CDI com taxa mensal equivalente — 12 meses compostos dão exatamente o CDI anual
+  perto(Math.pow(1 + (Math.pow(1.145, 1 / 12) - 1), 12), 1.145); assert.ok(c.linhas[219].lucroCdi < 378236);
+  const r = S.calcIncc({ prazo: 180, parcela: 2500, saldo: 700000, credito: 450000, incc: .06,
+    faixas: [{ min: 0, desc: 0 }, { min: 60, desc: .25 }, { min: 70, desc: .3 }, { min: 100, desc: .4 }, { min: 160, desc: .5 }] });
+  perto(r.linhas[23].parcela, 4227.380952380952); perto(r.linhas[89].assuncao, 377787.1025715801);
+  perto(r.totalPago, 1096064.2730676136);
+  // v164: custo = TIR real (a planilha dava 6,11% a.a.); TIR de um PRICE a 1% a.m. tem que dar 1%
+  assert.ok(Math.abs(r.custoAA - 0.1221) < 0.0005, 'custo a.a. ' + r.custoAA);
+  const pmt = 100000 * 0.01 / (1 - Math.pow(1.01, -120));
+  assert.ok(Math.abs(S.tirMensal(100000, Array(120).fill(pmt), 120, 0) - 0.01) < 1e-7);
+});

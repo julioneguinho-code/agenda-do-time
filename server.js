@@ -307,6 +307,9 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/vendas/editar' && req.method === 'POST') {
         return send(res, 200, await notion.editarVenda(session, await readBody(req)));
       }
+      if (p === '/api/vendas/excluir-lote' && req.method === 'POST') {
+        return send(res, 200, await notion.excluirVendas(session, await readBody(req)));
+      }
       if (p === '/api/vendas/excluir' && req.method === 'POST') {
         return send(res, 200, await notion.excluirVenda(session, await readBody(req)));
       }
