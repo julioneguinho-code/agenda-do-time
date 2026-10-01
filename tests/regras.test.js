@@ -100,7 +100,7 @@ test('acessos: login inválido é recusado e senha trocada derruba sessão antig
   assert.strictEqual(await auth.login('cons1', 'velha1'), null);
 });
 
-test('simuladores de planilha: Venda da Carta × CDI e INCC/assunção (Excel + correções v164)', () => {
+test('simuladores de planilha: Venda da Carta × CDI (correções v164) e INCC/assunção igual ao Excel', () => {
   const S = require('../public/simuladores.js');
   const c = S.calcCarta({ credito: 100000, prazo: 220, taxaAdm: .242, reducao: .5, lanceParcelas: 44, incc: .06, recompra: .5, cdi: .145 });
   const perto = (a, b) => assert.ok(Math.abs(a - b) < 1e-6 * Math.max(1, Math.abs(b)), a + ' ≠ ' + b);
@@ -113,8 +113,9 @@ test('simuladores de planilha: Venda da Carta × CDI e INCC/assunção (Excel + 
     faixas: [{ min: 0, desc: 0 }, { min: 60, desc: .25 }, { min: 70, desc: .3 }, { min: 100, desc: .4 }, { min: 160, desc: .5 }] });
   perto(r.linhas[23].parcela, 4227.380952380952); perto(r.linhas[89].assuncao, 377787.1025715801);
   perto(r.totalPago, 1096064.2730676136);
-  // v164: custo = TIR real (a planilha dava 6,11% a.a.); TIR de um PRICE a 1% a.m. tem que dar 1%
-  assert.ok(Math.abs(r.custoAA - 0.1221) < 0.0005, 'custo a.a. ' + r.custoAA);
+  // v167: custo do INCC volta a ser IGUAL à planilha do time (6,11% a.a. no exemplo); TIR fica só na planilha nova
+  perto(r.custoAA, 0.06114541165683729); perto(r.linhas[89].custoAssuncao, 0.0031849398183791955);
+  // a função de TIR continua disponível (e certa): PRICE a 1% a.m. tem que dar 1%
   const pmt = 100000 * 0.01 / (1 - Math.pow(1.01, -120));
   assert.ok(Math.abs(S.tirMensal(100000, Array(120).fill(pmt), 120, 0) - 0.01) < 1e-7);
 });

@@ -1,6 +1,6 @@
 {
   "name": "agenda-do-time",
-  "version": "1.6.6",
+  "version": "1.6.7",
   "description": "Gestão Chama — agenda, vendas, clientes e comissões do time",
   "main": "server.js",
   "scripts": {

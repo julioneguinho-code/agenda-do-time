@@ -55,17 +55,19 @@
   }
   function calcIncc(p) {
     const prazo = Math.round(+p.prazo), incc = +p.incc, cred = +p.credito, faixas = p.faixas || [];
-    const linhas = [], pagas = [];
+    const linhas = [];
     let D = +p.parcela, F = +p.saldo, G = 0;
     for (let m = 1; m <= prazo; m++) {
       const B = prazo - (m - 1);                              // parcelas restantes (inclui a atual)
       const reaj = m > 1 && (m - 1) % 12 === 0;
       const E = m === 1 ? +p.saldo : (reaj ? F * (1 + incc) : F);   // saldo antes
       if (reaj) D = E / B;                                    // no reajuste a parcela é recalculada
-      F = E - D; G += D; pagas.push(D);
+      F = E - D; G += D;
       const H = descontoFaixa(faixas, B), I = F * (1 - H);
-      const J = tirMensal(cred, pagas, m, F);                  // custo da operação (% a.m.) — quitando o saldo no mês m
-      const K = tirMensal(cred, pagas, m, I);                  // custo de assunção (% a.m.) — pagando o valor de assunção no mês m
+      // v167: custo IGUAL à planilha original do time (pedido do Julio) — [(pago + saldo) ÷ crédito]^(1/prazo) − 1.
+      // A versão com TIR (régua de operação de crédito) está só na planilha nova "Simulador_INCC_Consorcio_CORRIGIDO".
+      const J = Math.pow((G + F) / cred, 1 / prazo) - 1;      // custo da operação (% a.m.)
+      const K = Math.pow((G + I) / cred, 1 / prazo) - 1;      // custo de assunção (% a.m.)
       linhas.push({ mes: m, restantes: B, reajuste: reaj, parcela: D, saldoAntes: E, saldo: F, pago: G,
         desconto: H, assuncao: I, custoOp: J, custoAssuncao: K });
     }
@@ -353,11 +355,11 @@
         <div class="spl-tecbox spl-tec"><div class="lbl">🔍 Detalhes técnicos</div><div id="spi-mestec"></div></div></div>
       <div class="card" style="padding:14px;margin-bottom:10px" id="spi-arg"></div>
       <div class="card spl-tec" style="padding:14px;margin-bottom:10px"><div class="spl-sec">🔍 Custo do plano</div><div class="spl-k">
-        ${kpi('Custo real (TIR)', pct(_incc.custoAA) + ' a.a.', { sub: pct(_incc.custoAM, 3) + ' ao mês' })}${kpi('Total pago até o fim', brl0(_incc.totalPago), { sub: _incc.pagoSobreCredito.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '× o crédito' })}
+        ${kpi('Custo da operação', pct(_incc.custoAA) + ' a.a.', { sub: pct(_incc.custoAM, 3) + ' ao mês' })}${kpi('Total pago até o fim', brl0(_incc.totalPago), { sub: _incc.pagoSobreCredito.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '× o crédito' })}
         ${kpi('Última parcela', brl(_incc.parcelaFinal), { sub: 'com todos os reajustes' })}</div>
         <div class="spl-sec" style="margin-top:14px">📉 Saldo devedor × valor de assunção</div><div id="spi-graf"></div>
         <div class="mut" style="font-size:11.5px;margin-top:10px;line-height:1.5"><b>Como é calculado:</b> a cada 12 meses o saldo é corrigido pelo INCC e a parcela é recalculada (saldo ÷ parcelas restantes).
-          Valor de assunção = saldo do mês × (1 − desconto da faixa de parcelas restantes). Custo = taxa mensal (TIR) entre o crédito recebido e tudo o que foi pago até o mês, incluindo o valor final.</div></div>
+          Valor de assunção = saldo do mês × (1 − desconto da faixa de parcelas restantes). Custo = [(total pago + saldo) ÷ crédito]^(1 ÷ prazo) − 1, taxa mensal equivalente (mesma fórmula da planilha do time).</div></div>
       <details class="card spl-tab spl-tec" style="padding:14px;margin-bottom:10px"><summary>📋 Marcos do plano</summary><div id="spi-tab"></div></details>`;
     api.mesIncc(mesIni);
   };
@@ -369,7 +371,7 @@
         <div class="v">${brl0(ass)}</div>
         <div class="s">${l.desconto > 0 ? `Saldo devedor de ${brl0(saldo)} com <b>${pct(l.desconto, 0)} de desconto</b> — economia de ${brl0(economia)}.` : 'Nesta fase não há desconto: paga o saldo devedor integral.'}</div></div>
       <div class="spl-k">${kpi('Parcelas que faltam', l.restantes)}${kpi('Parcela atual', brl(l.parcela), { sub: l.reajuste ? '↑ reajustada pelo INCC neste mês' : '' })}</div>`;
-    document.getElementById('spi-mestec').innerHTML = `<div class="spl-k">${kpi('Custo da assunção (TIR)', pct(l.custoAssuncao, 3) + ' a.m.', { cor: cor(-l.custoAssuncao), sub: l.custoAssuncao < 0 ? 'abaixo do crédito recebido' : '' })}
+    document.getElementById('spi-mestec').innerHTML = `<div class="spl-k">${kpi('Custo da assunção', pct(l.custoAssuncao, 3) + ' a.m.', { cor: cor(-l.custoAssuncao), sub: l.custoAssuncao < 0 ? 'abaixo do crédito recebido' : '' })}
       ${kpi('Custo se quitar o saldo', pct(l.custoOp, 3) + ' a.m.')}${kpi('Já pago até o mês', brl0(l.pago))}</div>`;
     const txt = l.desconto > 0
       ? `Assumindo a cota no ${m}º mês, o valor fica em ${brl0(ass)}: saldo devedor de ${brl0(saldo)} com ${pct(l.desconto, 0)} de desconto (economia de ${brl0(economia)}). Restam ${l.restantes} parcelas, hoje de ${brl(l.parcela)}.`
