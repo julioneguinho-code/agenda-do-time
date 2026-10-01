@@ -142,7 +142,7 @@
       + '.spl-t{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--bord);border-radius:10px;margin-top:10px}'
       + '.spl-t table{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}.spl-t th{background:var(--card2,#F2F3F5);font-weight:600;color:var(--mut);font-size:11px;text-align:right;padding:7px 8px;position:sticky;top:0}'
       + '.spl-t td{text-align:right;padding:6px 8px;border-top:1px solid var(--bord)}.spl-t th:first-child,.spl-t td:first-child{text-align:left;position:sticky;left:0;background:var(--card)}.spl-t th:first-child{background:var(--card2,#F2F3F5)}'
-      + '.spl-t tr.on td{background:#FFF6D6}'
+      + '.spl-t tr.on td{background:#FFF6D6}.spl-t th{z-index:2}.spl-t th:first-child{z-index:3}'
       + '.spl-faixas{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;align-items:center;margin-top:10px}.spl-faixas .spl-in input{padding:8px 4px;font-size:14px}';
     document.head.appendChild(st);
   })();
@@ -407,9 +407,26 @@
     document.getElementById('spx-incc').innerHTML = `
       <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">📈 Atualização da parcela e do saldo pelo INCC</div>
         <div class="spl-k" style="margin-bottom:10px">${kpi('Parcela hoje', brl(p.parcela))}${kpi('Última parcela (com INCC)', brl(com.parcelaFinal))}${kpi('Total pago com INCC', brl0(com.totalPago), { sub: 'sem INCC: ' + brl0(sem.totalPago) })}</div>
-        <div class="spl-t"><table><thead><tr><th>Período</th><th>Meses</th><th>Saldo corrigido no início</th><th>Parcela</th><th>Saldo no fim</th><th>Pago no período</th></tr></thead><tbody>${per.map(x => `<tr><td>${x.n}º</td><td>${x.ini}–${x.fim}</td><td>${brl(x.saldoIni)}</td><td>${brl(x.parcela)}</td><td>${brl(x.saldoFim)}</td><td>${brl(x.pago)}</td></tr>`).join('')}</tbody></table></div>
+        <div class="spl-abas" id="spx-incmodo" style="margin:0 0 10px"><button type="button" data-m="per" onclick="SimPlan.modoIncc('per')">Por período</button><button type="button" data-m="mes" onclick="SimPlan.modoIncc('mes')">Mês a mês</button></div>
+        <div id="spx-inctab"></div>
         <div class="mut" style="font-size:11.5px;margin-top:8px;line-height:1.45">O INCC corrige <b>só o saldo que sobrou</b> depois das parcelas pagas; a nova parcela = saldo corrigido ÷ parcelas restantes.</div></div>`;
+    _custo.per = per;
+    api.modoIncc(_incModo);
     api.calcularAssuncao();
+  };
+  // Atualização INCC: resumo por período de reajuste ou o detalhe de cada parcela (mês a mês)
+  let _incModo = 'per';
+  api.modoIncc = function (m) {
+    _incModo = m; if (!_custo || !_custo.per) return;
+    document.querySelectorAll('#spx-incmodo button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+    const el = document.getElementById('spx-inctab'); if (!el) return;
+    if (m === 'per') {
+      el.innerHTML = `<div class="spl-t"><table><thead><tr><th>Período</th><th>Meses</th><th>Saldo corrigido no início</th><th>Parcela</th><th>Saldo no fim</th><th>Pago no período</th></tr></thead><tbody>${_custo.per.map(x => `<tr><td>${x.n}º</td><td>${x.ini}–${x.fim}</td><td>${brl(x.saldoIni)}</td><td>${brl(x.parcela)}</td><td>${brl(x.saldoFim)}</td><td>${brl(x.pago)}</td></tr>`).join('')}</tbody></table></div>`;
+      return;
+    }
+    const ls = _custo.com.linhas;
+    el.innerHTML = `<div class="spl-t" style="max-height:460px"><table><thead><tr><th>Mês</th><th>Parcela</th><th>Reajuste</th><th>Saldo depois</th><th>Restantes</th><th>Saldo antes</th><th>Total pago</th></tr></thead><tbody>${ls.map(x => `<tr class="${x.reajuste ? 'on' : ''}"><td>${x.mes}º</td><td><b>${brl(x.parcela)}</b></td><td style="text-align:center">${x.reajuste ? '↑ INCC' : ''}</td><td>${brl(Math.max(0, x.saldo))}</td><td>${x.restantes}</td><td>${brl(x.saldoAntes)}</td><td>${brl(x.pago)}</td></tr>`).join('')}</tbody></table></div>
+      <div class="mut" style="font-size:11px;margin-top:6px">Linhas em amarelo = mês do reajuste pelo INCC (a parcela muda a partir dele). Role a tabela para ver todos os ${ls.length} meses.</div>`;
   };
   const fmtNum = v => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
