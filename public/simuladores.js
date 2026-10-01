@@ -55,12 +55,15 @@
   }
   function calcIncc(p) {
     const prazo = Math.round(+p.prazo), incc = +p.incc, cred = +p.credito, faixas = p.faixas || [];
+    // meses até o próximo reajuste (aniversário do grupo). Padrão 12 = 13º, 25º... mês, igual à planilha.
+    const R = p.proxReajuste == null || !isFinite(+p.proxReajuste) ? 12 : Math.max(0, Math.round(+p.proxReajuste));
     const linhas = [];
     let D = +p.parcela, F = +p.saldo, G = 0;
     for (let m = 1; m <= prazo; m++) {
       const B = prazo - (m - 1);                              // parcelas restantes (inclui a atual)
-      const reaj = m > 1 && (m - 1) % 12 === 0;
-      const E = m === 1 ? +p.saldo : (reaj ? F * (1 + incc) : F);   // saldo antes
+      const reaj = m > R && (m - 1 - R) % 12 === 0;
+      const base = m === 1 ? +p.saldo : F;
+      const E = reaj ? base * (1 + incc) : base;               // saldo antes (INCC só sobre o saldo que sobrou)
       if (reaj) D = E / B;                                    // no reajuste a parcela é recalculada
       F = E - D; G += D;
       const H = descontoFaixa(faixas, B), I = F * (1 - H);
@@ -129,6 +132,8 @@
       + '.spl-mes input[type=range]{flex:1;min-width:0;accent-color:var(--acc)}.spl-mesn{min-width:62px;text-align:center;font-weight:800;font-size:18px}.spl-mesn small{display:block;font-size:10px;color:var(--mut);font-weight:500}'
       + '.spl-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:12px;scrollbar-width:none}.spl-chips button{flex:none;border:1.5px solid var(--bord);background:var(--card);border-radius:999px;padding:5px 11px;font-size:12px;cursor:pointer;color:var(--txt)}'
       + '.spl-chips button.on{background:var(--acc);border-color:var(--acc);color:#fff}'
+      + '.spl-abas{display:flex;gap:4px;background:var(--card2,#F2F3F5);border-radius:12px;padding:3px;margin:12px 0 0}.spl-abas button{flex:1;border:0;background:transparent;padding:9px 4px;border-radius:9px;font-size:12.5px;font-weight:600;color:var(--mut);cursor:pointer;line-height:1.2}'
+      + '.spl-abas button.on{background:var(--card);color:var(--acc);box-shadow:0 1px 4px rgba(0,0,0,.1)}'
       + '.spl-seg{display:flex;background:var(--card2,#F2F3F5);border-radius:12px;padding:3px;margin-bottom:10px}.spl-seg button{flex:1;border:0;background:transparent;padding:8px 4px;border-radius:9px;font-size:12.5px;font-weight:600;color:var(--mut);cursor:pointer}'
       + '.spl-seg button.on{background:var(--card);color:var(--txt);box-shadow:0 1px 4px rgba(0,0,0,.1)}'
       + '.spl-graf{margin-top:4px}.spl-graf svg{display:block;width:100%;height:150px}.spl-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--mut);margin-top:6px}.spl-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}'
@@ -191,7 +196,7 @@
     document.querySelectorAll('.spl-root').forEach(r => r.classList.toggle('tec-on', _tec));
     document.querySelectorAll('.spl-btntec').forEach(b => { b.textContent = _tec ? '🙈 Ocultar detalhes técnicos' : '🔍 Ver detalhes técnicos'; });
     // o gráfico precisa da largura real, que só existe com o bloco visível
-    if (_tec) { if (_carta && document.getElementById('spc-mes')) api.mesCarta(document.getElementById('spc-mes').value); if (_incc && document.getElementById('spi-mes')) api.mesIncc(document.getElementById('spi-mes').value); }
+    if (_tec) { if (_carta && document.getElementById('spc-mes')) api.mesCarta(document.getElementById('spc-mes').value);  }
   };
   (function cssTec() {
     const st = document.createElement('style');
@@ -313,80 +318,138 @@
     document.getElementById('spc-tab').innerHTML = `<div class="spl-t" style="max-height:${_cartaTodos ? '420px' : 'none'}"><table><thead><tr><th>Mês</th><th>Crédito</th><th>Parcela</th><th>Investido</th><th>Lucro sorteio</th><th>ROI</th><th>Lucro lance</th><th>ROI</th><th>Rend. CDI</th></tr></thead><tbody>${ls.map(l => `<tr class="${l.mes === sel ? 'on' : ''}"><td>${l.mes}º</td><td>${brl(l.credito)}</td><td>${brl(l.parcela)}</td><td>${brl(l.investido)}</td><td style="color:${cor(l.lucroS)}">${brl(l.lucroS)}</td><td>${pct(l.roiS, 0)}</td><td style="color:${cor(l.lucroL)}">${brl(l.lucroL)}</td><td>${pct(l.roiL, 0)}</td><td>${brl(l.lucroCdi)}</td></tr>`).join('')}</tbody></table></div>`;
   }
 
-  // ---------------- TELA: INCC E ASSUNÇÃO ----------------
+  // ---------------- TELA: CUSTO DE OPERAÇÃO, ATUALIZAÇÃO DE INCC E ASSUNÇÃO — v168 (um simulador, 3 abas) ----------------
+  // Quanto a operação de consórcio custa: sem INCC e com o INCC médio projetado (custo real).
+  // Fórmula IGUAL à planilha do time: (total pago ÷ crédito)^(1/prazo) − 1 (= HP 12C com PV, FV e n).
+  let _custo = null;
   const FAIXAS_PADRAO = [{ min: 160, desc: 50 }, { min: 100, desc: 40 }, { min: 70, desc: 30 }, { min: 60, desc: 25 }, { min: 0, desc: 0 }];
-  const MARCOS_I = [1, 12, 24, 36, 48, 60, 90, 120, 160, 180, 200, 220, 240];
+  const MARCOS_I = [1, 12, 24, 36, 60, 90, 120, 160, 180, 200, 220, 240];
   let _incc = null;
-  function montarIncc(el) {
-    el.classList.add('spl-root'); el.classList.toggle('tec-on', _tec);
-    el.innerHTML = `<div class="card" style="padding:14px;margin-bottom:10px">
-      <div class="spl-top"><div class="spl-ic">🏗️</div><div><b>INCC e Assunção de Dívida</b><span>Mostre ao cliente quanto custa assumir uma cota em cada momento do plano, já com o reajuste anual do INCC e o desconto de assunção.</span></div></div>
-      <div class="spl-g">
-        ${campo('spi-saldo', 'Saldo devedor atual', '700.000', { pre: 'R$' })}
-        ${campo('spi-credito', 'Valor do crédito', '450.000', { pre: 'R$' })}
-        ${campo('spi-parcela', 'Parcela atual', '2.500', { pre: 'R$' })}
-        ${campo('spi-prazo', 'Prazo total', '180', { suf: 'meses' })}
-        ${campo('spi-incc', 'INCC', '6', { suf: '% a.a.', dica: 'reajuste anual do saldo' })}
-      </div>
-      <details class="spl-aj spl-tec"><summary><span>⚙️ Desconto de assunção por parcelas restantes</span><small>5 faixas</small></summary>
-        <div class="spl-faixas"><div class="mut" style="font-size:11px">Parcelas restantes a partir de</div><div class="mut" style="font-size:11px">Desconto</div>
-        ${FAIXAS_PADRAO.map((f, i) => `<span class="spl-in"><input id="spi-fmin${i}" type="text" inputmode="numeric" value="${f.min}"><i>parc.</i></span><span class="spl-in"><input id="spi-fdesc${i}" type="text" inputmode="decimal" value="${f.desc}"><i>%</i></span>`).join('')}</div>
-        <div class="mut" style="font-size:11px;margin-top:6px">Ex.: 165 parcelas restantes → 50% de desconto. Abaixo de 60 → sem desconto (paga o saldo integral).</div>
-      </details>
-      ${botaoTec()}
-    </div><div id="spi-res"></div>`;
-    autoCalc(el, api.calcularIncc);
-    api.calcularIncc();
-  }
-  api.calcularIncc = function () {
-    const faixas = FAIXAS_PADRAO.map((_, i) => ({ min: num('spi-fmin' + i), desc: num('spi-fdesc' + i, 1) / 100 })).filter(f => isFinite(f.min) && isFinite(f.desc));
-    const p = { prazo: num('spi-prazo'), parcela: num('spi-parcela'), saldo: num('spi-saldo'), credito: num('spi-credito'), incc: num('spi-incc', 1) / 100, faixas };
-    const out = document.getElementById('spi-res');
-    const erro = !(p.prazo >= 1 && p.prazo <= 400) ? 'O prazo precisa ficar entre 1 e 400 meses' : !(p.parcela > 0) ? 'Informe a parcela atual'
-      : !(p.saldo > 0) ? 'Informe o saldo devedor' : !(p.credito > 0) ? 'Informe o valor do crédito' : !(p.incc >= 0) ? 'Informe o INCC (0 se não houver)' : '';
-    if (erro) { out.innerHTML = erroCard(erro); return; }
-    const mesAnt = +(document.getElementById('spi-mes') || {}).value || 12;
-    _incc = calcIncc(p);
-    const n = _incc.linhas.length, mesIni = Math.min(mesAnt, n), pJusta = p.saldo / p.prazo;
-    const aviso = Math.abs(p.parcela - pJusta) / pJusta > 0.1 && p.prazo > 12
-      ? `<div class="spl-dica">⚠️ Confira a parcela: ${brl(p.parcela)} ${p.parcela < pJusta ? 'não paga' : 'paga mais rápido'} o saldo de ${brl0(p.saldo)} em ${p.prazo} meses. O esperado seria cerca de <b>${brl(pJusta)}</b> — no 13º mês a parcela é recalculada e vai para ${brl(_incc.linhas[12].parcela)}.
-         <br><button class="btn sec2" style="padding:5px 10px;font-size:12px;margin-top:6px" onclick="document.getElementById('spi-parcela').value='${pJusta.toFixed(2).replace('.', ',')}';SimPlan.calcularIncc()">Usar ${brl(pJusta)}</button></div>` : '';
-    out.innerHTML = aviso + `<div class="card" style="padding:14px;margin-bottom:10px">${seletorMes('spi', n, mesIni, 'mesIncc', 'Assumir a cota no')}<div id="spi-mesres"></div>
-        <div class="spl-tecbox spl-tec"><div class="lbl">🔍 Detalhes técnicos</div><div id="spi-mestec"></div></div></div>
-      <div class="card" style="padding:14px;margin-bottom:10px" id="spi-arg"></div>
-      <div class="card spl-tec" style="padding:14px;margin-bottom:10px"><div class="spl-sec">🔍 Custo do plano</div><div class="spl-k">
-        ${kpi('Custo da operação', pct(_incc.custoAA) + ' a.a.', { sub: pct(_incc.custoAM, 3) + ' ao mês' })}${kpi('Total pago até o fim', brl0(_incc.totalPago), { sub: _incc.pagoSobreCredito.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '× o crédito' })}
-        ${kpi('Última parcela', brl(_incc.parcelaFinal), { sub: 'com todos os reajustes' })}</div>
-        <div class="spl-sec" style="margin-top:14px">📉 Saldo devedor × valor de assunção</div><div id="spi-graf"></div>
-        <div class="mut" style="font-size:11.5px;margin-top:10px;line-height:1.5"><b>Como é calculado:</b> a cada 12 meses o saldo é corrigido pelo INCC e a parcela é recalculada (saldo ÷ parcelas restantes).
-          Valor de assunção = saldo do mês × (1 − desconto da faixa de parcelas restantes). Custo = [(total pago + saldo) ÷ crédito]^(1 ÷ prazo) − 1, taxa mensal equivalente (mesma fórmula da planilha do time).</div></div>
-      <details class="card spl-tab spl-tec" style="padding:14px;margin-bottom:10px"><summary>📋 Marcos do plano</summary><div id="spi-tab"></div></details>`;
-    api.mesIncc(mesIni);
+  const lerCota = pfx => ({ prazo: num(pfx + '-prazo'), parcela: num(pfx + '-parcela'), saldo: num(pfx + '-saldo'), credito: num(pfx + '-credito'),
+    incc: num(pfx + '-incc', 1) / 100, proxReajuste: num(pfx + '-reaj') });
+  const erroCota = (p, comCredito) => !(p.prazo >= 1 && p.prazo <= 400) ? 'O prazo restante precisa ficar entre 1 e 400 meses' : !(p.parcela > 0) ? 'Informe a parcela atual'
+    : !(p.saldo > 0) ? 'Informe o saldo devedor' : comCredito && !(p.credito > 0) ? 'Informe o valor do crédito' : !(p.incc >= 0) ? 'Informe o INCC (0 se não houver)'
+    : !(p.proxReajuste >= 0 && p.proxReajuste <= 12) ? 'Meses até o próximo reajuste: de 0 a 12' : '';
+  const avisoParcela = (p, pfx) => {
+    const pJ = p.saldo / p.prazo;
+    if (!(Math.abs(p.parcela - pJ) / pJ > 0.1)) return '';
+    return `<div class="spl-dica">⚠️ Confira a parcela: ${brl(p.parcela)} ${p.parcela < pJ ? 'não paga' : 'paga mais rápido'} o saldo de ${brl0(p.saldo)} em ${p.prazo} meses. O esperado seria cerca de <b>${brl(pJ)}</b> (saldo ÷ prazo). No próximo reajuste a parcela é recalculada.
+      <br><button class="btn sec2" style="padding:5px 10px;font-size:12px;margin-top:6px" onclick="document.getElementById('${pfx}-parcela').value='${pJ.toFixed(2).replace('.', ',')}';SimPlan.calcularCusto()">Usar ${brl(pJ)}</button></div>`;
   };
-  api.mesIncc = function (m) {
-    if (!_incc) return; m = marcaMes('spi', m, _incc.linhas.length); const l = _incc.linhas[m - 1];
+  const camposCota = (pfx, comCredito) => `
+    ${campo(pfx + '-saldo', 'Saldo devedor atual', '82.979', { pre: 'R$' })}
+    ${comCredito ? campo(pfx + '-credito', 'Valor do crédito pego', '68.979', { pre: 'R$' }) : ''}
+    ${campo(pfx + '-parcela', 'Parcela atual', '448', { pre: 'R$' })}
+    ${campo(pfx + '-prazo', 'Prazo restante', '185', { suf: 'meses' })}
+    ${campo(pfx + '-incc', 'INCC médio', '6', { suf: '% a.a.', dica: 'média histórica: ~6,6% (10 anos)' })}
+    ${campo(pfx + '-reaj', 'Próximo reajuste em', '12', { suf: 'meses', dica: 'aniversário do grupo' })}`;
+
+  let _aba = 'custo';
+  function montarCusto(el) {
+    el.innerHTML = `<div class="card" style="padding:14px;margin-bottom:10px">
+      <div class="spl-top"><div class="spl-ic">📊</div><div><b>Custo de Operação, Atualização de INCC e Assunção</b><span>Dados da cota uma vez só — veja o custo da operação (modo HP), a atualização da parcela e do saldo pelo INCC e o valor de assunção.</span></div></div>
+      <div class="spl-g">${camposCota('spo', true)}</div>
+      <div class="spl-abas" id="spx-abas"><button type="button" data-a="custo" onclick="SimPlan.abaCusto('custo')">💸 Custo de operação</button><button type="button" data-a="incc" onclick="SimPlan.abaCusto('incc')">📈 Atualização INCC</button><button type="button" data-a="ass" onclick="SimPlan.abaCusto('ass')">🤝 Assunção</button></div>
+    </div><div id="spo-res"></div>
+    <div id="spx-custo" class="spx-pane"></div>
+    <div id="spx-incc" class="spx-pane"></div>
+    <div id="spx-ass" class="spx-pane"><div class="card" style="padding:14px;margin-bottom:10px">
+      <div class="spl-sec">🤝 Desconto de assunção por parcelas restantes</div>
+      <div class="mut" style="font-size:12px;margin-bottom:6px">O cliente transfere a dívida para outra pessoa e ganha desconto pela quitação antecipada.</div>
+      <details class="spl-aj" style="margin-top:4px;border-top:0;padding-top:0"><summary><span>⚙️ Faixas de desconto</span><small>5 faixas</small></summary>
+        <div class="spl-faixas"><div class="mut" style="font-size:11px">Parcelas restantes a partir de</div><div class="mut" style="font-size:11px">Desconto</div>
+        ${FAIXAS_PADRAO.map((f, i) => `<span class="spl-in"><input id="spa-fmin${i}" type="text" inputmode="numeric" value="${f.min}"><i>parc.</i></span><span class="spl-in"><input id="spa-fdesc${i}" type="text" inputmode="decimal" value="${f.desc}"><i>%</i></span>`).join('')}</div>
+        <div class="mut" style="font-size:11px;margin-top:6px">Ex.: 165 parcelas restantes → 50% de desconto. Abaixo de 60 → sem desconto (paga o saldo integral).</div>
+      </details></div><div id="spa-res"></div></div>`;
+    autoCalc(el, api.calcularCusto);
+    api.calcularCusto();
+    api.abaCusto(_aba);
+  }
+  api.abaCusto = function (a) {
+    _aba = a;
+    document.querySelectorAll('#spx-abas button').forEach(b => b.classList.toggle('on', b.dataset.a === a));
+    document.querySelectorAll('.spx-pane').forEach(d => { d.style.display = d.id === 'spx-' + a ? '' : 'none'; });
+    if (a === 'ass' && _incc && document.getElementById('spa-mes')) api.mesAssuncao(document.getElementById('spa-mes').value); // gráfico precisa da largura visível
+  };
+  api.calcularCusto = function () {
+    const p = lerCota('spo'), out = document.getElementById('spo-res');
+    const erro = erroCota(p, true);
+    if (erro) { out.innerHTML = erroCard(erro); ['spx-custo', 'spx-incc', 'spa-res'].forEach(id => { const e = document.getElementById(id); if (e) e.innerHTML = ''; }); return; }
+    const com = calcIncc(p), sem = calcIncc({ ...p, incc: 0 });
+    _custo = { p, com, sem };
+    // períodos entre reajustes (como na planilha): 1º vai até o mês do reajuste − 1, depois blocos de 12
+    const per = []; let ini = 1;
+    while (ini <= com.linhas.length) {
+      let fim = per.length === 0 ? (p.proxReajuste < 1 ? ini + 11 : Math.max(1, p.proxReajuste)) : ini + 11;
+      fim = Math.min(fim, com.linhas.length);
+      const a = com.linhas[ini - 1], b = com.linhas[fim - 1];
+      per.push({ n: per.length + 1, ini, fim, saldoIni: a.saldoAntes, parcela: a.parcela, saldoFim: Math.max(0, b.saldo), pago: b.pago - (ini > 1 ? com.linhas[ini - 2].pago : 0) });
+      ini = fim + 1;
+    }
+    out.innerHTML = avisoParcela(p, 'spo');
+    document.getElementById('spx-custo').innerHTML = `
+      <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">💸 Custo da operação</div>
+        <div class="spl-k" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div class="spl-kp" style="background:var(--accbg,#fde8ea)"><span><b style="display:inline;font-size:11px;color:var(--acc)">CUSTO DA OPERAÇÃO</b> (HP)</span><b style="color:var(--acc)">${pct(sem.custoAM, 4)} <small style="display:inline">a.m.</small></b><small>${pct(sem.custoAA)} ao ano</small></div>
+          <div class="spl-kp"><span>Com INCC ${pct(p.incc, 1)} projetado</span><b>${pct(com.custoAM, 3)} <small style="display:inline">a.m.</small></b><small>${pct(com.custoAA)} ao ano</small></div>
+        </div>
+        <div class="spl-k" style="margin-top:8px">
+          ${kpi('Saldo devedor (sem INCC)', brl0(p.saldo))}${kpi('Total pago com INCC', brl0(com.totalPago), { sub: com.pagoSobreCredito.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '× o crédito' })}
+          ${kpi('Última parcela com INCC', brl(com.parcelaFinal))}</div>
+        <div style="margin-top:12px;background:var(--card2,#F2F3F5);border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.7">
+          <div style="font-size:11px;font-weight:700;color:var(--acc);margin-bottom:4px">🧮 NA HP 12C, NA FRENTE DO CLIENTE</div>
+          <code>f CLX</code><br>
+          <code>${fmtNum(p.credito)}</code> <code>CHS</code> <code>PV</code> <span class="mut">— crédito pego</span><br>
+          <code>${fmtNum(p.saldo)}</code> <code>FV</code> <span class="mut">— saldo devedor</span><br>
+          <code>${Math.round(p.prazo)}</code> <code>n</code> <span class="mut">— prazo</span><br>
+          <code>i</code> → <b style="color:var(--acc)">${pct(sem.custoAM, 4)} ao mês</b>
+          <div class="mut" style="font-size:12px;margin-top:6px;line-height:1.45">Com o INCC projetado, troque o FV pelo total pago com INCC (${brl(com.totalPago)}) → ${pct(com.custoAM, 4)} ao mês. Ao ano: (1 + taxa)^12 − 1.</div></div></div>`;
+    document.getElementById('spx-incc').innerHTML = `
+      <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">📈 Atualização da parcela e do saldo pelo INCC</div>
+        <div class="spl-k" style="margin-bottom:10px">${kpi('Parcela hoje', brl(p.parcela))}${kpi('Última parcela (com INCC)', brl(com.parcelaFinal))}${kpi('Total pago com INCC', brl0(com.totalPago), { sub: 'sem INCC: ' + brl0(sem.totalPago) })}</div>
+        <div class="spl-t"><table><thead><tr><th>Período</th><th>Meses</th><th>Saldo corrigido no início</th><th>Parcela</th><th>Saldo no fim</th><th>Pago no período</th></tr></thead><tbody>${per.map(x => `<tr><td>${x.n}º</td><td>${x.ini}–${x.fim}</td><td>${brl(x.saldoIni)}</td><td>${brl(x.parcela)}</td><td>${brl(x.saldoFim)}</td><td>${brl(x.pago)}</td></tr>`).join('')}</tbody></table></div>
+        <div class="mut" style="font-size:11.5px;margin-top:8px;line-height:1.45">O INCC corrige <b>só o saldo que sobrou</b> depois das parcelas pagas; a nova parcela = saldo corrigido ÷ parcelas restantes.</div></div>`;
+    api.calcularAssuncao();
+  };
+  const fmtNum = v => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // ---------- aba Assunção (usa os mesmos dados da cota) ----------
+  // O cliente transfere a dívida para outra pessoa e ganha desconto pela quitação antecipada (faixas de parcelas restantes).
+  api.calcularAssuncao = function () {
+    const faixas = FAIXAS_PADRAO.map((_, i) => ({ min: num('spa-fmin' + i), desc: num('spa-fdesc' + i, 1) / 100 })).filter(f => isFinite(f.min) && isFinite(f.desc));
+    const p = { ...lerCota('spo'), faixas }, out = document.getElementById('spa-res');
+    if (!out || erroCota(p, true)) return;
+    const mesAnt = +(document.getElementById('spa-mes') || {}).value || 12;
+    _incc = calcIncc(p);
+    const n = _incc.linhas.length, mesIni = Math.min(mesAnt, n);
+    out.innerHTML = `<div class="card" style="padding:14px;margin-bottom:10px">${seletorMes('spa', n, mesIni, 'mesAssuncao', 'Assunção no')}<div id="spa-mesres"></div></div>
+      <div class="card" style="padding:14px;margin-bottom:10px" id="spa-arg"></div>
+      <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">📋 Marcos do plano — valor de assunção em cada momento</div><div id="spa-tab"></div>
+        <div class="mut" style="font-size:11px;margin-top:6px">Valor de assunção = saldo devedor do mês × (1 − desconto da faixa). Economia = saldo − valor de assunção. Custo da assunção = [(já pago + valor de assunção) ÷ crédito]^(1/prazo) − 1, como na planilha.</div></div>
+      <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">📉 Saldo devedor × valor de assunção</div><div id="spa-graf"></div></div>`;
+    api.mesAssuncao(mesIni);
+  };
+  api.mesAssuncao = function (m) {
+    if (!_incc) return; m = marcaMes('spa', m, _incc.linhas.length); const l = _incc.linhas[m - 1];
     const ass = Math.max(0, l.assuncao), saldo = Math.max(0, l.saldo), economia = saldo - ass;
-    document.getElementById('spi-mesres').innerHTML = `<div class="spl-hero" style="margin-bottom:10px">
-        <div class="t">Para assumir a cota no ${m}º mês</div>
-        <div class="v">${brl0(ass)}</div>
-        <div class="s">${l.desconto > 0 ? `Saldo devedor de ${brl0(saldo)} com <b>${pct(l.desconto, 0)} de desconto</b> — economia de ${brl0(economia)}.` : 'Nesta fase não há desconto: paga o saldo devedor integral.'}</div></div>
-      <div class="spl-k">${kpi('Parcelas que faltam', l.restantes)}${kpi('Parcela atual', brl(l.parcela), { sub: l.reajuste ? '↑ reajustada pelo INCC neste mês' : '' })}</div>`;
-    document.getElementById('spi-mestec').innerHTML = `<div class="spl-k">${kpi('Custo da assunção', pct(l.custoAssuncao, 3) + ' a.m.', { cor: cor(-l.custoAssuncao), sub: l.custoAssuncao < 0 ? 'abaixo do crédito recebido' : '' })}
-      ${kpi('Custo se quitar o saldo', pct(l.custoOp, 3) + ' a.m.')}${kpi('Já pago até o mês', brl0(l.pago))}</div>`;
+    document.getElementById('spa-mesres').innerHTML = `<div class="spl-hero" style="margin-bottom:10px">
+        <div class="t">Valor de assunção no ${m}º mês</div><div class="v">${brl0(ass)}</div>
+        <div class="s">${l.desconto > 0 ? `Saldo devedor de ${brl0(saldo)} com <b>${pct(l.desconto, 0)} de desconto</b> — economia de ${brl0(economia)}.` : 'Nesta fase não há desconto: o valor é o saldo devedor integral.'}</div></div>
+      <div class="spl-k">${kpi('Parcelas restantes', l.restantes)}${kpi('Parcela do mês', brl(l.parcela), { sub: l.reajuste ? '↑ reajustada pelo INCC neste mês' : '' })}${kpi('Já pago até o mês', brl0(l.pago))}${kpi('Custo da assunção', pct(l.custoAssuncao, 3) + ' a.m.', { sub: 'fórmula da planilha' })}</div>`;
     const txt = l.desconto > 0
-      ? `Assumindo a cota no ${m}º mês, o valor fica em ${brl0(ass)}: saldo devedor de ${brl0(saldo)} com ${pct(l.desconto, 0)} de desconto (economia de ${brl0(economia)}). Restam ${l.restantes} parcelas, hoje de ${brl(l.parcela)}.`
-      : `Assumindo a cota no ${m}º mês, o valor é o saldo devedor de ${brl0(ass)} (nesta fase não há desconto). Restam ${l.restantes} parcelas, hoje de ${brl(l.parcela)}.`;
-    document.getElementById('spi-arg').innerHTML = caixaArg('incc', txt.replace(/(R\$\s?\d[\d.,]*\d|\d+% de desconto)/g, '<b>$1</b>'), txt);
-    document.getElementById('spi-graf').innerHTML = grafico([
-      { v: _incc.linhas.map(x => Math.max(0, x.saldo)), cor: '#C0484E', nome: 'Saldo devedor' },
-      { v: _incc.linhas.map(x => Math.max(0, x.assuncao)), cor: '#3E8E6E', nome: 'Valor de assunção' }], m - 1, ['1º mês', _incc.linhas.length + 'º mês'], document.getElementById('spi-graf').clientWidth);
+      ? `Fazendo a assunção no ${m}º mês, o valor fica em ${brl0(ass)}: saldo devedor de ${brl0(saldo)} com ${pct(l.desconto, 0)} de desconto (economia de ${brl0(economia)}). Restam ${l.restantes} parcelas, hoje de ${brl(l.parcela)}.`
+      : `Fazendo a assunção no ${m}º mês, o valor é o saldo devedor de ${brl0(ass)} (nesta fase não há desconto). Restam ${l.restantes} parcelas, hoje de ${brl(l.parcela)}.`;
+    document.getElementById('spa-arg').innerHTML = caixaArg('assuncao', txt.replace(/(R\$\s?\d[\d.,]*\d|\d+% de desconto)/g, '<b>$1</b>'), txt);
     const ls = _incc.linhas.filter(x => MARCOS_I.includes(x.mes) || x.mes === m || x.mes === _incc.linhas.length);
-    document.getElementById('spi-tab').innerHTML = `<div class="spl-t"><table><thead><tr><th>Mês</th><th>Restantes</th><th>Parcela</th><th>Saldo devedor</th><th>Desconto</th><th>Valor de assunção</th><th>Custo a.m.</th></tr></thead><tbody>${ls.map(x => `<tr class="${x.mes === m ? 'on' : ''}"><td>${x.mes}º</td><td>${x.restantes}</td><td>${brl(x.parcela)}</td><td>${brl(Math.max(0, x.saldo))}</td><td>${pct(x.desconto, 0)}</td><td>${brl(Math.max(0, x.assuncao))}</td><td>${pct(x.custoAssuncao, 3)}</td></tr>`).join('')}</tbody></table></div>`;
+    document.getElementById('spa-tab').innerHTML = `<div class="spl-t"><table><thead><tr><th>Mês</th><th>Restantes</th><th>Parcela</th><th>Saldo devedor</th><th>Desconto</th><th>Valor de assunção</th><th>Economia</th><th>Custo assunção a.m.</th></tr></thead><tbody>${ls.map(x => `<tr class="${x.mes === m ? 'on' : ''}"><td>${x.mes}º</td><td>${x.restantes}</td><td>${brl(x.parcela)}</td><td>${brl(Math.max(0, x.saldo))}</td><td>${pct(x.desconto, 0)}</td><td>${brl(Math.max(0, x.assuncao))}</td><td>${brl(Math.max(0, x.saldo) - Math.max(0, x.assuncao))}</td><td>${pct(x.custoAssuncao, 3)}</td></tr>`).join('')}</tbody></table></div>`;
+    document.getElementById('spa-graf').innerHTML = grafico([
+      { v: _incc.linhas.map(x => Math.max(0, x.saldo)), cor: '#C0484E', nome: 'Saldo devedor' },
+      { v: _incc.linhas.map(x => Math.max(0, x.assuncao)), cor: '#3E8E6E', nome: 'Valor de assunção' }], m - 1, ['1º mês', _incc.linhas.length + 'º mês'], document.getElementById('spa-graf').clientWidth);
   };
 
   // abre dentro do painel do simulador (chamado por abrirSimulador das telas)
   api.montar = function (id, el) {
     if (!el || el.dataset.ok) return; el.dataset.ok = '1';
-    if (id === 'carta') montarCarta(el); else if (id === 'incc') montarIncc(el);
+    if (id === 'carta') montarCarta(el); else if (id === 'custo') montarCusto(el);
   };
 })(typeof window !== 'undefined' ? window : globalThis);

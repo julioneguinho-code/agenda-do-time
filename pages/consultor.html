@@ -248,13 +248,13 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
         <div style="font-size:26px">💰</div>
         <div><div style="font-weight:700;font-size:14px">Venda da Carta × CDI</div><div class="mut" style="font-size:12px">Lucro de vender a carta contemplada vs. CDI</div></div>
       </div>
-      <div class="card" onclick="abrirSimulador('incc')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
-        <div style="font-size:26px">🏗️</div>
-        <div><div style="font-weight:700;font-size:14px">INCC e Assunção</div><div class="mut" style="font-size:12px">Correção do saldo e custo para assumir a cota</div></div>
+      <div class="card" onclick="abrirSimulador('custo')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
+        <div style="font-size:26px">📊</div>
+        <div><div style="font-weight:700;font-size:14px">Custo de Operação, Atualização de INCC e Assunção</div><div class="mut" style="font-size:12px">Custo modo HP, parcela com INCC e assunção</div></div>
       </div>
     </div>
     <div id="sim-carta" class="sim-panel" style="display:none"><button class="btn sec2" style="padding:6px 12px;margin-bottom:10px" onclick="voltarSimHub()">← Voltar aos simuladores</button><div class="sim-plan" data-sim="carta"></div></div>
-    <div id="sim-incc" class="sim-panel" style="display:none"><button class="btn sec2" style="padding:6px 12px;margin-bottom:10px" onclick="voltarSimHub()">← Voltar aos simuladores</button><div class="sim-plan" data-sim="incc"></div></div>
+    <div id="sim-custo" class="sim-panel" style="display:none"><button class="btn sec2" style="padding:6px 12px;margin-bottom:10px" onclick="voltarSimHub()">← Voltar aos simuladores</button><div class="sim-plan" data-sim="custo"></div></div>
     <div id="sim-parcela" class="sim-panel" style="display:none">
       <button class="btn sec2" style="padding:6px 12px;margin-bottom:10px" onclick="voltarSimHub()">← Voltar aos simuladores</button>
       <div class="card" style="padding:12px;margin-bottom:10px">
@@ -330,7 +330,7 @@ function irAba(n){document.querySelectorAll('.aba').forEach(a=>a.classList.remov
 // ===== SIMULADORES =====
 function simNum(id){let v=(document.getElementById(id).value||'').trim().replace(/\s|R\$|%/g,'');if(!v)return NaN;const taxa=/(adm|fundo|juros|indicepct)$/.test(id);/* taxa (%): ponto é sempre decimal — "1.125" = 1,125% */if(v.includes(','))v=v.replace(/\./g,'').replace(',','.');else if(!taxa&&/^\d{1,3}(\.\d{3})+$/.test(v))v=v.replace(/\./g,'');return parseFloat(v);}
 function simBRL(v){return (isFinite(v)?v:0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
-function abrirSimulador(id){document.getElementById('sim-hub').style.display='none';document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');const el=document.getElementById('sim-'+id);if(el)el.style.display='block';if(id==='cxf')carregarMercado();if((id==='carta'||id==='incc')&&window.SimPlan)SimPlan.montar(id,el.querySelector('.sim-plan'));}
+function abrirSimulador(id){document.getElementById('sim-hub').style.display='none';document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');const el=document.getElementById('sim-'+id);if(el)el.style.display='block';if(id==='cxf')carregarMercado();if((id==='carta'||id==='custo')&&window.SimPlan)SimPlan.montar(id,el.querySelector('.sim-plan'));}
 function voltarSimHub(){document.querySelectorAll('.sim-panel').forEach(p=>p.style.display='none');document.getElementById('sim-hub').style.display='grid';}
 let _mercado=null;
 async function carregarMercado(){const box=document.getElementById('cxf-mercado');if(!box)return;if(_mercado){renderMercado();return;}box.textContent='📊 Buscando taxas de mercado (BCB)…';try{_mercado=await(await fetch('/api/mercado')).json();}catch(e){_mercado={};}renderMercado();}
