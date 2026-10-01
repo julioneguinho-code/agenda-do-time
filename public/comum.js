@@ -152,52 +152,15 @@
     if (window.toast) toast(j.ok ? 'Retorno agendado para ' + prazo.split('-').reverse().join('/') + ' ✓' : (j.erro || 'Erro'));
   };
   C.exportarClientes = function () { const a = document.createElement('a'); a.href = '/api/clientes/export'; a.download = ''; document.body.appendChild(a); a.click(); a.remove(); if (window.toast) toast('Gerando planilha… ⬇️'); };
-  // ---------- CHAMA DO PÓDIO (Mural, 1º/2º/3º) — v157 ----------
-  // Desenho vetorial em camadas (vermelho com contorno, laranja, amarelo, miolo). Cada camada é uma imagem
-  // desenhada UMA vez; a animação só estica/inclina (transform) — roda na placa de vídeo, não pesa.
-  const CONTORNO = '#6B2410';
-  const svgUrl = s => 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" preserveAspectRatio="none">' + s + '</svg>') + '")';
-  const caminho = (d, cor, borda) => '<path d="' + d + '" fill="' + cor + '"' + (borda ? ' stroke="' + CONTORNO + '" stroke-width="' + borda + '" stroke-linejoin="round"' : '') + '/>';
-  const F = {
-    ext: 'M50 3C54 19 64 27 66 41C70 31 74 27 81 22C78 35 87 47 89 61C93 82 84 105 64 116C57 119 43 119 36 116C16 105 7 81 11 61C13 49 19 41 24 34C26 43 30 47 34 49C32 35 40 21 50 3Z',
-    mei: 'M50 22C54 34 60 40 62 51C66 45 70 41 75 38C75 51 81 61 81 73C81 93 70 108 56 114C52 115 48 115 44 114C28 108 19 93 21 76C22 66 27 58 32 54C34 61 38 65 42 67C40 52 44 38 50 22Z',
-    ama: 'M50 44C54 54 58 59 60 67C63 63 66 60 69 58C69 70 73 79 73 89C73 103 64 112 50 114C36 112 27 103 27 90C27 80 32 74 37 70C38 76 41 79 44 80C43 68 45 56 50 44Z',
-    nuc: 'M50 72C54 80 58 86 58 96C58 105 54 111 50 111C46 111 42 105 42 97C42 89 46 81 50 72Z',
-    pq: 'M50 4C58 24 80 42 77 74C74 104 26 104 23 74C20 46 43 26 50 4Z',
-    pqi: 'M50 40C55 54 66 64 64 82C62 100 38 100 36 82C34 66 45 55 50 40Z',
-  };
-  (function estilosChama() {
-    const css = '.chm{position:relative;display:inline-block;flex:none;width:calc(var(--s)*1.9);height:calc(var(--s)*1.95);margin:calc(var(--s)*-.05) calc(var(--s)*-.45) calc(var(--s)*-.12);isolation:isolate}'
-      + '.chm>i{position:absolute;left:50%;bottom:0;background-size:100% 100%;background-repeat:no-repeat;transform-origin:50% 100%;transform:translateX(-50%);animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}'
-      // nome da animação por CLASSE (o Safari do iPhone não aceita var() no nome da animação)
-      + '.chm>.anA{animation-name:chmA}.chm>.anB{animation-name:chmB}.chm>.anC{animation-name:chmC}.chm>.anP{animation-name:chmP}'
-      + '.chm>.chm-foto{position:absolute;left:50%;bottom:10%;width:var(--s);height:var(--s);margin-left:calc(var(--s)/-2);border-radius:50%;box-shadow:0 0 0 3px ' + CONTORNO + ';z-index:5}'
-      + '.chm>.chm-foto>*{width:100%!important;height:100%!important;margin:0!important}'
-      + '.chm-ext{background-image:' + svgUrl(caminho(F.ext, '#E5341B', 3.5)) + '}'
-      + '.chm-mei{background-image:' + svgUrl(caminho(F.mei, '#FF8A1F')) + '}'
-      + '.chm-ama{background-image:' + svgUrl(caminho(F.ama, '#FFC93C')) + '}'
-      + '.chm-nuc{background-image:' + svgUrl(caminho(F.nuc, '#FFF3B8')) + '}'
-      + '.chm-pq{background-image:' + svgUrl(caminho(F.pq, '#E5341B', 5) + caminho(F.pqi, '#FFC93C')) + '}'
-      + '@keyframes chmA{0%{transform:translateX(-50%) scale(1,1) skewX(0)}50%{transform:translateX(-50%) scale(.96,1.06) skewX(-3deg)}100%{transform:translateX(-50%) scale(1.03,.95) skewX(2.5deg)}}'
-      + '@keyframes chmB{0%{transform:translateX(-50%) scale(1,.94) skewX(2deg)}50%{transform:translateX(-50%) scale(.94,1.08) skewX(-4deg)}100%{transform:translateX(-50%) scale(1.04,1) skewX(3deg)}}'
-      + '@keyframes chmC{0%{transform:translateX(-50%) scale(.95,1.05) skewX(-4deg)}100%{transform:translateX(-50%) scale(1.05,.9) skewX(5deg)}}'
-      + '@keyframes chmP{0%{transform:translateX(-50%) scale(.8,.55)}60%{transform:translateX(-50%) scale(1,1.08)}100%{transform:translateX(-50%) scale(.9,.8) skewX(6deg)}}'
-      // fogo pequeno ao lado da foto (demais posições, acima de R$ 1 milhão)
-      + '.fogo-lado{display:inline-block;flex:none;font-size:18px;line-height:1;transform-origin:50% 100%;animation:chmL .7s ease-in-out infinite alternate}'
+  // ---------- FOGO DO MURAL — v161 (chama animada do pódio retirada a pedido) ----------
+  (function estilosFogo() {
+    const css = '.fogo-lado{display:inline-block;flex:none;font-size:18px;line-height:1;transform-origin:50% 100%;animation:chmL .7s ease-in-out infinite alternate}'
       + '@keyframes chmL{from{transform:scale(1,.92) rotate(-4deg)}to{transform:scale(.95,1.1) rotate(4deg)}}'
-      // quem pediu "reduzir movimento" no celular vê a chama parada
-      + '@media (prefers-reduced-motion:reduce){.chm>i,.fogo-lado{animation:none}}';
+      + '@media (prefers-reduced-motion:reduce){.fogo-lado{animation:none}}';
     const st = document.createElement('style'); st.id = 'chama-css'; st.textContent = css; document.head.appendChild(st);
   })();
-  const aleat = (a, b) => (a + Math.random() * (b - a)).toFixed(2);
-  const camada = (cls, an, w, h, extra, z) => '<i class="chm-' + cls + ' an' + an.slice(-1) + '" style="animation-duration:' + aleat(.5, .9) + 's;animation-delay:-' + aleat(0, 1) + 's;width:' + w + '%;height:' + h + '%;z-index:' + z + ';' + (extra || '') + '"></i>';
-  // inner = HTML da foto (avatar) · tam = tamanho da foto em px
-  C.chamaHTML = function (inner, tam) {
-    const h = camada('pq', 'chmP', 24, 44, 'left:14%;bottom:6%', 0) + camada('pq', 'chmP', 22, 40, 'left:86%;bottom:6%', 0)
-      + camada('ext', 'chmA', 92, 100, '', 1) + camada('mei', 'chmB', 92, 100, '', 2) + camada('ama', 'chmC', 92, 100, '', 3) + camada('nuc', 'chmB', 92, 100, '', 4)
-      + camada('pq', 'chmP', 20, 30, 'left:32%;bottom:0', 6) + camada('pq', 'chmP', 18, 26, 'left:68%;bottom:0', 6);
-    return '<div class="chm" style="--s:' + (+tam || 58) + 'px">' + h + '<div class="chm-foto">' + inner + '</div></div>';
-  };
+  // pódio: só a foto, sem chama
+  C.chamaHTML = function (inner) { return inner; };
   // ================= CASCA DAS TELAS (v158) =================
   // Menu (barra de baixo no celular / lateral no computador), atalhos personalizáveis, "Mais" e "Meu perfil".
   // Cada página informa o CATÁLOGO dos seus recursos; o usuário escolhe os favoritos (⭐) e a ordem (▲▼).
