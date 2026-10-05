@@ -619,13 +619,13 @@ async function toggleFechada(id,checked){
 function confetesCair(){
   if(!document.getElementById('kf-confete')){const st=document.createElement('style');st.id='kf-confete';st.textContent='@keyframes cair{0%{transform:translateY(-20px) rotate(0);opacity:0}10%{opacity:1}100%{transform:translateY(105vh) rotate(var(--r,360deg));opacity:.9}}';document.head.appendChild(st);}
   const cont=document.createElement('div');cont.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:10001;overflow:hidden';const cores=['#E23B3B','#3E8E6E','#4F79A8','#E6B800','#B87333','#8E44AD','#E67E22'];
-  let levas=0;const iv=setInterval(()=>{for(let i=0;i<40;i++){const p=document.createElement('div');const sz=6+Math.random()*8;p.style.cssText=`position:absolute;left:${Math.random()*100}%;top:-10px;width:${sz}px;height:${sz*0.6}px;background:${cores[i%cores.length]};--r:${(Math.random()*720-360)}deg;border-radius:2px;animation:cair ${2.5+Math.random()*2}s linear ${Math.random()*0.8}s forwards`;cont.appendChild(p);setTimeout(()=>p.remove(),5200);}if(++levas>=4)clearInterval(iv);},700);
-  document.body.appendChild(cont);setTimeout(()=>cont.remove(),9500);
+  let levas=0;const iv=setInterval(()=>{for(let i=0;i<40;i++){const p=document.createElement('div');const sz=6+Math.random()*8;p.style.cssText=`position:absolute;left:${Math.random()*100}%;top:-10px;width:${sz}px;height:${sz*0.6}px;background:${cores[i%cores.length]};--r:${(Math.random()*720-360)}deg;border-radius:2px;animation:cair ${2.5+Math.random()*0.5}s linear ${Math.random()*0.5}s forwards`;cont.appendChild(p);setTimeout(()=>p.remove(),3600);}if(++levas>=9)clearInterval(iv);},700);
+  document.body.appendChild(cont);setTimeout(()=>cont.remove(),10000); // v171: 10 s
 }
 function festaVenda(valor){
   const ov=document.createElement('div');ov.className='cel-ov';ov.style.cssText='position:fixed;inset:0;z-index:10002;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.28);padding:20px';
   ov.innerHTML=`<div style="background:#fff;border-radius:20px;padding:30px 24px;max-width:340px;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.3)"><div style="font-size:50px">🎉</div><div style="font-size:22px;font-weight:800;color:var(--ok);margin-top:4px">Parabéns!</div><div style="font-size:15px;margin-top:8px;line-height:1.5">Você realizou o sonho de mais um cliente!${valor?('<br><b style="font-size:18px;color:var(--ok)">'+money(valor)+'</b>'):''}</div><div class="mut" style="font-size:12px;margin-top:6px">Seu gestor já foi notificado! 🔔</div><button class="btn full" style="background:var(--ok);margin-top:16px" onclick="this.closest('.cel-ov').remove()">Obrigado! 🙌</button></div>`;
-  document.body.appendChild(ov);confetesCair();setTimeout(()=>{try{ov.remove()}catch(e){}},9500);
+  document.body.appendChild(ov);confetesCair();setTimeout(()=>{try{ov.remove()}catch(e){}},10000);
 }
 const TAMS_GRUPO_C=[500,1000,2000,3333,5000,9999];
 function selTamGrupoC(sel){const ops=TAMS_GRUPO_C.map(n=>`<option value="${n}" ${(+sel===n)?'selected':''}>${n} participantes</option>`).join('');return `<label>Tamanho do grupo <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><select id="vf-tamanho" class="inp2"><option value="">— selecione —</option>${ops}</select>`;}
@@ -694,9 +694,10 @@ async function salvarVenda(id){
 }
 async function excluirVendaF(id){if(!confirm('Excluir esta venda?'))return;const res=await fetch('/api/vendas/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();if(j.ok){fecharPop();toast('Excluída ✓');carregarVendas()}else toast(j.erro||'Erro');}
 function badge(s){return s==='Aprovada'?'b-ok':s==='Pendente'?'b-warn':s==='Recusada'?'b-no':'b-blue'}
-function estiloCor(cor){if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%);color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor}33;color:#1a1a18;border:1px solid ${cor}`;return 'background:transparent;color:var(--txt)'}
-function estiloCorSolida(cor){if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%);color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#fff`;return ''}
-function aplicarCorAvatar(el,cor){if(!cor)return;el.style.border='none';if(cor==='grad'){el.style.background='linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%)';el.style.color='#fff'}else if((cor||'').toLowerCase()==='#ffffff'){el.style.background='#fff';el.style.color='#1a1a18';el.style.border='1px solid #d4d2cb'}else{el.style.background=cor;el.style.color='#fff'}}
+const GRADS={grad:'linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%)',gradpc:'linear-gradient(100deg,#111318 0%,#111318 50%,#9CA3AF 50%,#9CA3AF 100%)'};
+function estiloCor(cor){if(GRADS[cor])return 'background:'+GRADS[cor]+';color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor}33;color:#1a1a18;border:1px solid ${cor}`;return 'background:transparent;color:var(--txt)'}
+function estiloCorSolida(cor){if(GRADS[cor])return 'background:'+GRADS[cor]+';color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#fff`;return ''}
+function aplicarCorAvatar(el,cor){if(!cor)return;el.style.border='none';if(GRADS[cor]){el.style.background=GRADS[cor];el.style.color='#fff'}else if((cor||'').toLowerCase()==='#ffffff'){el.style.background='#fff';el.style.color='#1a1a18';el.style.border='1px solid #d4d2cb'}else{el.style.background=cor;el.style.color='#fff'}}
 
 function fmtTam(b){if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(0)+' KB';return (b/1048576).toFixed(1)+' MB'}
 function diasAte(iso){return Math.max(0,Math.ceil((new Date(iso).getTime()-Date.now())/86400000))}
@@ -861,7 +862,7 @@ async function abrirChat(){
   const box=document.getElementById('chat-msgs');
   box.innerHTML=(j.mensagens||[]).map(m=>{
     const meu=m.de==='consultor';
-    return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px"><div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`;
+    return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px">${m.equipe?'<div style="font-size:10.5px;font-weight:700;color:var(--acc);margin-bottom:3px">📢 Para toda a equipe</div>':''}<div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`;
   }).join('')||'<div class="mut" style="text-align:center;padding:20px">Inicie a conversa com seu gestor</div>';
   box.scrollTop=box.scrollHeight;
   document.getElementById('badge-chat').style.display='none';

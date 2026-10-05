@@ -119,3 +119,60 @@ test('simuladores de planilha: Venda da Carta × CDI (correções v164) e INCC/a
   const pmt = 100000 * 0.01 / (1 - Math.pow(1.01, -120));
   assert.ok(Math.abs(S.tirMensal(100000, Array(120).fill(pmt), 120, 0) - 0.01) < 1e-7);
 });
+
+test('chat (v170): gestor envia mensagem para toda a equipe — só o time dele recebe', async () => {
+  auth.criarUsuario('eqa1', 'x1234', 'Ana Equipe', 'consultor', { time: 'A' });
+  auth.criarUsuario('eqa2', 'x1234', 'Bia Equipe', 'consultor', { time: 'A' });
+  auth.criarUsuario('eql1', 'x1234', 'Caio Outro', 'consultor', { time: 'L' });
+  const gestor = { papel: 'gestor', email: 'roxo', nome: 'Gestor Roxo', time: 'A' };
+  const r = await N.enviarChat(gestor, { paraTime: true, texto: 'Reunião às 9h' });
+  assert.ok(r.ok && r.qtd >= 2, JSON.stringify(r));
+  const ana = await N.listarChat({ papel: 'consultor', email: 'eqa1', nome: 'Ana Equipe', time: 'A' });
+  assert.ok(ana.mensagens.some(m => m.equipe && m.texto === 'Reunião às 9h'));
+  const caio = await N.listarChat({ papel: 'consultor', email: 'eql1', nome: 'Caio Outro', time: 'L' });
+  assert.ok(!caio.mensagens.some(m => m.texto === 'Reunião às 9h'));            // outro time não recebe
+  const hist = await N.listarChat(gestor, '#equipe');
+  const envio = hist.mensagens.find(m => m.texto === 'Reunião às 9h');
+  assert.strictEqual(envio.total, r.qtd); assert.ok(envio.lidas >= 1);            // Ana já leu
+  const cons = await N.enviarChat({ papel: 'consultor', email: 'eqa2', nome: 'Bia Equipe', time: 'A' }, { paraTime: true, texto: 'oi' });
+  assert.ok(cons.ok && cons.qtd === undefined);                                  // consultor não faz envio em massa
+});
+
+test('estrutura de gestão (v172): níveis, quem responde a quem, equipes visíveis e check-in individual', async () => {
+  auth.criarUsuario('dono1', 'x1234', 'Dona Loja', 'gestor', { time: 'D' });
+  auth.criarUsuario('cinza1', 'x1234', 'Gestor Loja', 'gestor', { time: 'C', cor: '#9CA3AF' });
+  auth.criarUsuario('lar2', 'x1234', 'Sup Dois', 'gestor', { time: 'L2', cor: '#FB923C' });
+  auth.criarUsuario('ver1', 'x1234', 'Vermelho Um', 'consultor', { time: 'L2' });
+  auth.criarUsuario('ver2', 'x1234', 'Vermelho Dois', 'consultor', { time: 'L2' });
+  const ed = (l, c) => auth.atualizarUsuario(l, c);
+  assert.ok(ed('dono1', { nivel: 'dono', superior: '' }).ok);
+  assert.ok(ed('cinza1', { nivel: 'gestorLoja', superior: 'dono1' }).ok);
+  assert.ok(ed('roxo', { nivel: 'gestorEquipe', superior: 'cinza1' }).ok);
+  assert.ok(ed('lar2', { nivel: 'supervisor', superior: 'roxo' }).ok);
+  assert.ok(ed('ver1', { nivel: 'consultor', superior: 'lar2' }).ok);
+  assert.ok(ed('ver2', { nivel: 'consultor', superior: 'lar2' }).ok);
+  // regras: laranja não fica acima de roxo; consultor não vira gestor pelo nível; ninguém acima de quem já é maior que ele
+  assert.ok(ed('roxo', { superior: 'lar2' }).erro);
+  assert.ok(ed('ver1', { nivel: 'supervisor' }).erro);
+  assert.ok(ed('cinza1', { nivel: 'supervisor' }).erro);              // o roxo responde a ele
+  assert.strictEqual(auth.usuarioPorEmail('lar2').cor, '#FB923C');    // cor acompanha o nível (comissão laranja)
+  // quem está acima enxerga as equipes de baixo; o de baixo não enxerga as de cima
+  const vis = l => auth.timesVisiveis(auth.usuarioPorEmail(l));
+  assert.ok(vis('dono1').includes('L2') && vis('dono1').includes('C') && vis('dono1').includes('A'));
+  assert.ok(vis('roxo').includes('L2') && !vis('roxo').includes('C'));
+  assert.ok(!vis('lar2').includes('A'));
+  // check-in: estrutura do roxo vale para os vermelhos do laranja dele; individual substitui
+  const roxo = { papel: 'gestor', email: 'roxo', nome: 'Gestor Roxo', time: 'A' };
+  assert.ok((await N.salvarRotinas(roxo, { rotinas: ['Ligar 10 clientes'], alvo: { tipo: 'estrutura', id: 'roxo' } })).ok);
+  assert.deepStrictEqual(N.rotinasDe('ver1'), ['Ligar 10 clientes']);
+  assert.ok((await N.salvarRotinas(roxo, { rotinas: ['Visita ao cliente X'], alvo: { tipo: 'pessoa', id: 'ver2' } })).ok);
+  assert.deepStrictEqual(N.rotinasDe('ver2'), ['Visita ao cliente X']);
+  assert.deepStrictEqual(N.rotinasDe('ver1'), ['Ligar 10 clientes']);
+  // laranja só manda para a estrutura dele; não mexe em quem está fora
+  const lar = { papel: 'gestor', email: 'lar2', nome: 'Sup Dois', time: 'L2' };
+  assert.ok((await N.salvarRotinas(lar, { rotinas: ['x'], alvo: { tipo: 'estrutura', id: 'roxo' } })).erro);
+  assert.ok((await N.salvarRotinas(lar, { rotinas: ['Prospectar'], alvo: { tipo: 'estrutura', id: 'lar2' } })).ok);
+  assert.deepStrictEqual(N.rotinasDe('ver1'), ['Prospectar']);        // o chefe mais próximo vale
+  assert.ok((await N.salvarRotinas(roxo, { alvo: { tipo: 'pessoa', id: 'ver2' }, remover: true })).ok);
+  assert.deepStrictEqual(N.rotinasDe('ver2'), ['Prospectar']);
+});

@@ -418,12 +418,16 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/times/excluir' && req.method === 'POST') {
         return send(res, 200, notion.excluirTime(session, await readBody(req)));
       }
+      if (p === '/api/gestor/estrutura' && req.method === 'GET') {
+        return send(res, 200, notion.estruturaGestao(session));
+      }
       if (p === '/api/gestor/rotinas' && req.method === 'GET') {
-        return send(res, 200, await notion.listarRotinas(session));
+        const tp = url.searchParams.get('tipo');
+        return send(res, 200, await notion.listarRotinas(session, tp ? { tipo: tp, id: url.searchParams.get('id') || '' } : null));
       }
       if (p === '/api/gestor/rotinas' && req.method === 'POST') {
         const r = await notion.salvarRotinas(session, await readBody(req));
-        if (r.ok) notion.auditar(session, 'alterou rotinas do check-in', (r.time || 'geral') + ' · ' + r.rotinas.length + ' rotinas', '');
+        if (r.ok) notion.auditar(session, r.removido ? 'voltou o check-in ao padrão' : 'alterou rotinas do check-in', (r.time || 'geral') + (r.removido ? '' : ' · ' + r.rotinas.length + ' rotinas'), '');
         return send(res, 200, r);
       }
       if (p === '/api/gestor/usuarios' && req.method === 'GET') {
@@ -457,15 +461,15 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, r);
       }
       if (p === '/api/gestor/usuarios/editar' && req.method === 'POST') {
-        const { email, novoEmail, nome, papel, time, calendarId, cargo, cor, master, metaVenda, foto } = await readBody(req);
+        const { email, novoEmail, nome, papel, time, calendarId, cargo, cor, master, metaVenda, foto, nivel, superior } = await readBody(req);
         const antes = auth.usuarioPorEmail(email);
-        const r = auth.atualizarUsuario(email, { novoEmail, nome, papel, time, calendarId, cargo, cor, master, metaVenda, foto });
+        const r = auth.atualizarUsuario(email, { novoEmail, nome, papel, time, calendarId, cargo, cor, master, metaVenda, foto, nivel, superior });
         if (r.ok && antes) {
           // registra SÓ o que mudou (antes → depois)
           const mud = [];
           const cmp = (rot, a, d) => { if (d != null && String(d) !== String(a == null ? '' : a)) mud.push(rot + ': ' + (a === '' || a == null ? '—' : a) + ' → ' + (d === '' ? '—' : d)); };
           cmp('login', antes.email, novoEmail && String(novoEmail).trim().toLowerCase()); cmp('nome', antes.nome, nome); cmp('papel', antes.papel, papel); cmp('time', antes.time, time);
-          cmp('cargo', antes.cargo, cargo); cmp('cor', antes.cor, cor); cmp('master', !!antes.master, master == null ? null : !!master); cmp('meta', antes.metaVenda, metaVenda == null ? null : (+metaVenda || 0)); cmp('agenda', antes.calendarId, calendarId);
+          cmp('cargo', antes.cargo, cargo); cmp('cor', antes.cor, cor); cmp('master', !!antes.master, master == null ? null : !!master); cmp('meta', antes.metaVenda, metaVenda == null ? null : (+metaVenda || 0)); cmp('agenda', antes.calendarId, calendarId); cmp('nível', antes.nivel, nivel || null); cmp('responde a', antes.superior, superior == null ? null : String(superior).toLowerCase());
           if (foto != null && foto !== '' && /^data:/.test(String(foto))) mud.push('foto alterada');
           if (mud.length) notion.auditar(session, 'editou acesso', mud.join(' · '), (novoEmail && String(novoEmail).trim()) || email);
         }

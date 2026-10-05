@@ -244,6 +244,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <button class="chip" data-sa="pedidos" onclick="subAcesso('pedidos')">📩 Pedidos <span id="cad-badge" class="badge b-no" style="display:none;margin-left:2px">0</span></button>
       <button class="chip" data-sa="novo" onclick="subAcesso('novo')">➕ Novo</button>
       <button class="chip" data-sa="times" onclick="subAcesso('times')">🏷️ Times</button>
+      <button class="chip" data-sa="estrutura" onclick="subAcesso('estrutura')">🏢 Estrutura</button>
       <button class="chip" data-sa="check" onclick="subAcesso('check')">✅ Check-in</button>
       <button class="chip" data-sa="arq" onclick="subAcesso('arq')">📎 Arquivos</button>
       <button class="chip" data-sa="audit" onclick="subAcesso('audit')">🕵️ Auditoria</button>
@@ -295,6 +296,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 
     <div class="sa" id="sa-check" style="display:none">
       <div class="card">
+        <label style="font-size:12px;color:var(--mut)">Enviar check-in para</label>
+        <select id="rot-alvo" onchange="carregarRotinasEdit(this.value)" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"></select>
         <div class="mut" id="rot-desc" style="font-size:12px;margin-bottom:8px">Rotinas que os consultores marcam todo dia. Edite, adicione ou remova.</div>
         <div id="lista-rotinas-edit"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
@@ -302,6 +305,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
           <button class="btn sec2" onclick="addRotina()">+ Adicionar</button>
         </div>
         <button class="btn" style="width:100%;margin-top:10px" onclick="salvarRotinas()">Salvar check-in</button>
+        <button class="btn sec2" id="rot-padrao" style="width:100%;margin-top:8px;display:none;color:var(--no)" onclick="voltarRotinasPadrao()">↩ Voltar ao padrão</button>
+      </div>
+    </div>
+
+    <div class="sa" id="sa-estrutura" style="display:none">
+      <div class="card">
+        <div class="titulo" style="margin-bottom:4px">🏢 Estrutura de gestão</div>
+        <div class="mut" style="font-size:12px;margin-bottom:8px">⚫ Dono › ⚫⚪ Sócio › ⚪ Gestor de loja › 🟣 Gestor de equipe › 🟠 Supervisor › 🔴 Consultor. Cada um enxerga a própria equipe e toda a estrutura abaixo. Para mudar quem responde a quem, toque na pessoa.</div>
+        <div id="estrutura-arvore"></div>
       </div>
     </div>
 
@@ -661,7 +673,7 @@ async function excluirFechamento(id){if(!confirm('Excluir este fechamento do his
 function fmtData(iso){const d=new Date(iso);const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];return `${dias[d.getDay()]} ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
 function corPct(p){return p>=70?'#1D9E75':p>=40?'#EF9F27':'#E24B4A'}
 function estiloCor(cor){
-  if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%);color:#fff';
+  if(GRADS[cor])return 'background:'+GRADS[cor]+';color:#fff';
   if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';
   if(cor)return `background:${cor}33;color:#1a1a18;border:1px solid ${cor}`;
   return 'background:transparent;color:var(--txt)';
@@ -674,7 +686,14 @@ function avatarHTML(nome,cor,size,foto){size=size||34;const f=foto||(window._fot
 function setFotoEd(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=()=>{const max=400,s=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*s),h=Math.round(img.height*s);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);const d=c.toDataURL('image/jpeg',0.75);document.getElementById('ed-foto').value=d;document.getElementById('ed-foto-prev').style.backgroundImage="url('"+d+"')";};img.src=rd.result;};rd.readAsDataURL(f);}
 function removerFotoEd(){document.getElementById('ed-foto').value='';document.getElementById('ed-foto-prev').style.backgroundImage='';}
 function trocarMinhaFoto(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=async()=>{const max=400,s=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*s),h=Math.round(img.height*s);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);const d=c.toDataURL('image/jpeg',0.75);const r=await fetch('/api/minha-foto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({foto:d})});const j=await r.json();if(j.ok){toast('Foto atualizada ✓');carregar();}else toast(j.erro||'Erro');};img.src=rd.result;};rd.readAsDataURL(f);}
-const PALETA=[{n:'— sem cor —',c:''},{n:'Branca',c:'#FFFFFF'},{n:'Vermelha',c:'#E23B3B'},{n:'Vermelha e Preta',c:'grad'},{n:'Laranja',c:'#FB923C'},{n:'Roxo',c:'#A78BFA'},{n:'Cinza',c:'#9CA3AF'}];
+// v172: ESTRUTURA DE GESTÃO — níveis (do topo para a base) e a cor de cada um
+const NIVEIS_G=[{id:'dono',n:'Dono de loja',c:'#111318',ic:'⚫'},{id:'socio',n:'Sócio de loja',c:'gradpc',ic:'⚫⚪'},{id:'gestorLoja',n:'Gestor de loja',c:'#9CA3AF',ic:'⚪'},{id:'gestorEquipe',n:'Gestor de equipe',c:'#A78BFA',ic:'🟣'},{id:'supervisor',n:'Supervisor de equipe',c:'#FB923C',ic:'🟠'},{id:'consultor',n:'Consultor',c:'#E23B3B',ic:'🔴'}];
+const RANK_G=id=>['consultor','supervisor','gestorEquipe','gestorLoja','socio','dono'].indexOf(id);
+const nivelInfo=id=>NIVEIS_G.find(x=>x.id===id)||NIVEIS_G[5];
+function bolinhaNivel(id,tam){const n=nivelInfo(id);tam=tam||12;const bg=GRADS[n.c]||n.c;return `<span title="${n.n}" style="display:inline-block;width:${tam}px;height:${tam}px;border-radius:50%;background:${bg};border:1px solid rgba(0,0,0,.15);flex:none;vertical-align:-1px"></span>`;}
+// v172: gradientes de cor (vermelho/preto e o preto/cinza do sócio de loja)
+const GRADS={grad:'linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%)',gradpc:'linear-gradient(100deg,#111318 0%,#111318 50%,#9CA3AF 50%,#9CA3AF 100%)'};
+const PALETA=[{n:'— sem cor —',c:''},{n:'Branca',c:'#FFFFFF'},{n:'Vermelha',c:'#E23B3B'},{n:'Vermelha e Preta',c:'grad'},{n:'Laranja',c:'#FB923C'},{n:'Roxo',c:'#A78BFA'},{n:'Cinza',c:'#9CA3AF'},{n:'Preta e Cinza',c:'gradpc'},{n:'Preta',c:'#111318'}];
 
 async function carregar(){
   const res = await fetch('/api/gestor/painel');
@@ -1149,7 +1168,8 @@ async function abrirChatLista(){
   document.getElementById('chat-thread-wrap').style.display='none';
   document.getElementById('chat-titulo').textContent='💬 Conversas do time';
   const res=await fetch('/api/chat');const j=await res.json();
-  document.getElementById('chat-lista').innerHTML=(j.lista||[]).map(c=>`<div class="card row" style="cursor:pointer" onclick="abrirChatThread('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,'',34,c.foto)}<div class="titulo">${esc(c.nome)}</div></div>${c.naoLidas>0?`<span class="badge b-no">${c.naoLidas} nova(s)</span>`:'<span class="mut">›</span>'}</div>`).join('')||'<div class="mut" style="padding:10px">Nenhum consultor no time</div>';
+  const nEq=j.equipe||(j.lista||[]).length;
+  document.getElementById('chat-lista').innerHTML=(nEq?`<div class="card row" style="cursor:pointer;border:1.5px solid var(--acc);background:var(--accbg,#fde8ea)" onclick="abrirChatThread('#equipe','Toda a equipe')"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-size:17px;flex:none">📢</div><div><div class="titulo">Toda a equipe</div><div class="mut" style="font-size:11px">Mensagem para os ${nEq} consultor(es) do time</div></div></div><span class="mut">›</span></div>`:'')+(j.lista||[]).map(c=>`<div class="card row" style="cursor:pointer" onclick="abrirChatThread('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,'',34,c.foto)}<div class="titulo">${esc(c.nome)}</div></div>${c.naoLidas>0?`<span class="badge b-no">${c.naoLidas} nova(s)</span>`:'<span class="mut">›</span>'}</div>`).join('')||'<div class="mut" style="padding:10px">Nenhum consultor no time</div>';
 }
 async function abrirChatThread(login,nome){
   chatConsultor=login;
@@ -1158,11 +1178,14 @@ async function abrirChatThread(login,nome){
   const res=await fetch('/api/chat?consultor='+encodeURIComponent(login));const j=await res.json();
   document.getElementById('chat-titulo').textContent='💬 '+(nome||j.consultor||'');
   const box=document.getElementById('chat-msgs');
-  box.innerHTML=(j.mensagens||[]).map(m=>{const meu=m.de==='gestor';return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px"><div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`}).join('')||'<div class="mut" style="text-align:center;padding:20px">Sem mensagens ainda</div>';
+  const eq=login==='#equipe';
+  document.getElementById('chat-input').placeholder=eq?('Mensagem para os '+(j.equipe||0)+' consultor(es)…'):'Mensagem…';
+  if(eq){box.innerHTML=(j.mensagens||[]).map(m=>`<div style="align-self:flex-end;max-width:85%;background:var(--acc);color:#fff;border-radius:14px;padding:8px 12px"><div style="font-size:10.5px;font-weight:700;opacity:.85;margin-bottom:3px">📢 Para toda a equipe${m.por?' · '+esc(m.por):''}</div><div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.8;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} · lida por ${m.lidas} de ${m.total}</div></div>`).join('')||'<div class="mut" style="text-align:center;padding:20px">Escreva abaixo: a mensagem chega no chat de cada consultor do time, com notificação no celular. As respostas chegam no particular de cada um.</div>';box.scrollTop=box.scrollHeight;return;}
+  box.innerHTML=(j.mensagens||[]).map(m=>{const meu=m.de==='gestor';return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px">${m.equipe?'<div style="font-size:10.5px;font-weight:700;opacity:.85;margin-bottom:3px">📢 Para toda a equipe</div>':''}<div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`}).join('')||'<div class="mut" style="text-align:center;padding:20px">Sem mensagens ainda</div>';
   box.scrollTop=box.scrollHeight;
 }
 function voltarChatLista(){chatConsultor=null;abrirChatLista()}
-async function enviarMsgGestor(){const t=document.getElementById('chat-input');if(!t.value.trim()||!chatConsultor)return;await fetch('/api/chat/enviar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({consultor:chatConsultor,texto:t.value})});t.value='';abrirChatThread(chatConsultor)}
+async function enviarMsgGestor(){const t=document.getElementById('chat-input');if(!t.value.trim()||!chatConsultor)return;const eq=chatConsultor==='#equipe';const j=await(await fetch('/api/chat/enviar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(eq?{paraTime:true,texto:t.value}:{consultor:chatConsultor,texto:t.value})})).json();if(j.erro){toast(j.erro);return;}t.value='';if(eq)toast('📢 Enviada para '+j.qtd+' consultor(es) ✓');abrirChatThread(chatConsultor,eq?'Toda a equipe':undefined)}
 async function salvarMeta(){
   const alvo=+document.getElementById('meta-input').value;
   await fetch('/api/gestor/meta',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alvo})});
@@ -1181,8 +1204,8 @@ function renderConsultores(){
     return `<div class="card row" style="cursor:pointer" onclick="abrirPerfil('${c.email}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,c.cor,34,c.foto)}<div>${balaoNome(c.nome,c.cor)}<div class="mut" style="font-size:11px;margin-top:2px">${c.totalEnvios}/7 check-ins · ${ab} tarefas abertas · ${ft} feitas</div></div></div><span class="mut">›</span></div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nenhum consultor</div>';
 }
-function estiloCorSolidaG(cor){if(cor==='grad')return 'background:linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%);color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#fff`;return ''}
-function aplicarCorAvatar(el,cor){if(!cor)return;el.style.border='none';if(cor==='grad'){el.style.background='linear-gradient(100deg,#E23B3B 0%,#E23B3B 50%,#111318 50%,#111318 100%)';el.style.color='#fff'}else if((cor||'').toLowerCase()==='#ffffff'){el.style.background='#fff';el.style.color='#1a1a18';el.style.border='1px solid #d4d2cb'}else{el.style.background=cor;el.style.color='#fff'}}
+function estiloCorSolidaG(cor){if(GRADS[cor])return 'background:'+GRADS[cor]+';color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#fff`;return ''}
+function aplicarCorAvatar(el,cor){if(!cor)return;el.style.border='none';if(GRADS[cor]){el.style.background=GRADS[cor];el.style.color='#fff'}else if((cor||'').toLowerCase()==='#ffffff'){el.style.background='#fff';el.style.color='#1a1a18';el.style.border='1px solid #d4d2cb'}else{el.style.background=cor;el.style.color='#fff'}}
 let perfilAtual=null;
 async function abrirPerfil(login){
   perfilAtual=login;
@@ -1321,7 +1344,7 @@ async function abrirEquipes(){
   let j;try{j=await(await fetch('/api/gestor/equipes')).json();}catch(e){toast('Erro ao carregar equipes');return}
   if(!j||!j.ok){toast((j&&j.erro)||'Erro');return}
   window._minhasEquipes=j.equipes||[];
-  const lista=window._minhasEquipes.map((e,i)=>`<div class="card" style="padding:10px 12px;margin-bottom:7px;${e.ativa?'border-color:var(--acc);background:var(--accbg)':''}"><div class="row" style="align-items:center"><div style="min-width:0"><div class="titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.nome)}${e.principal?' <span class="badge" style="font-size:9px;background:var(--card2);color:var(--mut)">principal</span>':''}</div><div class="mut" style="font-size:11px">${e.consultores} consultor(es)</div></div><div style="display:flex;gap:6px;flex:none">${e.ativa?'<span class="badge b-ok">aberta</span>':`<button class="btn" style="padding:6px 12px" onclick="entrarEquipe(${i})">Abrir</button>`}${(!e.principal&&!e.consultores)?`<button class="btn sec2" style="padding:6px 9px;color:var(--no)" title="Remover equipe vazia" onclick="removerEquipeG(${i})">🗑</button>`:''}</div></div></div>`).join('');
+  const lista=window._minhasEquipes.map((e,i)=>`<div class="card" style="padding:10px 12px;margin-bottom:7px;${e.ativa?'border-color:var(--acc);background:var(--accbg)':''}"><div class="row" style="align-items:center"><div style="min-width:0"><div class="titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.nome)}${e.principal?' <span class="badge" style="font-size:9px;background:var(--card2);color:var(--mut)">principal</span>':''}${e.daEstrutura?' <span class="badge" style="font-size:9px;background:var(--card2);color:var(--mut)">da estrutura</span>':''}</div><div class="mut" style="font-size:11px">${e.consultores} consultor(es)</div></div><div style="display:flex;gap:6px;flex:none">${e.ativa?'<span class="badge b-ok">aberta</span>':`<button class="btn" style="padding:6px 12px" onclick="entrarEquipe(${i})">Abrir</button>`}${(!e.principal&&!e.consultores&&!e.daEstrutura)?`<button class="btn sec2" style="padding:6px 9px;color:var(--no)" title="Remover equipe vazia" onclick="removerEquipeG(${i})">🗑</button>`:''}</div></div></div>`).join('');
   abrirPop('Minhas equipes',`<div class="mut" style="font-size:12px;margin-bottom:10px">Trocar de equipe muda só o quadro (consultores, vendas, clientes, agenda e ranking). Os avisos de todas as equipes continuam chegando aqui.</div>${lista}<div class="h" style="margin-top:14px">➕ Nova equipe</div><div style="display:flex;gap:8px"><input type="text" id="nova-equipe" placeholder="Nome da equipe (ex: Chama Batel)" maxlength="40" onkeydown="if(event.key==='Enter')novaEquipe()" style="flex:1;min-width:0;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><button class="btn" onclick="novaEquipe()">Criar</button></div><div class="mut" style="font-size:11px;margin-top:6px">Você vira o gestor dessa equipe. Depois cadastre os consultores dela em ⚙️ → Novo.</div>`);
 }
 async function entrarEquipe(i){
@@ -1346,13 +1369,13 @@ function fecharPop(){document.getElementById('modal').style.display='none'}
 function confetesCairG(){
   if(!document.getElementById('kf-confete')){const st=document.createElement('style');st.id='kf-confete';st.textContent='@keyframes cair{0%{transform:translateY(-20px) rotate(0);opacity:0}10%{opacity:1}100%{transform:translateY(105vh) rotate(var(--r,360deg));opacity:.9}}';document.head.appendChild(st);}
   const cont=document.createElement('div');cont.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:10001;overflow:hidden';const cores=['#E23B3B','#3E8E6E','#4F79A8','#E6B800','#B87333','#8E44AD','#E67E22'];
-  let levas=0;const iv=setInterval(()=>{for(let i=0;i<40;i++){const p=document.createElement('div');const sz=6+Math.random()*8;p.style.cssText=`position:absolute;left:${Math.random()*100}%;top:-10px;width:${sz}px;height:${sz*0.6}px;background:${cores[i%cores.length]};--r:${(Math.random()*720-360)}deg;border-radius:2px;animation:cair ${2.5+Math.random()*2}s linear ${Math.random()*0.8}s forwards`;cont.appendChild(p);setTimeout(()=>p.remove(),5200);}if(++levas>=4)clearInterval(iv);},700);
-  document.body.appendChild(cont);setTimeout(()=>cont.remove(),9500);
+  let levas=0;const iv=setInterval(()=>{for(let i=0;i<40;i++){const p=document.createElement('div');const sz=6+Math.random()*8;p.style.cssText=`position:absolute;left:${Math.random()*100}%;top:-10px;width:${sz}px;height:${sz*0.6}px;background:${cores[i%cores.length]};--r:${(Math.random()*720-360)}deg;border-radius:2px;animation:cair ${2.5+Math.random()*0.5}s linear ${Math.random()*0.5}s forwards`;cont.appendChild(p);setTimeout(()=>p.remove(),3600);}if(++levas>=9)clearInterval(iv);},700);
+  document.body.appendChild(cont);setTimeout(()=>cont.remove(),10000); // v171: 10 s
 }
 function festaVendaG(msg){
   const ov=document.createElement('div');ov.className='cel-ov';ov.style.cssText='position:fixed;inset:0;z-index:10002;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.28);padding:20px';
   ov.innerHTML=`<div style="background:#fff;border-radius:20px;padding:30px 24px;max-width:360px;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.3)"><div style="font-size:50px">🎉</div><div style="font-size:22px;font-weight:800;color:var(--ok);margin-top:4px">Venda fechada!</div><div style="font-size:15px;margin-top:8px;line-height:1.5">${esc(msg||'Sua equipe fechou mais uma venda!')}</div><button class="btn full" style="background:var(--ok);margin-top:16px" onclick="this.closest('.cel-ov').remove()">Vamos! 🔥</button></div>`;
-  document.body.appendChild(ov);confetesCairG();setTimeout(()=>{try{ov.remove()}catch(e){}},9500);
+  document.body.appendChild(ov);confetesCairG();setTimeout(()=>{try{ov.remove()}catch(e){}},10000);
 }
 let _avisos=[];let _notifVistos=null;
 function iniciarNotif(){Chama.iniciarPWA();}
@@ -1376,7 +1399,22 @@ function toggleChat(){const box=document.getElementById('chat-box');const abrir=
 async function abrirAviso(i){const a=_avisos[i];abrirPop(a.titulo,`<div style="font-size:14px;line-height:1.7">${esc(a.texto)}</div><div class="mut" style="margin-top:10px;font-size:12px">${new Date(a.data).toLocaleString('pt-BR')}</div><div style="text-align:right;margin-top:12px"><button class="btn sec2" style="padding:6px 12px" onclick="apagarAviso('${a.id}');fecharPop()">🗑 Apagar</button></div>`);if(!a.lida){await fetch('/api/avisos/ler',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id})});carregarAvisos()}}
 async function apagarAviso(id){await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});carregarAvisos()}
 async function apagarAvisos(){if(!confirm('Apagar todas as notificações?'))return;await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({todos:true})});carregarAvisos()}
-function subAcesso(n){document.querySelectorAll('#aba-acessos .sa').forEach(e=>e.style.display='none');const el=document.getElementById('sa-'+n);if(el)el.style.display='block';document.querySelectorAll('[data-sa]').forEach(c=>c.classList.toggle('on',c.dataset.sa===n));if(n==='pedidos')carregarCadastros();if(n==='audit')carregarAuditoria();}
+function subAcesso(n){document.querySelectorAll('#aba-acessos .sa').forEach(e=>e.style.display='none');const el=document.getElementById('sa-'+n);if(el)el.style.display='block';document.querySelectorAll('[data-sa]').forEach(c=>c.classList.toggle('on',c.dataset.sa===n));if(n==='pedidos')carregarCadastros();if(n==='audit')carregarAuditoria();if(n==='estrutura')carregarEstrutura();}
+// organograma: cada pessoa com quem está abaixo dela (quem não responde a ninguém aparece no topo)
+async function carregarEstrutura(){
+  const el=document.getElementById('estrutura-arvore');if(!el)return;el.innerHTML='<div class="mut">Carregando…</div>';
+  let j;try{j=await(await fetch('/api/gestor/estrutura')).json();}catch(e){el.innerHTML='<div class="mut">Erro ao carregar</div>';return}
+  const ps=j.pessoas||[],por=new Map(ps.map(p=>[p.login,p])),filhos=new Map();
+  ps.forEach(p=>{const s=por.has(p.superior)?p.superior:'';if(!filhos.has(s))filhos.set(s,[]);filhos.get(s).push(p);});
+  const ord=(a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome);
+  const idx=login=>(window._usuarios||[]).findIndex(u=>u.email===login);
+  const no=(p,prof)=>{const fs=(filhos.get(p.login)||[]).sort(ord);const i=idx(p.login);const nCons=fs.length;
+    return `<div style="margin-left:${prof?14:0}px;${prof?'border-left:2px solid var(--bord);padding-left:10px;':''}margin-top:6px">
+      <div ${i>=0?`onclick="editarUsuario(${i})"`:''} style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;background:${p.login===j.eu?'var(--accbg)':'var(--card2)'};cursor:pointer">${bolinhaNivel(p.nivel,14)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nome)}${p.login===j.eu?' <span class="mut" style="font-weight:400">(você)</span>':''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''}${nCons?' · '+nCons+' abaixo':''}</div></div></div>
+      ${fs.map(f=>no(f,prof+1)).join('')}</div>`;};
+  const topo=(filhos.get('')||[]).sort(ord);
+  el.innerHTML=topo.map(p=>no(p,0)).join('')||'<div class="mut">Ninguém cadastrado</div>';
+}
 async function carregarUsuarios(){
   const res=await fetch('/api/gestor/usuarios');const j=await res.json();
   window._usuarios=j.usuarios||[];
@@ -1472,9 +1510,34 @@ function preencherTimes(){
   if(sel){const atual=sel.value;sel.innerHTML='<option value="">Time…</option>'+times.map(t=>`<option>${t}</option>`).join('');if(atual)sel.value=atual;else if(painel&&painel.time&&times.includes(painel.time))sel.value=painel.time;}
 }
 let _rotinas=[];
-async function carregarRotinasEdit(){
-  const res=await fetch('/api/gestor/rotinas');const j=await res.json();_rotinas=j.rotinas||[];renderRotinasEdit();
-  const d=document.getElementById('rot-desc');if(d)d.innerHTML=j.time?`Rotinas do check-in da equipe <b>${esc(j.time)}</b>${j.propria?'':' <span class="mut">(hoje usando a lista padrão — ao salvar, vira a lista desta equipe)</span>'}. A meta semanal (aba Premiação) também é por equipe.`:'Rotinas que os consultores marcam todo dia.';
+// v172: o check-in pode ir para a equipe aberta, para uma estrutura (sua ou de um chefe abaixo de você) ou para UMA pessoa
+let _rotAlvo='time:';
+async function carregarRotinasEdit(alvo){
+  if(alvo!=null)_rotAlvo=alvo;
+  const [tipo,id]=_rotAlvo.split(':');
+  const q=tipo==='time'?'':('?tipo='+encodeURIComponent(tipo)+'&id='+encodeURIComponent(id||''));
+  const j=await(await fetch('/api/gestor/rotinas'+q)).json();_rotinas=j.rotinas||[];renderRotinasEdit();
+  const sel=document.getElementById('rot-alvo');
+  if(sel){
+    const op=(v,t)=>`<option value="${esc(v)}"${v===_rotAlvo?' selected':''}>${t}</option>`;
+    sel.innerHTML=op('time:',`👥 Equipe aberta${j.time?' — '+esc(j.time):''}`)
+      +((j.estruturas||[]).length?`<optgroup label="Estrutura (todos abaixo)">${j.estruturas.map(e=>op('estrutura:'+e.login,`${nivelInfo(e.nivel).ic} ${e.login===(j.estruturas[0]||{}).login?'Toda a minha estrutura':'Estrutura de '+esc(e.nome)} (${e.abaixo})${e.propria?' ★':''}`)).join('')}</optgroup>`:'')
+      +((j.pessoas||[]).length?`<optgroup label="Uma pessoa (individual)">${j.pessoas.map(p=>op('pessoa:'+p.login,`${nivelInfo(p.nivel).ic} ${esc(p.nome)}${p.individual?' ★':''}`)).join('')}</optgroup>`:'');
+  }
+  const d=document.getElementById('rot-desc'),bp=document.getElementById('rot-padrao');
+  if(bp)bp.style.display=(tipo!=='time'&&j.propriaAlvo)?'block':'none';
+  if(!d)return;
+  if(tipo==='pessoa'){const o=j.origem||{};const p=(j.pessoas||[]).find(x=>x.login===id)||{};
+    d.innerHTML=j.propriaAlvo?`Lista <b>individual</b> de <b>${esc(p.nome||id)}</b> — substitui a lista da equipe.`:`<b>${esc(p.nome||id)}</b> hoje usa ${o.tipo==='estrutura'?'a lista da estrutura de <b>'+esc(o.nome||'')+'</b>':'a lista da equipe <b>'+esc(o.id||'')+'</b>'}. Ao salvar, vira uma lista individual (substitui a da equipe).`;}
+  else if(tipo==='estrutura'){const e=(j.estruturas||[]).find(x=>x.login===id)||{};
+    d.innerHTML=`Lista para <b>todos os consultores abaixo de ${esc(e.nome||id)}</b> (${e.abaixo||0} pessoa(s) na estrutura)${j.propriaAlvo?'':' <span class="mut">(hoje sem lista própria — mostrando a da equipe; ao salvar, passa a valer para a estrutura)</span>'}. Lista individual de alguém continua valendo por cima.`;}
+  else d.innerHTML=j.time?`Rotinas do check-in da equipe <b>${esc(j.time)}</b>${j.propria?'':' <span class="mut">(hoje usando a lista padrão — ao salvar, vira a lista desta equipe)</span>'}. A meta semanal (aba Premiação) também é por equipe.`:'Rotinas que os consultores marcam todo dia.';
+}
+async function voltarRotinasPadrao(){
+  const [tipo,id]=_rotAlvo.split(':');if(tipo==='time')return;
+  if(!confirm('Apagar esta lista e voltar ao check-in padrão (da estrutura/equipe)?'))return;
+  const j=await(await fetch('/api/gestor/rotinas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alvo:{tipo,id},remover:true})})).json();
+  if(j.ok){toast('Voltou ao padrão ✓');carregarRotinasEdit();}else toast(j.erro||'Erro');
 }
 function renderRotinasEdit(){
   document.getElementById('lista-rotinas-edit').innerHTML=_rotinas.map((r,i)=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="text" value="${(r||'').replace(/"/g,'&quot;')}" onchange="_rotinas[${i}]=this.value" style="flex:1;padding:9px 11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><button onclick="removerRotina(${i})" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--no)">🗑</button></div>`).join('')||'<div class="mut">Nenhuma rotina</div>';
@@ -1484,8 +1547,9 @@ function removerRotina(i){_rotinas.splice(i,1);renderRotinasEdit()}
 async function salvarRotinas(){
   const lista=_rotinas.map(r=>r.trim()).filter(Boolean);
   if(!lista.length){toast('A lista não pode ficar vazia');return}
-  const res=await fetch('/api/gestor/rotinas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rotinas:lista})});
-  const j=await res.json();if(j.ok){_rotinas=j.rotinas;renderRotinasEdit();toast('Check-in atualizado ✓')}else toast(j.erro||'Erro');
+  const [tipo,id]=_rotAlvo.split(':');
+  const res=await fetch('/api/gestor/rotinas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(tipo==='time'?{rotinas:lista}:{rotinas:lista,alvo:{tipo,id}})});
+  const j=await res.json();if(j.ok){_rotinas=j.rotinas;toast(tipo==='pessoa'?'Check-in individual enviado ✓':'Check-in atualizado ✓');carregarRotinasEdit();}else toast(j.erro||'Erro');
 }
 function renderUsuarios(){
   const busca=(document.getElementById('us-busca').value||'').toLowerCase();
@@ -1516,8 +1580,17 @@ async function resetSenhasConsultores(){
   const j=await r.json();
   toast(j.ok?(j.alterados+' consultores agora com senha 1234 ✓'):(j.erro||'Erro'));
 }
+// lista "Responde a": só quem tem nível acima do escolhido (e não a própria pessoa)
+function atualizarSuperiores(email){
+  const sel=document.getElementById('ed-superior');if(!sel)return;
+  const nv=document.getElementById('ed-nivel').value,atual=sel.value||sel.dataset.atual||'';
+  const ops=(window._usuarios||[]).filter(x=>x.ativo!==false&&x.email!==email&&RANK_G(x.nivel||'consultor')>RANK_G(nv)).sort((a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome));
+  sel.innerHTML='<option value="">— ninguém (topo da estrutura) —</option>'+ops.map(x=>`<option value="${esc(x.email)}"${x.email===atual?' selected':''}>${nivelInfo(x.nivel).ic} ${esc(x.nome)} · ${nivelInfo(x.nivel).n}</option>`).join('');
+  // papel acompanha o nível
+  const pp=document.getElementById('ed-papel');if(pp)pp.value=nv==='consultor'?'consultor':'gestor';
+}
 function editarUsuario(i){
-  const u=window._usuarios[i];
+  const u=window._usuarios[i];setTimeout(()=>atualizarSuperiores(u.email),0);
   abrirPop('Editar acesso — '+u.email,`
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
       <div id="ed-foto-prev" style="width:58px;height:58px;border-radius:50%;background:var(--card2);background-size:cover;background-position:center;border:1px solid var(--bord);${u.foto?`background-image:url('${u.foto}')`:''}"></div>
@@ -1533,6 +1606,14 @@ function editarUsuario(i){
     <select id="ed-papel" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"><option value="consultor"${u.papel==='consultor'?' selected':''}>Consultor</option><option value="gestor"${u.papel==='gestor'?' selected':''}>Gestor</option></select>
     <label style="font-size:12px;color:var(--mut)">Time</label>
     <select id="ed-time" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"><option value="">Time…</option>${[...new Set([...timesExistentes(),...(u.time?[u.time]:[])])].map(t=>`<option${u.time===t?' selected':''}>${t}</option>`).join('')}</select>
+    <div style="background:var(--card2);border-radius:10px;padding:10px;margin-bottom:10px">
+      <div style="font-weight:700;font-size:13px;margin-bottom:6px">🏢 Estrutura de gestão</div>
+      <label style="font-size:12px;color:var(--mut)">Nível</label>
+      <select id="ed-nivel" onchange="atualizarSuperiores('${u.email}')" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">${NIVEIS_G.map(n=>`<option value="${n.id}"${(u.nivel||'consultor')===n.id?' selected':''}>${n.ic} ${n.n}</option>`).join('')}</select>
+      <label style="font-size:12px;color:var(--mut)">Responde a</label>
+      <select id="ed-superior" data-atual="${esc(u.superior||'')}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></select>
+      <div class="mut" style="font-size:11px;margin-top:6px;line-height:1.4">Só aparecem pessoas de nível acima. O laranja só tem vermelhos abaixo; o roxo, laranjas e vermelhos; o cinza, roxos, laranjas e vermelhos — e assim por diante. A cor do gestor acompanha o nível.</div>
+    </div>
     <label style="font-size:12px;color:var(--mut)">Cargo (rótulo do balão)</label>
     <input type="text" id="ed-cargo" value="${(u.cargo||'').replace(/"/g,'&quot;')}" placeholder="Ex: Consultor Sênior, Líder…" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
     <label style="font-size:12px;color:var(--mut)">Cor do cargo</label>
@@ -1548,9 +1629,9 @@ function editarUsuario(i){
     <button class="btn sec2" style="width:100%;margin-top:8px" onclick="resetSenha('${u.email}')">🔑 Redefinir senha</button>`);
 }
 async function salvarEdicaoUsuario(email){
-  const b={email,novoEmail:document.getElementById('ed-email').value,nome:document.getElementById('ed-nome').value,papel:document.getElementById('ed-papel').value,time:document.getElementById('ed-time').value,calendarId:document.getElementById('ed-cal').value,cargo:document.getElementById('ed-cargo').value,cor:document.getElementById('ed-cor').value,master:document.getElementById('ed-master').checked,metaVenda:parseFloat(document.getElementById('ed-meta').value)||0,foto:document.getElementById('ed-foto').value};
+  const b={email,novoEmail:document.getElementById('ed-email').value,nome:document.getElementById('ed-nome').value,papel:document.getElementById('ed-papel').value,time:document.getElementById('ed-time').value,calendarId:document.getElementById('ed-cal').value,cargo:document.getElementById('ed-cargo').value,cor:document.getElementById('ed-cor').value,master:document.getElementById('ed-master').checked,metaVenda:parseFloat(document.getElementById('ed-meta').value)||0,foto:document.getElementById('ed-foto').value,nivel:(document.getElementById('ed-nivel')||{}).value,superior:(document.getElementById('ed-superior')||{}).value||''};
   const res=await fetch('/api/gestor/usuarios/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
-  const j=await res.json();fecharPop();toast(j.ok?'Acesso atualizado ✓':(j.erro||'Erro'));carregarUsuarios();
+  const j=await res.json();if(j.erro){toast(j.erro);return;}fecharPop();toast('Acesso atualizado ✓');carregarUsuarios();if(document.getElementById('sa-estrutura')&&document.getElementById('sa-estrutura').style.display!=='none')carregarEstrutura();
 }
 carregarAvisos();
 async function checarChatG(){const res=await fetch('/api/chat');const j=await res.json();const tot=(j.lista||[]).reduce((s,c)=>s+c.naoLidas,0);const b=document.getElementById('badge-chat-g');const aberto=document.getElementById('chat-box').style.display==='flex';if(tot>0&&!aberto){b.textContent=tot;b.style.display='block'}else b.style.display='none';}
