@@ -197,3 +197,41 @@ test('estrutura no site todo (v173): superior vê vendas/consultores de toda a e
   assert.ok(N.trocarEquipe(lar, { time: '*estrutura' }).ok);   // laranja tem vermelhos abaixo: também pode
   assert.ok(N.trocarEquipe(sess('outro', 'R'), { time: '*estrutura' }).erro);
 });
+
+test('estrutura pelo time (v174): consultor sem "Responde a" fica abaixo do gestor dono do time dele', async () => {
+  auth.criarUsuario('roxoT', 'x1234', 'Danilo Roxo', 'gestor', { time: 'Chama', cor: '#A78BFA' });
+  auth.criarUsuario('larT', 'x1234', 'Adriane Lar', 'gestor', { time: 'Alpha', cor: '#FB923C' });
+  auth.criarUsuario('vA', 'x1234', 'Leandro Alpha', 'consultor', { time: 'Alpha' });
+  auth.criarUsuario('vC', 'x1234', 'Diego Chama', 'consultor', { time: 'Chama' });
+  const sup = l => auth.usuarioPorEmail(l).superior;
+  assert.strictEqual(sup('vA'), 'lart');                     // vermelho do Alpha → Adriane (sem cadastrar nada)
+  assert.strictEqual(sup('vC'), 'roxot');                    // vermelho do Chama → direto com o Danilo
+  assert.ok(auth.usuarioPorEmail('vA').superiorPeloTime);
+  assert.ok(auth.atualizarUsuario('larT', { nivel: 'supervisor', superior: 'roxot' }).ok);
+  const abaixoRoxo = auth.abaixoDe('roxot').map(u => String(u.email).toLowerCase());
+  assert.ok(abaixoRoxo.includes('lart') && abaixoRoxo.includes('va') && abaixoRoxo.includes('vc')); // o time da Adriane veio junto
+  assert.ok(auth.atualizarUsuario('vA', { time: 'Chama' }).ok);  // troca de time → muda de chefe sozinho
+  assert.strictEqual(sup('vA'), 'roxot');
+  assert.ok(auth.atualizarUsuario('vA', { nivel: 'consultor', superior: 'lart' }).ok); // manual vale por cima
+  assert.strictEqual(sup('vA'), 'lart'); assert.ok(!auth.usuarioPorEmail('vA').superiorPeloTime);
+});
+
+test('estrutura (v175): gestor desativado passa o time para o chefe direto; time extra sem dono principal', async () => {
+  auth.criarUsuario('roxoD', 'x1234', 'Roxo D', 'gestor', { time: 'TD', cor: '#A78BFA' });
+  auth.criarUsuario('larD', 'x1234', 'Lar D', 'gestor', { time: 'LD', cor: '#FB923C' });
+  auth.criarUsuario('vD1', 'x1234', 'Verm D1', 'consultor', { time: 'LD' });   // pelo time
+  auth.criarUsuario('vD2', 'x1234', 'Verm D2', 'consultor', { time: 'X9' });
+  assert.ok(auth.atualizarUsuario('larD', { nivel: 'supervisor', superior: 'roxod' }).ok);
+  assert.ok(auth.atualizarUsuario('vD2', { nivel: 'consultor', superior: 'lard' }).ok);   // ligado à mão
+  const r = auth.repassarAbaixo('larD'); auth.atualizarUsuario('larD', { ativo: false });
+  assert.strictEqual(r.para, 'roxod'); assert.strictEqual(r.movidos.length, 2);
+  assert.strictEqual(auth.usuarioPorEmail('vD1').superior, 'roxod'); assert.ok(!auth.usuarioPorEmail('vD1').superiorPeloTime);
+  assert.strictEqual(auth.usuarioPorEmail('vD2').superior, 'roxod');
+  auth.atualizarUsuario('larD', { ativo: true });                                       // reativar NÃO devolve
+  assert.strictEqual(auth.usuarioPorEmail('vD1').superior, 'roxod');
+  // item 5: time "Extra9" sem gestor principal → fica com quem tem o time como extra
+  auth.criarUsuario('vE', 'x1234', 'Verm Extra', 'consultor', { time: 'Extra9' });
+  assert.ok(!auth.usuarioPorEmail('vE').superior);
+  auth.atualizarUsuario('roxoD', { equipes: ['Extra9'] });
+  assert.strictEqual(auth.usuarioPorEmail('vE').superior, 'roxod'); assert.ok(auth.usuarioPorEmail('vE').superiorPeloTime);
+});

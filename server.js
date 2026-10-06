@@ -486,8 +486,11 @@ const server = http.createServer(async (req, res) => {
       }
       if (p === '/api/gestor/usuarios/ativo' && req.method === 'POST') {
         const { email, ativo } = await readBody(req);
-        notion.auditar(session, ativo ? 'reativou acesso' : 'desativou acesso', '', email);
-        return send(res, 200, auth.atualizarUsuario(email, { ativo: !!ativo }));
+        // v175: antes de desativar um gestor, passa quem está abaixo dele para o chefe direto (definitivo)
+        const rep = !ativo ? auth.repassarAbaixo(email) : { movidos: [] };
+        notion.auditar(session, ativo ? 'reativou acesso' : 'desativou acesso', rep.movidos.length ? (rep.movidos.length + ' pessoa(s) passaram para ' + (((auth.usuarioPorEmail(rep.para) || {}).nome) || 'o topo da estrutura') + ': ' + rep.movidos.join(', ')) : '', email);
+        const r = auth.atualizarUsuario(email, { ativo: !!ativo });
+        return send(res, 200, r && r.ok ? { ...r, movidos: rep.movidos.length, para: rep.para ? ((auth.usuarioPorEmail(rep.para) || {}).nome || '') : '' } : r);
       }
       return send(res, 404, { erro: 'Rota não encontrada' });
     }

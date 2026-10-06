@@ -1412,16 +1412,16 @@ function colocarAbaixo(login){
   const j=window._estr||{};const ps=j.pessoas||[];const por=new Map(ps.map(p=>[p.login,p]));const chefe=por.get(login);if(!chefe)return;
   const acima=new Set();let x=chefe;while(x&&x.superior&&!acima.has(x.superior)){acima.add(x.superior);x=por.get(x.superior);} // não deixa criar ciclo
   const cand=ps.filter(p=>p.login!==login&&!acima.has(p.login)&&RANK_G(p.nivel)<RANK_G(chefe.nivel)).sort((a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome));
-  const lin=p=>{const sup=por.get(p.superior);const ja=p.superior===login;const abx=ps.filter(q=>q.superior===p.login).length;
-    return `<label style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--bord);cursor:pointer"><input type="checkbox" value="${esc(p.login)}" ${ja?'checked':''} style="width:18px;height:18px;accent-color:var(--acc)">${bolinhaNivel(p.nivel,12)}<div style="min-width:0;flex:1"><div style="font-size:13.5px;font-weight:600">${esc(p.nome)}${abx?` <span class="mut" style="font-weight:400">+ ${abx} abaixo dele(a)</span>`:''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''} · ${ja?'já está aqui':sup?'hoje responde a '+esc(sup.nome):'sem chefe definido'}</div></div></label>`;};
+  const lin=p=>{const sup=por.get(p.superior);const ja=p.superior===login;const trava=ja&&p.pelotime;const abx=ps.filter(q=>q.superior===p.login).length;
+    return `<label style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--bord);cursor:pointer"><input type="checkbox" value="${esc(p.login)}" ${ja?'checked':''} ${trava?'disabled data-trava="1"':''} style="width:18px;height:18px;accent-color:var(--acc)">${bolinhaNivel(p.nivel,12)}<div style="min-width:0;flex:1"><div style="font-size:13.5px;font-weight:600">${esc(p.nome)}${abx?` <span class="mut" style="font-weight:400">+ ${abx} abaixo dele(a)</span>`:''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''} · ${trava?'🔄 pelo time (para tirar, troque o time no cadastro)':ja?'já está aqui':sup?'hoje responde a '+esc(sup.nome)+(p.pelotime?' (pelo time)':''):'sem chefe definido'}</div></div></label>`;};
   abrirPop('＋ Abaixo de '+chefe.nome,`<div class="mut" style="font-size:12px;margin-bottom:8px">Marque quem fica abaixo de <b>${esc(chefe.nome)}</b> (${nivelInfo(chefe.nivel).n}). Só aparecem níveis abaixo dele(a). Ao mover um gestor ou supervisor, as pessoas abaixo dele(a) vão juntas.</div>
     <input type="text" placeholder="🔎 Buscar nome ou time…" oninput="const q=this.value.toLowerCase();document.querySelectorAll('#ca-lista label').forEach(l=>l.style.display=l.innerText.toLowerCase().includes(q)?'':'none')" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:6px">
     <div id="ca-lista" style="max-height:52vh;overflow:auto">${cand.map(lin).join('')||'<div class="mut" style="padding:10px">Ninguém de nível abaixo para colocar aqui.</div>'}</div>
     <button class="btn" style="width:100%;margin-top:10px" onclick="salvarAbaixo('${esc(login)}')">Salvar estrutura</button>`);
 }
 async function salvarAbaixo(login){
-  const j=window._estr||{};const marcados=[...document.querySelectorAll('#ca-lista input:checked')].map(i=>i.value);
-  const antes=(j.pessoas||[]).filter(p=>p.superior===login).map(p=>p.login);
+  const j=window._estr||{};const marcados=[...document.querySelectorAll('#ca-lista input:checked:not([data-trava])')].map(i=>i.value);
+  const antes=(j.pessoas||[]).filter(p=>p.superior===login&&!p.pelotime).map(p=>p.login);
   const tirar=antes.filter(l=>!marcados.includes(l)),por=marcados.filter(l=>!antes.includes(l));
   const post=b=>fetch('/api/gestor/estrutura/vincular',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
   const r1=por.length?await post({superior:login,logins:por}):{feitos:0,erros:[]};
@@ -1441,7 +1441,7 @@ async function carregarEstrutura(){
   const idx=login=>(window._usuarios||[]).findIndex(u=>u.email===login);
   const no=(p,prof)=>{const fs=(filhos.get(p.login)||[]).sort(ord);const i=idx(p.login);const nCons=fs.length;
     return `<div style="margin-left:${prof?14:0}px;${prof?'border-left:2px solid var(--bord);padding-left:10px;':''}margin-top:6px">
-      <div ${i>=0?`onclick="editarUsuario(${i})"`:''} style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;background:${p.login===j.eu?'var(--accbg)':'var(--card2)'};cursor:pointer">${bolinhaNivel(p.nivel,14)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nome)}${p.login===j.eu?' <span class="mut" style="font-weight:400">(você)</span>':''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''}${nCons?' · '+nCons+' abaixo':''}</div></div>${p.nivel!=='consultor'?`<button class="btn sec2" title="Colocar pessoas ou times abaixo" onclick="event.stopPropagation();colocarAbaixo('${esc(p.login)}')" style="padding:4px 9px;font-size:12px;flex:none">＋ Abaixo</button>`:''}</div>
+      <div ${i>=0?`onclick="editarUsuario(${i})"`:''} style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;background:${p.login===j.eu?'var(--accbg)':'var(--card2)'};cursor:pointer">${bolinhaNivel(p.nivel,14)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nome)}${p.login===j.eu?' <span class="mut" style="font-weight:400">(você)</span>':''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''}${nCons?' · '+nCons+' abaixo':''}${p.pelotime?' · 🔄 pelo time':''}</div></div>${p.nivel!=='consultor'?`<button class="btn sec2" title="Colocar pessoas ou times abaixo" onclick="event.stopPropagation();colocarAbaixo('${esc(p.login)}')" style="padding:4px 9px;font-size:12px;flex:none">＋ Abaixo</button>`:''}</div>
       ${fs.map(f=>no(f,prof+1)).join('')}</div>`;};
   const topo=(filhos.get('')||[]).sort(ord);
   el.innerHTML=topo.map(p=>no(p,0)).join('')||'<div class="mut">Ninguém cadastrado</div>';
@@ -1595,7 +1595,16 @@ function renderUsuarios(){
   document.getElementById('lista-usuarios').innerHTML=`<div class="mut" style="font-size:12px;margin-bottom:6px">${ativos} ativos · ${(window._usuarios||[]).length-ativos} inativos</div>`+
     lista.map(({u,i})=>`<div class="card" style="${u.ativo===false?'opacity:.55':''}"><div class="row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(u.nome,u.cor,38)}<div><div class="titulo">${u.nome} <span class="badge ${u.papel==='gestor'?'b-blue':'b-ok'}" style="margin-left:4px">${u.papel}</span>${u.ativo===false?' <span class="badge b-no">inativo</span>':''}</div><div class="mut" style="font-size:12px">usuário: ${u.email}${u.time?' · '+u.time:''}${u.calendarId?' · 📅 '+u.calendarId:''}</div></div></div></div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap"><button class="btn sec2" style="padding:5px 10px;font-size:12px;color:${u.ativo===false?'var(--ok)':'var(--warn)'}" onclick="toggleAtivo('${u.email}',${u.ativo===false})">${u.ativo===false?'✓ Ativar':'⏸ Desativar'}</button><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="editarUsuario(${i})">✏️ Editar</button><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="resetSenha('${u.email}')">🔑 Senha</button><button class="btn sec2" style="padding:5px 10px;font-size:12px;color:var(--no)" onclick="removerUsuario('${u.email}')">✕</button></div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum acesso</div>';
 }
-async function toggleAtivo(email,ativo){await fetch('/api/gestor/usuarios/ativo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,ativo})});toast(ativo?'Acesso ativado ✓':'Acesso desativado');carregarUsuarios()}
+// v175: ao desativar um gestor, quem está abaixo dele passa DE VEZ para o chefe direto (reativar não devolve)
+async function toggleAtivo(email,ativo){
+  const us=window._usuarios||[];const eu=us.find(x=>x.email===email)||{};
+  if(!ativo&&eu.papel==='gestor'){const abaixo=us.filter(x=>x.ativo!==false&&x.superior===email);
+    if(abaixo.length){let chefe=us.find(x=>x.email===eu.superior);while(chefe&&chefe.ativo===false)chefe=us.find(x=>x.email===chefe.superior);
+      if(!confirm(`${eu.nome} tem ${abaixo.length} pessoa(s) abaixo: ${abaixo.map(x=>x.nome).join(', ')}.\n\nAo desativar, elas passam para ${chefe?chefe.nome:'o topo da estrutura (sem chefe)'}. Se ${eu.nome.split(' ')[0]} voltar, a reorganização é manual.\n\nContinuar?`))return;}}
+  const j=await(await fetch('/api/gestor/usuarios/ativo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,ativo})})).json();
+  if(j.erro){toast(j.erro);return;}
+  toast(ativo?'Acesso ativado ✓':(j.movidos?`Acesso desativado · ${j.movidos} pessoa(s) passaram para ${j.para||'o topo'}`:'Acesso desativado'));carregarUsuarios();
+}
 async function criarUsuario(){
   const b={nome:document.getElementById('u-nome').value,email:document.getElementById('u-email').value,senha:document.getElementById('u-senha').value,papel:document.getElementById('u-papel').value,time:document.getElementById('u-time').value,calendarId:document.getElementById('u-cal').value,metaVenda:parseFloat(document.getElementById('u-meta').value)||0};
   if(!b.nome||!b.email||!b.senha){toast('Preencha nome, usuário e senha');return}
@@ -1616,7 +1625,8 @@ function atualizarSuperiores(email){
   const sel=document.getElementById('ed-superior');if(!sel)return;
   const nv=document.getElementById('ed-nivel').value,atual=sel.value||sel.dataset.atual||'';
   const ops=(window._usuarios||[]).filter(x=>x.ativo!==false&&x.email!==email&&RANK_G(x.nivel||'consultor')>RANK_G(nv)).sort((a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome));
-  sel.innerHTML='<option value="">— ninguém (topo da estrutura) —</option>'+ops.map(x=>`<option value="${esc(x.email)}"${x.email===atual?' selected':''}>${nivelInfo(x.nivel).ic} ${esc(x.nome)} · ${nivelInfo(x.nivel).n}</option>`).join('');
+  const auto=nv==='consultor'?((window._usuarios||[]).filter(x=>x.papel==='gestor'&&x.ativo!==false&&x.time&&x.time===(document.getElementById('ed-time')||{}).value).sort((a,b)=>RANK_G(a.nivel)-RANK_G(b.nivel))[0]):null;
+  sel.innerHTML=(nv==='consultor'?`<option value="">🔄 Automático pelo time${auto?' — '+esc(auto.nome):' (time sem gestor)'}</option>`:'<option value="">— ninguém (topo da estrutura) —</option>')+ops.map(x=>`<option value="${esc(x.email)}"${x.email===atual?' selected':''}>${nivelInfo(x.nivel).ic} ${esc(x.nome)} · ${nivelInfo(x.nivel).n}</option>`).join('');
   // papel acompanha o nível
   const pp=document.getElementById('ed-papel');if(pp)pp.value=nv==='consultor'?'consultor':'gestor';
 }
@@ -1636,14 +1646,14 @@ function editarUsuario(i){
     <label style="font-size:12px;color:var(--mut)">Papel</label>
     <select id="ed-papel" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"><option value="consultor"${u.papel==='consultor'?' selected':''}>Consultor</option><option value="gestor"${u.papel==='gestor'?' selected':''}>Gestor</option></select>
     <label style="font-size:12px;color:var(--mut)">Time</label>
-    <select id="ed-time" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"><option value="">Time…</option>${[...new Set([...timesExistentes(),...(u.time?[u.time]:[])])].map(t=>`<option${u.time===t?' selected':''}>${t}</option>`).join('')}</select>
+    <select id="ed-time" onchange="atualizarSuperiores('${u.email}')" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"><option value="">Time…</option>${[...new Set([...timesExistentes(),...(u.time?[u.time]:[])])].map(t=>`<option${u.time===t?' selected':''}>${t}</option>`).join('')}</select>
     <div style="background:var(--card2);border-radius:10px;padding:10px;margin-bottom:10px">
       <div style="font-weight:700;font-size:13px;margin-bottom:6px">🏢 Estrutura de gestão</div>
       <label style="font-size:12px;color:var(--mut)">Nível</label>
       <select id="ed-nivel" onchange="atualizarSuperiores('${u.email}')" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">${NIVEIS_G.map(n=>`<option value="${n.id}"${(u.nivel||'consultor')===n.id?' selected':''}>${n.ic} ${n.n}</option>`).join('')}</select>
       <label style="font-size:12px;color:var(--mut)">Responde a</label>
-      <select id="ed-superior" data-atual="${esc(u.superior||'')}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></select>
-      <div class="mut" style="font-size:11px;margin-top:6px;line-height:1.4">Só aparecem pessoas de nível acima. O laranja só tem vermelhos abaixo; o roxo, laranjas e vermelhos; o cinza, roxos, laranjas e vermelhos — e assim por diante. A cor do gestor acompanha o nível.</div>
+      <select id="ed-superior" data-atual="${esc(u.superiorManual||'')}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></select>
+      <div class="mut" style="font-size:11px;margin-top:6px;line-height:1.4">Consultor no automático fica abaixo do gestor dono do time dele (muda sozinho se trocar de time). Só aparecem pessoas de nível acima. O laranja só tem vermelhos abaixo; o roxo, laranjas e vermelhos; o cinza, roxos, laranjas e vermelhos — e assim por diante. A cor do gestor acompanha o nível.</div>
     </div>
     <label style="font-size:12px;color:var(--mut)">Cargo (rótulo do balão)</label>
     <input type="text" id="ed-cargo" value="${(u.cargo||'').replace(/"/g,'&quot;')}" placeholder="Ex: Consultor Sênior, Líder…" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
