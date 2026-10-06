@@ -323,6 +323,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 
 <script src="/public/comum.js"></script>
 <script src="/public/simuladores.js"></script>
+<script src="/public/ficha.js"></script>
 <script>
 let dados = null;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
@@ -910,6 +911,7 @@ const CAT_C=[
   {id:'atividades',ic:'📋',nome:'Atividades',aba:'atividades',abrir(){irAba('atividades');}},
   {id:'simuladores',ic:'🧮',nome:'Simuladores',curto:'Simular',aba:'simuladores',abrir(){irAba('simuladores');}},
   {id:'mural',ic:'🏅',nome:'Mural',aba:'mural',abrir(){irAba('mural');carregarMuralC();}},
+  {id:'minhaficha',ic:'📊',nome:'Minha ficha',curto:'Ficha',abrir(){abrirMinhaFicha();}},
   {id:'comissoes',ic:'💸',nome:'Minhas comissões',curto:'Comissões',aba:'comissoes',abrir(){irAba('comissoes');carregarExtrato();}},
   {id:'sorteio',ic:'🎯',nome:'Sorteio',abrir(){irAba('clientes');carregarClientesTab().then(()=>setCcTab('sorteio'));}},
   {id:'arquivos',ic:'📎',nome:'Arquivos do gestor',curto:'Arquivos',abrir(){abrirArquivosPop();}},
@@ -948,7 +950,12 @@ function renderHoje(){
   el.innerHTML=h;
 }
 // "Meu perfil" (toque na foto do topo): foto, senha, notificações, atalhos e sair
-function abrirPerfilC(){Chama.abrirPerfil({nome:dados?dados.nome:'',foto:dados?dados.foto:'',sub:dados&&dados.cargo?dados.cargo:'Consultor'},[]);}
+function abrirPerfilC(){Chama.abrirPerfil({nome:dados?dados.nome:'',foto:dados?dados.foto:'',sub:dados&&dados.cargo?dados.cargo:'Consultor'},[{ic:'📊',nome:'Minha ficha',acao:'abrirMinhaFicha()'}]);}
+// v176: a ficha completa do próprio consultor (sem as partes de gestor, com ranking em destaque)
+async function abrirMinhaFicha(){
+  const p=await(await fetch('/api/minha-ficha')).json();if(p.erro){toast(p.erro);return;}
+  abrirPop('📊 Minha ficha',Chama.fichaVisual(p,{modo:'eu',acoes:{vendas:"fecharPop();Chama.abrir('vendas')",clientes:"fecharPop();Chama.abrir('clientes')",checkinVer:"fecharPop();Chama.abrir('checkin')",atividades:"fecharPop();Chama.abrir('atividades')"}}));
+}
 // Agenda: o formulário de pedido de reunião abre no toque
 function alternarFormReuniao(){const f=document.getElementById('form-reuniao');const abrir=f.style.display==='none';f.style.display=abrir?'block':'none';if(abrir){carregarDispo();f.scrollIntoView({behavior:'smooth',block:'start'});}}
 // Atividades: tarefa para mim mesmo

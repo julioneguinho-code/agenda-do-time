@@ -136,6 +136,19 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-controle">
   <div class="sec">
     <div class="row" style="align-items:center;margin-bottom:8px"><button class="btn sec2" style="padding:6px 12px" onclick="irAba('painel')">← Voltar ao painel</button><div class="h" style="margin:0">📋 Controle</div></div>
+    <div class="h">✅ Montar check-in</div>
+    <div class="card">
+        <label style="font-size:12px;color:var(--mut)">Enviar check-in para</label>
+        <select id="rot-alvo" onchange="carregarRotinasEdit(this.value)" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"></select>
+        <div class="mut" id="rot-desc" style="font-size:12px;margin-bottom:8px">Rotinas que os consultores marcam todo dia. Edite, adicione ou remova.</div>
+        <div id="lista-rotinas-edit"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input type="text" id="nova-rotina" placeholder="Nova rotina…" onkeydown="if(event.key==='Enter')addRotina()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
+          <button class="btn sec2" onclick="addRotina()">+ Adicionar</button>
+        </div>
+        <button class="btn" style="width:100%;margin-top:10px" onclick="salvarRotinas()">Salvar check-in</button>
+        <button class="btn sec2" id="rot-padrao" style="width:100%;margin-top:8px;display:none;color:var(--no)" onclick="voltarRotinasPadrao()">↩ Voltar ao padrão</button>
+      </div>
     <div class="h">Envio do check-in · últimos 7 dias</div>
     <div class="card" style="overflow-x:auto;padding:12px">
       <table style="width:100%;border-collapse:collapse;font-size:12px" id="ctrl-tabela"></table>
@@ -202,22 +215,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-perfil">
   <div class="sec">
     <button class="btn sec2" style="margin-bottom:10px" onclick="irAba('consultores');carregarConsultores()">← Voltar</button>
-    <div class="card">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
-        <div class="avatar" id="pf-avatar" style="width:48px;height:48px;font-size:16px"></div>
-        <div><div style="font-size:17px;font-weight:600" id="pf-nome"></div><div class="mut" id="pf-time"></div></div>
-      </div>
-      <div class="kpis" style="margin-bottom:0">
-        <div class="kpi"><div class="l">Execução</div><div class="v" id="pf-exec">–</div></div>
-        <div class="kpi"><div class="l">Check-in hoje</div><div class="v" id="pf-ck">–</div></div>
-        <div class="kpi"><div class="l">Pendentes</div><div class="v" id="pf-pend">–</div></div>
-      </div>
-    </div>
-    <div class="h">Check-in · últimos 7 dias <span class="mut" style="font-weight:400;font-size:11px">(toque num dia)</span></div>
+    <div id="pf-ficha"></div>
+    <div class="h" style="margin-top:18px">📋 Detalhes</div>
+    <div class="h" id="pf-sec-checkin">Check-in · últimos 7 dias <span class="mut" style="font-weight:400;font-size:11px">(toque num dia)</span></div>
     <div class="card"><div style="display:flex;align-items:flex-end;gap:6px;height:76px" id="pf-historico"></div></div>
     <div class="h" id="pf-rotinas-titulo">Rotinas do check-in</div>
     <div class="card"><div id="pf-rotinas"></div></div>
-    <div class="h">Atividades pendentes</div>
+    <div class="h" id="pf-sec-atv">Atividades pendentes</div>
     <div id="pf-atividades"></div>
     <div class="h">Atividades concluídas</div>
     <div id="pf-atividades-feitas"></div>
@@ -245,7 +249,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <button class="chip" data-sa="novo" onclick="subAcesso('novo')">➕ Novo</button>
       <button class="chip" data-sa="times" onclick="subAcesso('times')">🏷️ Times</button>
       <button class="chip" data-sa="estrutura" onclick="subAcesso('estrutura')">🏢 Estrutura</button>
-      <button class="chip" data-sa="check" onclick="subAcesso('check')">✅ Check-in</button>
       <button class="chip" data-sa="arq" onclick="subAcesso('arq')">📎 Arquivos</button>
       <button class="chip" data-sa="audit" onclick="subAcesso('audit')">🕵️ Auditoria</button>
     </div>
@@ -291,21 +294,6 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
           <button class="btn" onclick="criarTime()">+ Criar</button>
         </div>
         <div id="lista-times" style="margin-top:10px"></div>
-      </div>
-    </div>
-
-    <div class="sa" id="sa-check" style="display:none">
-      <div class="card">
-        <label style="font-size:12px;color:var(--mut)">Enviar check-in para</label>
-        <select id="rot-alvo" onchange="carregarRotinasEdit(this.value)" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"></select>
-        <div class="mut" id="rot-desc" style="font-size:12px;margin-bottom:8px">Rotinas que os consultores marcam todo dia. Edite, adicione ou remova.</div>
-        <div id="lista-rotinas-edit"></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <input type="text" id="nova-rotina" placeholder="Nova rotina…" onkeydown="if(event.key==='Enter')addRotina()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
-          <button class="btn sec2" onclick="addRotina()">+ Adicionar</button>
-        </div>
-        <button class="btn" style="width:100%;margin-top:10px" onclick="salvarRotinas()">Salvar check-in</button>
-        <button class="btn sec2" id="rot-padrao" style="width:100%;margin-top:8px;display:none;color:var(--no)" onclick="voltarRotinasPadrao()">↩ Voltar ao padrão</button>
       </div>
     </div>
 
@@ -532,6 +520,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 
 <script src="/public/comum.js"></script>
 <script src="/public/simuladores.js"></script>
+<script src="/public/ficha.js"></script>
 <script>
 let painel=null;let semanaOffset=0;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
@@ -741,6 +730,7 @@ function cardPendente(s){return `
     </div>`;}
 let ctrlData=null;
 async function carregarControle(){
+  carregarRotinasEdit(); // v176: a montagem do check-in fica aqui no Controle
   const res=await fetch('/api/gestor/controle');
   const c=await res.json();ctrlData=c;
   const selC=document.getElementById('ctrl-consultor');
@@ -1184,6 +1174,8 @@ async function abrirChatThread(login,nome){
   box.innerHTML=(j.mensagens||[]).map(m=>{const meu=m.de==='gestor';return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px">${m.equipe?'<div style="font-size:10.5px;font-weight:700;opacity:.85;margin-bottom:3px">📢 Para toda a equipe</div>':''}<div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`}).join('')||'<div class="mut" style="text-align:center;padding:20px">Sem mensagens ainda</div>';
   box.scrollTop=box.scrollHeight;
 }
+// v176: abre o balão do chat direto na conversa com um consultor (atalho da ficha)
+function abrirChatCom(login,nome){const box=document.getElementById('chat-box');if(box.style.display!=='flex')toggleChat();setTimeout(()=>abrirChatThread(login,nome),250);}
 function voltarChatLista(){chatConsultor=null;abrirChatLista()}
 async function enviarMsgGestor(){const t=document.getElementById('chat-input');if(!t.value.trim()||!chatConsultor)return;const eq=chatConsultor==='#equipe';const j=await(await fetch('/api/chat/enviar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(eq?{paraTime:true,texto:t.value}:{consultor:chatConsultor,texto:t.value})})).json();if(j.erro){toast(j.erro);return;}t.value='';if(eq)toast('📢 Enviada para '+j.qtd+' consultor(es) ✓');abrirChatThread(chatConsultor,eq?'Toda a equipe':undefined)}
 async function salvarMeta(){
@@ -1194,15 +1186,30 @@ async function salvarMeta(){
 let _consultores=[];
 async function irControleFiltro(f){await carregarControle();document.getElementById('ctrl-status').value=f;renderTarefas();irAba('controle');}
 async function carregarConsultores(){
-  const res=await fetch('/api/gestor/controle');const c=await res.json();_consultores=c.consultores||[];renderConsultores();
+  const res=await fetch('/api/gestor/controle');const c=await res.json();_consultores=c.consultores||[];window._ctrlEq=c;renderConsultores();
 }
 function renderConsultores(){
   const busca=(document.getElementById('cons-busca').value||'').toLowerCase();
   const lista=_consultores.filter(c=>c.nome.toLowerCase().includes(busca));
+  const C=window._ctrlEq||{};
+  if(C.estrutura){renderQuadroEquipe(lista,C);return;}
   document.getElementById('lista-consultores').innerHTML=lista.map(c=>{
     const ab=c.tarefas.abertas.length,ft=c.tarefas.feitas.length;
     return `<div class="card row" style="cursor:pointer" onclick="abrirPerfil('${c.email}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,c.cor,34,c.foto)}<div>${balaoNome(c.nome,c.cor)}<div class="mut" style="font-size:11px;margin-top:2px">${c.totalEnvios}/7 check-ins · ${ab} tarefas abertas · ${ft} feitas</div></div></div><span class="mut">›</span></div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nenhum consultor</div>';
+}
+// v176: "Toda a minha estrutura" em colunas (estilo Trello): 1ª coluna = consultores direto com você; depois uma por gestor
+function renderQuadroEquipe(lista,C){
+  const gs=new Map((C.gestores||[]).map(g=>[g.login,g]));
+  const grupos=new Map();lista.forEach(c=>{const k=gs.has(c.superior)?c.superior:'_';if(!grupos.has(k))grupos.set(k,[]);grupos.get(k).push(c);});
+  const ordem=[...grupos.keys()].sort((a,b)=>{if(a===C.eu)return -1;if(b===C.eu)return 1;if(a==='_')return 1;if(b==='_')return -1;const ga=gs.get(a),gb=gs.get(b);return RANK_G(gb.nivel)-RANK_G(ga.nivel)||ga.nome.localeCompare(gb.nome);});
+  const col=k=>{const cs=grupos.get(k).sort((a,b)=>a.nome.localeCompare(b.nome));const g=gs.get(k);
+    const ck=cs.reduce((t,c)=>t+(c.checkinTotal?c.checkinHoje/c.checkinTotal:0),0)/(cs.length||1);
+    return `<div style="flex:0 0 min(260px,82vw);background:var(--card2);border-radius:14px;padding:10px;display:flex;flex-direction:column;max-height:70vh">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">${g?bolinhaNivel(g.nivel,12):'⚪'}<div style="min-width:0;flex:1"><div style="font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g?esc(g.nome.split(' ')[0])+(g.time?' · '+esc(g.time):''):'Outros'}</div><div class="mut" style="font-size:11px">${k===C.eu?'direto com você':g?nivelInfo(g.nivel).n:'sem gestor na sua estrutura'} · ${cs.length}</div></div>
+      <div title="Check-in de hoje (média)" style="font-size:11px;font-weight:700;color:${corPct(Math.round(ck*100))}">${Math.round(ck*100)}%</div></div>
+      <div style="overflow-y:auto;margin-top:6px">${cs.map(c=>`<div onclick="abrirPerfil('${c.email}')" style="background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:8px 10px;margin-top:7px;display:flex;align-items:center;gap:9px;cursor:pointer">${avatarHTML(c.nome,c.cor,32,c.foto)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:11px">✅ ${c.checkinHoje}/${c.checkinTotal} hoje · 📝 ${c.tarefas.abertas.length} abertas</div></div></div>`).join('')}</div></div>`;};
+  document.getElementById('lista-consultores').innerHTML=lista.length?`<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity">${ordem.map(col).join('')}</div><div class="mut" style="font-size:11px;margin-top:4px">Toque no consultor para abrir a ficha. Para ver uma equipe só, troque no topo.</div>`:'<div class="mut" style="padding:0 4px">Nenhum consultor</div>';
 }
 function estiloCorSolidaG(cor){if(GRADS[cor])return 'background:'+GRADS[cor]+';color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#fff`;return ''}
 function aplicarCorAvatar(el,cor){if(!cor)return;el.style.border='none';if(GRADS[cor]){el.style.background=GRADS[cor];el.style.color='#fff'}else if((cor||'').toLowerCase()==='#ffffff'){el.style.background='#fff';el.style.color='#1a1a18';el.style.border='1px solid #d4d2cb'}else{el.style.background=cor;el.style.color='#fff'}}
@@ -1211,16 +1218,15 @@ async function abrirPerfil(login){
   perfilAtual=login;
   const res=await fetch('/api/gestor/consultor?email='+encodeURIComponent(login));
   const p=await res.json();
-  const nome=p.nome||'';
-  const av=document.getElementById('pf-avatar');const pf=p.foto||'';
-  if(pf){av.textContent='';av.style.cssText='width:48px;height:48px;border-radius:50%;background-image:url('+pf+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
-  else{av.textContent=nome.slice(0,2).toUpperCase();av.style.cssText='width:48px;height:48px;font-size:16px';aplicarCorAvatar(av,p.cor);}
-  document.getElementById('pf-nome').innerHTML=esc(p.nome)+(p.cargo?` <span style="font-size:11px;${estiloCor(p.cor)};padding:2px 9px;border-radius:10px;font-weight:500">${esc(p.cargo)}</span>`:'');
-  document.getElementById('pf-time').textContent='Time '+(p.time||'');
-  document.getElementById('pf-exec').textContent=p.execucao+'%';
-  document.getElementById('pf-exec').style.color=corPct(p.execucao);
-  document.getElementById('pf-ck').textContent=p.checkinHoje.feitas+'/'+p.checkinHoje.total;
-  document.getElementById('pf-pend').textContent=p.atividades.pendentes.length;
+  if(p.erro){toast(p.erro);return;}
+  const L=String(login).replace(/'/g,''),N=String(p.nome||'').replace(/['"]/g,'');
+  // v176: ficha completa em vetor (public/ficha.js); os detalhes de antes continuam embaixo
+  document.getElementById('pf-ficha').innerHTML=Chama.fichaVisual(p,{modo:'gestor',acoes:{
+    mensagem:`abrirChatCom('${L}','${N}')`,checkin:`Chama.abrir('controle');setTimeout(()=>{carregarRotinasEdit('pessoa:${L}');const e=document.getElementById('rot-alvo');if(e)e.scrollIntoView({block:'center'})},500)`,
+    atividade:`Chama.abrir('novaatividade');setTimeout(()=>{const s=document.getElementById('na-consultor');if(s){s.value='${L}';s.dispatchEvent(new Event('change'))}},600)`,
+    venda:`Chama.abrir('novavenda')`,estrutura:`editarEstrutura('${L}')`,
+    vendas:`Chama.abrir('vendas')`,clientes:`Chama.abrir('clientes')`,
+    checkinVer:`document.getElementById('pf-sec-checkin').scrollIntoView({behavior:'smooth'})`,atividades:`document.getElementById('pf-sec-atv').scrollIntoView({behavior:'smooth'})`}});
   window._perfil=p;
   document.getElementById('pf-historico').innerHTML=p.historico7d.map((h,i)=>`<div style="flex:1;text-align:center;cursor:pointer" onclick="verDiaCheckin(${i})" title="${h.data}: ${h.feitas}/${h.total}"><div style="font-size:9px;color:var(--mut)">${h.feitas}</div><div id="pf-bar-${i}" style="height:${Math.max(4,h.pct*0.4)}px;background:${corPct(h.pct)};border-radius:4px 4px 0 0;margin:2px 2px 0;border:2px solid transparent"></div><div class="mut" style="font-size:9px;margin-top:3px;line-height:1.2">${h.dia}<br>${h.data.slice(0,5)}</div></div>`).join('');
   verDiaCheckin(p.historico7d.length-1);
@@ -1431,6 +1437,44 @@ async function salvarAbaixo(login){
   else toast('Estrutura salva ✓');
   fecharPop();await carregarUsuarios();carregarEstrutura();
 }
+// v176: consultores recolhidos por gestor (abre/fecha ao tocar)
+function toggleConsEstr(login){window._estrAbertos=window._estrAbertos||{};window._estrAbertos[login]=!window._estrAbertos[login];carregarEstrutura();}
+// v176: painel "Editar estrutura" — só Nível, Responde a e Time. Salvar muda o acesso (papel e cor acompanham o nível).
+function editarEstrutura(login){
+  const us=window._usuarios||[];const u=us.find(x=>x.email===login);if(!u){toast('Carregando acessos…');carregarUsuarios().then(()=>editarEstrutura(login));return;}
+  abrirPop('⚙️ Estrutura — '+u.nome,`
+    <label style="font-size:12px;color:var(--mut)">Nível</label>
+    <select id="ee-nivel" onchange="eeSuperiores('${esc(login)}')" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">${NIVEIS_G.map(n=>`<option value="${n.id}"${(u.nivel||'consultor')===n.id?' selected':''}>${n.ic} ${n.n}</option>`).join('')}</select>
+    <label style="font-size:12px;color:var(--mut)">Time</label>
+    <select id="ee-time" onchange="eeSuperiores('${esc(login)}')" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"><option value="">— sem time —</option>${[...new Set([...timesExistentes(),...(u.time?[u.time]:[])])].map(t=>`<option${u.time===t?' selected':''}>${esc(t)}</option>`).join('')}</select>
+    <label style="font-size:12px;color:var(--mut)">Responde a</label>
+    <select id="ee-superior" data-atual="${esc(u.superiorManual||'')}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></select>
+    <div id="ee-aviso" class="mut" style="font-size:11.5px;margin-top:8px;line-height:1.45"></div>
+    <button class="btn" style="width:100%;margin-top:12px" onclick="salvarEstruturaPessoa('${esc(login)}')">Salvar</button>
+    <div class="mut" style="font-size:11px;margin-top:8px">Salvar aqui muda também o acesso. Senha, foto, e-mail e meta ficam em Acessos.</div>`);
+  setTimeout(()=>eeSuperiores(login),0);
+}
+function eeSuperiores(login){
+  const us=window._usuarios||[];const u=us.find(x=>x.email===login)||{};const sel=document.getElementById('ee-superior');if(!sel)return;
+  const nv=document.getElementById('ee-nivel').value,tm=document.getElementById('ee-time').value,atual=sel.value||sel.dataset.atual||'';
+  const ops=us.filter(x=>x.ativo!==false&&x.email!==login&&RANK_G(x.nivel||'consultor')>RANK_G(nv)).sort((a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome));
+  const auto=nv==='consultor'?us.filter(x=>x.papel==='gestor'&&x.ativo!==false&&x.time&&x.time===tm).sort((a,b)=>RANK_G(a.nivel)-RANK_G(b.nivel))[0]:null;
+  sel.innerHTML=(nv==='consultor'?`<option value="">🔄 Automático pelo time${auto?' — '+esc(auto.nome):' (time sem gestor)'}</option>`:'<option value="">— ninguém (topo da estrutura) —</option>')+ops.map(x=>`<option value="${esc(x.email)}"${x.email===atual?' selected':''}>${nivelInfo(x.nivel).ic} ${esc(x.nome)} · ${nivelInfo(x.nivel).n}</option>`).join('');
+  const av=document.getElementById('ee-aviso');const mudouPapel=(nv==='consultor')!==(u.papel!=='gestor');
+  av.innerHTML=mudouPapel?(nv==='consultor'?'⚠️ Vai virar <b>consultor</b>: o acesso de gestor sai e o balão fica vermelho.':'⚠️ Vai virar <b>gestor</b>: passa a entrar no painel do gestor.'):'';
+}
+async function salvarEstruturaPessoa(login){
+  const us=window._usuarios||[];const u=us.find(x=>x.email===login)||{};
+  const nv=document.getElementById('ee-nivel').value,tm=document.getElementById('ee-time').value,sup=document.getElementById('ee-superior').value||'';
+  // rebaixou: avisa quem passa para o chefe direto
+  if(RANK_G(nv)<RANK_G(u.nivel||'consultor')){
+    const vao=us.filter(x=>x.ativo!==false&&x.superior===login&&(nv==='consultor'||RANK_G(x.nivel)>=RANK_G(nv)));
+    if(vao.length){const chefe=us.find(x=>x.email===sup);if(!confirm(`${u.nome} tem ${vao.length} pessoa(s) abaixo que não podem ficar com o novo nível: ${vao.map(x=>x.nome).join(', ')}.\n\nElas passam para ${chefe?chefe.nome:'o topo da estrutura'} (chefe direto). Continuar?`))return;}
+  }
+  const j=await(await fetch('/api/gestor/usuarios/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:login,nivel:nv,superior:sup,time:tm})})).json();
+  if(j.erro){toast(j.erro);return;}
+  fecharPop();toast('Estrutura salva ✓'+(j.movidos&&j.movidos.length?' · '+j.movidos.length+' pessoa(s) passaram para o chefe direto':''));await carregarUsuarios();carregarEstrutura();
+}
 async function carregarEstrutura(){
   const el=document.getElementById('estrutura-arvore');if(!el)return;el.innerHTML='<div class="mut">Carregando…</div>';
   let j;try{j=await(await fetch('/api/gestor/estrutura')).json();}catch(e){el.innerHTML='<div class="mut">Erro ao carregar</div>';return}
@@ -1439,10 +1483,11 @@ async function carregarEstrutura(){
   window._estr=j;
   const ord=(a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome);
   const idx=login=>(window._usuarios||[]).findIndex(u=>u.email===login);
-  const no=(p,prof)=>{const fs=(filhos.get(p.login)||[]).sort(ord);const i=idx(p.login);const nCons=fs.length;
+  const no=(p,prof)=>{const fs=(filhos.get(p.login)||[]).sort(ord);const gs=fs.filter(f=>f.nivel!=='consultor'),cs=fs.filter(f=>f.nivel==='consultor');const nCons=fs.length;const aberto=(window._estrAbertos||{})[p.login];
     return `<div style="margin-left:${prof?14:0}px;${prof?'border-left:2px solid var(--bord);padding-left:10px;':''}margin-top:6px">
-      <div ${i>=0?`onclick="editarUsuario(${i})"`:''} style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;background:${p.login===j.eu?'var(--accbg)':'var(--card2)'};cursor:pointer">${bolinhaNivel(p.nivel,14)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nome)}${p.login===j.eu?' <span class="mut" style="font-weight:400">(você)</span>':''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''}${nCons?' · '+nCons+' abaixo':''}${p.pelotime?' · 🔄 pelo time':''}</div></div>${p.nivel!=='consultor'?`<button class="btn sec2" title="Colocar pessoas ou times abaixo" onclick="event.stopPropagation();colocarAbaixo('${esc(p.login)}')" style="padding:4px 9px;font-size:12px;flex:none">＋ Abaixo</button>`:''}</div>
-      ${fs.map(f=>no(f,prof+1)).join('')}</div>`;};
+      <div onclick="editarEstrutura('${esc(p.login)}')" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;background:${p.login===j.eu?'var(--accbg)':'var(--card2)'};cursor:pointer">${bolinhaNivel(p.nivel,14)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nome)}${p.login===j.eu?' <span class="mut" style="font-weight:400">(você)</span>':''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''}${nCons?' · '+nCons+' abaixo':''}${p.pelotime?' · 🔄 pelo time':''}</div></div>${p.nivel!=='consultor'?`<button class="btn sec2" title="Colocar pessoas ou times abaixo" onclick="event.stopPropagation();colocarAbaixo('${esc(p.login)}')" style="padding:4px 9px;font-size:12px;flex:none">＋ Abaixo</button>`:''}</div>
+      ${cs.length?`<div style="margin-left:14px;border-left:2px solid var(--bord);padding-left:10px;margin-top:6px"><div onclick="toggleConsEstr('${esc(p.login)}')" style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;background:var(--bg);cursor:pointer;font-size:12.5px;color:var(--mut)">${bolinhaNivel('consultor',10)} ${cs.length} consultor(es) ${aberto?'▾':'▸'}</div>${aberto?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px">${cs.map(c=>`<span onclick="editarEstrutura('${esc(c.login)}')" style="cursor:pointer;font-size:12px;padding:4px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--bord)">${esc(c.nome)}${c.pelotime?' <span class=mut>🔄</span>':''}</span>`).join('')}</div>`:''}</div>`:''}
+      ${gs.map(f=>no(f,prof+1)).join('')}</div>`;};
   const topo=(filhos.get('')||[]).sort(ord);
   el.innerHTML=topo.map(p=>no(p,0)).join('')||'<div class="mut">Ninguém cadastrado</div>';
 }

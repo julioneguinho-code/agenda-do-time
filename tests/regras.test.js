@@ -153,8 +153,13 @@ test('estrutura de gestão (v172): níveis, quem responde a quem, equipes visív
   assert.ok(ed('ver2', { nivel: 'consultor', superior: 'lar2' }).ok);
   // regras: laranja não fica acima de roxo; consultor não vira gestor pelo nível; ninguém acima de quem já é maior que ele
   assert.ok(ed('roxo', { superior: 'lar2' }).erro);
-  assert.ok(ed('ver1', { nivel: 'supervisor' }).erro);
-  assert.ok(ed('cinza1', { nivel: 'supervisor' }).erro);              // o roxo responde a ele
+  // v176: o nível manda no acesso — consultor promovido vira gestor (e volta)
+  assert.ok(ed('ver1', { nivel: 'supervisor' }).erro); assert.ok(ed('ver1', { nivel: 'supervisor', superior: 'roxo' }).ok); assert.strictEqual(auth.usuarioPorEmail('ver1').papel, 'gestor');
+  assert.ok(ed('ver1', { nivel: 'consultor', superior: 'lar2' }).ok); assert.strictEqual(auth.usuarioPorEmail('ver1').papel, 'consultor');
+  // v176: rebaixar o cinza para supervisor passa o roxo (que ficaria igual/maior) para o chefe dele (dono1)
+  const rb = ed('cinza1', { nivel: 'supervisor' }); assert.ok(rb.ok && rb.movidos && rb.movidos.includes('Gestor Roxo'));
+  assert.strictEqual(auth.usuarioPorEmail('roxo').superior, 'dono1');
+  assert.ok(ed('cinza1', { nivel: 'gestorLoja', superior: 'dono1' }).ok); assert.ok(ed('roxo', { superior: 'cinza1' }).ok);
   assert.strictEqual(auth.usuarioPorEmail('lar2').cor, '#FB923C');    // cor acompanha o nível (comissão laranja)
   // quem está acima enxerga as equipes de baixo; o de baixo não enxerga as de cima
   const vis = l => auth.timesVisiveis(auth.usuarioPorEmail(l));

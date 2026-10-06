@@ -254,6 +254,8 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/avisos/ler' && req.method === 'POST') return send(res, 200, await notion.marcarAvisoLido(session, await readBody(req)));
       if (p === '/api/avisos/apagar' && req.method === 'POST') return send(res, 200, await notion.excluirAviso(session, await readBody(req)));
       if (p === '/api/home' && session.papel === 'consultor') return send(res, 200, await notion.homeConsultor(session));
+      // v176: a ficha completa do próprio consultor (sem as partes de gestor)
+      if (p === '/api/minha-ficha' && session.papel === 'consultor') return send(res, 200, await notion.perfilConsultor(session, session.email));
       if (p === '/api/disponibilidade') return send(res, 200, await notion.disponibilidade(session));
       if (p === '/api/gestores') return send(res, 200, { gestores: notion.listarGestores() });
       if (p === '/api/arquivos' && req.method === 'GET') return send(res, 200, await notion.listarArquivos(session));
@@ -480,6 +482,8 @@ const server = http.createServer(async (req, res) => {
           cmp('login', antes.email, novoEmail && String(novoEmail).trim().toLowerCase()); cmp('nome', antes.nome, nome); cmp('papel', antes.papel, papel); cmp('time', antes.time, time);
           cmp('cargo', antes.cargo, cargo); cmp('cor', antes.cor, cor); cmp('master', !!antes.master, master == null ? null : !!master); cmp('meta', antes.metaVenda, metaVenda == null ? null : (+metaVenda || 0)); cmp('agenda', antes.calendarId, calendarId); cmp('nível', antes.nivel, nivel || null); cmp('responde a', antes.superior, superior == null ? null : String(superior).toLowerCase());
           if (foto != null && foto !== '' && /^data:/.test(String(foto))) mud.push('foto alterada');
+          { const dep = auth.usuarioPorEmail((novoEmail && String(novoEmail).trim()) || email); if (dep && papel == null && dep.papel !== antes.papel) mud.push('acesso: ' + antes.papel + ' → ' + dep.papel); }
+          if (r.movidos && r.movidos.length) mud.push('passaram para o chefe direto: ' + r.movidos.join(', '));
           if (mud.length) notion.auditar(session, 'editou acesso', mud.join(' · '), (novoEmail && String(novoEmail).trim()) || email);
         }
         return send(res, 200, r);
