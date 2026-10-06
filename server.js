@@ -418,6 +418,15 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/times/excluir' && req.method === 'POST') {
         return send(res, 200, notion.excluirTime(session, await readBody(req)));
       }
+      // v173: colocar várias pessoas (ou o time de um laranja/roxo inteiro) abaixo de alguém de uma vez
+      if (p === '/api/gestor/estrutura/vincular' && req.method === 'POST') {
+        const b = await readBody(req); const sup = String(b.superior || '').toLowerCase();
+        const logins = Array.isArray(b.logins) ? b.logins.slice(0, 200).map(x => String(x).toLowerCase()) : [];
+        const feitos = [], erros = [];
+        for (const l of logins) { const r = auth.atualizarUsuario(l, { superior: sup }); if (r && r.erro) erros.push((auth.usuarioPorEmail(l) || { nome: l }).nome + ': ' + r.erro); else feitos.push(l); }
+        if (feitos.length) notion.auditar(session, 'montou a estrutura', feitos.length + ' pessoa(s) abaixo de ' + ((auth.usuarioPorEmail(sup) || {}).nome || 'ninguém (topo)'), sup);
+        return send(res, 200, { ok: feitos.length > 0 || !logins.length, feitos: feitos.length, erros });
+      }
       if (p === '/api/gestor/estrutura' && req.method === 'GET') {
         return send(res, 200, notion.estruturaGestao(session));
       }

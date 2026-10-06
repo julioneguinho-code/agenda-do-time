@@ -701,7 +701,7 @@ async function carregar(){
   painel = await res.json();
   window._fotos=painel.fotos||{};window._meuEmail=painel.email;window._meuNome=(painel.nome||'').split(' ')[0];
   document.getElementById('time').textContent = painel.time||'Equipe';
-  {const n=(painel.equipes||[]).length;document.getElementById('time-sub').textContent=n>1?('Equipe · '+n+' no total'):'Painel do gestor';}
+  {const n=(painel.equipes||[]).length;document.getElementById('time-sub').textContent=painel.estrutura?('Estrutura · '+n+' equipe(s)'):(n>1?('Equipe · '+n+' no total'):'Painel do gestor');}
   const gav=document.getElementById('avatar');
   if(painel.foto){gav.textContent='';gav.style.cssText='width:38px;height:38px;border-radius:50%;background-image:url('+painel.foto+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
   else{gav.textContent=(painel.nome||painel.time||'G').replace(/^Gestor\s+/i,'').trim().slice(0,2).toUpperCase();aplicarCorAvatar(gav,painel.cor);}
@@ -1169,7 +1169,7 @@ async function abrirChatLista(){
   document.getElementById('chat-titulo').textContent='💬 Conversas do time';
   const res=await fetch('/api/chat');const j=await res.json();
   const nEq=j.equipe||(j.lista||[]).length;
-  document.getElementById('chat-lista').innerHTML=(nEq?`<div class="card row" style="cursor:pointer;border:1.5px solid var(--acc);background:var(--accbg,#fde8ea)" onclick="abrirChatThread('#equipe','Toda a equipe')"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-size:17px;flex:none">📢</div><div><div class="titulo">Toda a equipe</div><div class="mut" style="font-size:11px">Mensagem para os ${nEq} consultor(es) do time</div></div></div><span class="mut">›</span></div>`:'')+(j.lista||[]).map(c=>`<div class="card row" style="cursor:pointer" onclick="abrirChatThread('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,'',34,c.foto)}<div class="titulo">${esc(c.nome)}</div></div>${c.naoLidas>0?`<span class="badge b-no">${c.naoLidas} nova(s)</span>`:'<span class="mut">›</span>'}</div>`).join('')||'<div class="mut" style="padding:10px">Nenhum consultor no time</div>';
+  document.getElementById('chat-lista').innerHTML=(nEq?`<div class="card row" style="cursor:pointer;border:1.5px solid var(--acc);background:var(--accbg,#fde8ea)" onclick="abrirChatThread('#equipe','Toda a equipe')"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-size:17px;flex:none">📢</div><div><div class="titulo">${(typeof painel!=='undefined'&&painel&&painel.estrutura)?'Toda a estrutura':'Toda a equipe'}</div><div class="mut" style="font-size:11px">Mensagem para os ${nEq} consultor(es) ${(typeof painel!=='undefined'&&painel&&painel.estrutura)?'da sua estrutura':'do time'}</div></div></div><span class="mut">›</span></div>`:'')+(j.lista||[]).map(c=>`<div class="card row" style="cursor:pointer" onclick="abrirChatThread('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,'',34,c.foto)}<div class="titulo">${esc(c.nome)}</div></div>${c.naoLidas>0?`<span class="badge b-no">${c.naoLidas} nova(s)</span>`:'<span class="mut">›</span>'}</div>`).join('')||'<div class="mut" style="padding:10px">Nenhum consultor no time</div>';
 }
 async function abrirChatThread(login,nome){
   chatConsultor=login;
@@ -1344,8 +1344,14 @@ async function abrirEquipes(){
   let j;try{j=await(await fetch('/api/gestor/equipes')).json();}catch(e){toast('Erro ao carregar equipes');return}
   if(!j||!j.ok){toast((j&&j.erro)||'Erro');return}
   window._minhasEquipes=j.equipes||[];
-  const lista=window._minhasEquipes.map((e,i)=>`<div class="card" style="padding:10px 12px;margin-bottom:7px;${e.ativa?'border-color:var(--acc);background:var(--accbg)':''}"><div class="row" style="align-items:center"><div style="min-width:0"><div class="titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.nome)}${e.principal?' <span class="badge" style="font-size:9px;background:var(--card2);color:var(--mut)">principal</span>':''}${e.daEstrutura?' <span class="badge" style="font-size:9px;background:var(--card2);color:var(--mut)">da estrutura</span>':''}</div><div class="mut" style="font-size:11px">${e.consultores} consultor(es)</div></div><div style="display:flex;gap:6px;flex:none">${e.ativa?'<span class="badge b-ok">aberta</span>':`<button class="btn" style="padding:6px 12px" onclick="entrarEquipe(${i})">Abrir</button>`}${(!e.principal&&!e.consultores&&!e.daEstrutura)?`<button class="btn sec2" style="padding:6px 9px;color:var(--no)" title="Remover equipe vazia" onclick="removerEquipeG(${i})">🗑</button>`:''}</div></div></div>`).join('');
+  // v173: modo "Toda a minha estrutura" — vê de uma vez todos abaixo de você (vendas, clientes, painel, check-in, chat…)
+  const est=j.estrutura?`<div class="card" style="padding:10px 12px;margin-bottom:10px;${j.estrutura.ativa?'border-color:var(--acc);background:var(--accbg)':''}"><div class="row" style="align-items:center"><div style="min-width:0"><div class="titulo">🏢 Toda a minha estrutura</div><div class="mut" style="font-size:11px">${j.estrutura.pessoas} pessoa(s) abaixo de você + suas equipes</div></div><div style="flex:none">${j.estrutura.ativa?'<span class="badge b-ok">aberta</span>':'<button class="btn" style="padding:6px 12px" onclick="entrarEstrutura()">Abrir</button>'}</div></div></div><div class="mut" style="font-size:11px;margin:0 0 6px">Ou uma equipe só:</div>`:'';
+  const lista=est+window._minhasEquipes.map((e,i)=>`<div class="card" style="padding:10px 12px;margin-bottom:7px;${e.ativa?'border-color:var(--acc);background:var(--accbg)':''}"><div class="row" style="align-items:center"><div style="min-width:0"><div class="titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.nome)}${e.principal?' <span class="badge" style="font-size:9px;background:var(--card2);color:var(--mut)">principal</span>':''}${e.daEstrutura?' <span class="badge" style="font-size:9px;background:var(--card2);color:var(--mut)">da estrutura</span>':''}</div><div class="mut" style="font-size:11px">${e.consultores} consultor(es)</div></div><div style="display:flex;gap:6px;flex:none">${e.ativa?'<span class="badge b-ok">aberta</span>':`<button class="btn" style="padding:6px 12px" onclick="entrarEquipe(${i})">Abrir</button>`}${(!e.principal&&!e.consultores&&!e.daEstrutura)?`<button class="btn sec2" style="padding:6px 9px;color:var(--no)" title="Remover equipe vazia" onclick="removerEquipeG(${i})">🗑</button>`:''}</div></div></div>`).join('');
   abrirPop('Minhas equipes',`<div class="mut" style="font-size:12px;margin-bottom:10px">Trocar de equipe muda só o quadro (consultores, vendas, clientes, agenda e ranking). Os avisos de todas as equipes continuam chegando aqui.</div>${lista}<div class="h" style="margin-top:14px">➕ Nova equipe</div><div style="display:flex;gap:8px"><input type="text" id="nova-equipe" placeholder="Nome da equipe (ex: Chama Batel)" maxlength="40" onkeydown="if(event.key==='Enter')novaEquipe()" style="flex:1;min-width:0;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><button class="btn" onclick="novaEquipe()">Criar</button></div><div class="mut" style="font-size:11px;margin-top:6px">Você vira o gestor dessa equipe. Depois cadastre os consultores dela em ⚙️ → Novo.</div>`);
+}
+async function entrarEstrutura(){
+  const j=await(await fetch('/api/gestor/equipes/ativa',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({time:'*estrutura'})})).json();
+  if(j.ok){toast('Abrindo toda a sua estrutura…');setTimeout(()=>location.reload(),350);}else toast(j.erro||'Erro');
 }
 async function entrarEquipe(i){
   const e=(window._minhasEquipes||[])[i];if(!e)return;
@@ -1401,16 +1407,41 @@ async function apagarAviso(id){await fetch('/api/avisos/apagar',{method:'POST',h
 async function apagarAvisos(){if(!confirm('Apagar todas as notificações?'))return;await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({todos:true})});carregarAvisos()}
 function subAcesso(n){document.querySelectorAll('#aba-acessos .sa').forEach(e=>e.style.display='none');const el=document.getElementById('sa-'+n);if(el)el.style.display='block';document.querySelectorAll('[data-sa]').forEach(c=>c.classList.toggle('on',c.dataset.sa===n));if(n==='pedidos')carregarCadastros();if(n==='audit')carregarAuditoria();if(n==='estrutura')carregarEstrutura();}
 // organograma: cada pessoa com quem está abaixo dela (quem não responde a ninguém aparece no topo)
+// v173: escolher quem fica abaixo de alguém (vários de uma vez). Mover um laranja/roxo leva o time inteiro dele junto.
+function colocarAbaixo(login){
+  const j=window._estr||{};const ps=j.pessoas||[];const por=new Map(ps.map(p=>[p.login,p]));const chefe=por.get(login);if(!chefe)return;
+  const acima=new Set();let x=chefe;while(x&&x.superior&&!acima.has(x.superior)){acima.add(x.superior);x=por.get(x.superior);} // não deixa criar ciclo
+  const cand=ps.filter(p=>p.login!==login&&!acima.has(p.login)&&RANK_G(p.nivel)<RANK_G(chefe.nivel)).sort((a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome));
+  const lin=p=>{const sup=por.get(p.superior);const ja=p.superior===login;const abx=ps.filter(q=>q.superior===p.login).length;
+    return `<label style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--bord);cursor:pointer"><input type="checkbox" value="${esc(p.login)}" ${ja?'checked':''} style="width:18px;height:18px;accent-color:var(--acc)">${bolinhaNivel(p.nivel,12)}<div style="min-width:0;flex:1"><div style="font-size:13.5px;font-weight:600">${esc(p.nome)}${abx?` <span class="mut" style="font-weight:400">+ ${abx} abaixo dele(a)</span>`:''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''} · ${ja?'já está aqui':sup?'hoje responde a '+esc(sup.nome):'sem chefe definido'}</div></div></label>`;};
+  abrirPop('＋ Abaixo de '+chefe.nome,`<div class="mut" style="font-size:12px;margin-bottom:8px">Marque quem fica abaixo de <b>${esc(chefe.nome)}</b> (${nivelInfo(chefe.nivel).n}). Só aparecem níveis abaixo dele(a). Ao mover um gestor ou supervisor, as pessoas abaixo dele(a) vão juntas.</div>
+    <input type="text" placeholder="🔎 Buscar nome ou time…" oninput="const q=this.value.toLowerCase();document.querySelectorAll('#ca-lista label').forEach(l=>l.style.display=l.innerText.toLowerCase().includes(q)?'':'none')" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:6px">
+    <div id="ca-lista" style="max-height:52vh;overflow:auto">${cand.map(lin).join('')||'<div class="mut" style="padding:10px">Ninguém de nível abaixo para colocar aqui.</div>'}</div>
+    <button class="btn" style="width:100%;margin-top:10px" onclick="salvarAbaixo('${esc(login)}')">Salvar estrutura</button>`);
+}
+async function salvarAbaixo(login){
+  const j=window._estr||{};const marcados=[...document.querySelectorAll('#ca-lista input:checked')].map(i=>i.value);
+  const antes=(j.pessoas||[]).filter(p=>p.superior===login).map(p=>p.login);
+  const tirar=antes.filter(l=>!marcados.includes(l)),por=marcados.filter(l=>!antes.includes(l));
+  const post=b=>fetch('/api/gestor/estrutura/vincular',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
+  const r1=por.length?await post({superior:login,logins:por}):{feitos:0,erros:[]};
+  const r2=tirar.length?await post({superior:'',logins:tirar}):{feitos:0,erros:[]};
+  const erros=[...(r1.erros||[]),...(r2.erros||[])];
+  if(erros.length){alert('Não foi possível:\n'+erros.join('\n'));}
+  else toast('Estrutura salva ✓');
+  fecharPop();await carregarUsuarios();carregarEstrutura();
+}
 async function carregarEstrutura(){
   const el=document.getElementById('estrutura-arvore');if(!el)return;el.innerHTML='<div class="mut">Carregando…</div>';
   let j;try{j=await(await fetch('/api/gestor/estrutura')).json();}catch(e){el.innerHTML='<div class="mut">Erro ao carregar</div>';return}
   const ps=j.pessoas||[],por=new Map(ps.map(p=>[p.login,p])),filhos=new Map();
   ps.forEach(p=>{const s=por.has(p.superior)?p.superior:'';if(!filhos.has(s))filhos.set(s,[]);filhos.get(s).push(p);});
+  window._estr=j;
   const ord=(a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome);
   const idx=login=>(window._usuarios||[]).findIndex(u=>u.email===login);
   const no=(p,prof)=>{const fs=(filhos.get(p.login)||[]).sort(ord);const i=idx(p.login);const nCons=fs.length;
     return `<div style="margin-left:${prof?14:0}px;${prof?'border-left:2px solid var(--bord);padding-left:10px;':''}margin-top:6px">
-      <div ${i>=0?`onclick="editarUsuario(${i})"`:''} style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;background:${p.login===j.eu?'var(--accbg)':'var(--card2)'};cursor:pointer">${bolinhaNivel(p.nivel,14)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nome)}${p.login===j.eu?' <span class="mut" style="font-weight:400">(você)</span>':''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''}${nCons?' · '+nCons+' abaixo':''}</div></div></div>
+      <div ${i>=0?`onclick="editarUsuario(${i})"`:''} style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;background:${p.login===j.eu?'var(--accbg)':'var(--card2)'};cursor:pointer">${bolinhaNivel(p.nivel,14)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nome)}${p.login===j.eu?' <span class="mut" style="font-weight:400">(você)</span>':''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''}${nCons?' · '+nCons+' abaixo':''}</div></div>${p.nivel!=='consultor'?`<button class="btn sec2" title="Colocar pessoas ou times abaixo" onclick="event.stopPropagation();colocarAbaixo('${esc(p.login)}')" style="padding:4px 9px;font-size:12px;flex:none">＋ Abaixo</button>`:''}</div>
       ${fs.map(f=>no(f,prof+1)).join('')}</div>`;};
   const topo=(filhos.get('')||[]).sort(ord);
   el.innerHTML=topo.map(p=>no(p,0)).join('')||'<div class="mut">Ninguém cadastrado</div>';

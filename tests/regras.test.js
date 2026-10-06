@@ -176,3 +176,24 @@ test('estrutura de gestão (v172): níveis, quem responde a quem, equipes visív
   assert.ok((await N.salvarRotinas(roxo, { alvo: { tipo: 'pessoa', id: 'ver2' }, remover: true })).ok);
   assert.deepStrictEqual(N.rotinasDe('ver2'), ['Prospectar']);
 });
+
+test('estrutura no site todo (v173): superior vê vendas/consultores de toda a estrutura; modo equipe restringe', async () => {
+  const sess = (l, t) => ({ papel: 'gestor', email: l, nome: auth.usuarioPorEmail(l).nome, time: t });
+  const ver1 = { papel: 'consultor', email: 'ver1', nome: 'Vermelho Um', time: 'L2' };
+  assert.ok((await N.criarVenda(ver1, { nome: 'Cliente Estrutura', valor: 1000, status: 'negociacao', data: '2026-10-05' })).ok);
+  const dono = sess('dono1', 'D'), lar = sess('lar2', 'L2'), cinza = sess('cinza1', 'C');
+  const temVenda = async s => ((await N.listarVendas(s, {})).vendas || []).some(v => v.cliente && v.cliente.nome === 'Cliente Estrutura');
+  assert.ok(await temVenda(dono));                     // dono vê a venda do vermelho lá embaixo
+  assert.ok(await temVenda(cinza));
+  assert.ok(await temVenda(lar));                      // o laranja é o chefe direto
+  assert.ok(!(await temVenda(sess('outro', 'R'))));    // outro roxo fora da estrutura não vê
+  const nomes = (await N.listarChat(dono)).lista.map(c => c.email);
+  assert.ok(nomes.includes('ver1') && nomes.includes('ver2'));
+  // dono troca para UMA equipe (a dele, D) → deixa de ver a estrutura; volta para "toda a estrutura"
+  assert.ok(N.trocarEquipe(dono, { time: 'D' }).ok);
+  assert.ok(!(await temVenda(dono)));
+  assert.ok(N.trocarEquipe(dono, { time: '*estrutura' }).ok);
+  assert.ok(await temVenda(dono));
+  assert.ok(N.trocarEquipe(lar, { time: '*estrutura' }).ok);   // laranja tem vermelhos abaixo: também pode
+  assert.ok(N.trocarEquipe(sess('outro', 'R'), { time: '*estrutura' }).erro);
+});
