@@ -70,7 +70,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="top">
   <div style="min-width:0;flex:1 1 auto;cursor:pointer" onclick="abrirEquipes()" title="Trocar ou criar equipe"><div class="sub" id="time-sub">Painel do gestor</div><div class="nome" style="display:flex;align-items:center;gap:4px;min-width:0"><span id="time" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">…</span><span style="flex:none;font-size:13px;color:var(--mut)">▾</span></div></div>
   <div style="display:flex;align-items:center;gap:8px">
-    <button onclick="abrirAvisos()" title="Avisos" style="position:relative;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer"><i class=i-bell></i><span id="badge-avisos" style="display:none;position:absolute;top:-5px;right:-5px;background:#E24B4A;color:#fff;font-size:10px;font-weight:600;border-radius:99px;min-width:17px;height:17px;line-height:17px;text-align:center"></span></button>
+    <button onclick="abrirAvisos()" title="Avisos" style="position:relative;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔔<span id="badge-avisos" style="display:none;position:absolute;top:-5px;right:-5px;background:#E24B4A;color:#fff;font-size:10px;font-weight:600;border-radius:99px;min-width:17px;height:17px;line-height:17px;text-align:center"></span></button>
     <div class="avatar" id="avatar" title="Meu perfil" style="cursor:pointer" onclick="abrirPerfilG()"></div>
     <input id="minha-foto-file" type="file" accept="image/*" style="display:none" onchange="trocarMinhaFoto(this)">
   </div>
@@ -79,13 +79,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- PAINEL -->
 <div class="aba on" id="aba-painel">
   <div class="sec">
-    <div class="h" id="h-agend-home" style="display:none;color:var(--acc)"><i class=i-bell></i> Agendamentos aguardando seu aceite</div>
+    <div class="h" id="h-agend-home" style="display:none;color:var(--acc)">🔔 Agendamentos aguardando seu aceite</div>
     <div id="agend-home" style="margin-bottom:6px"></div>
     <div class="hoje" id="pg-hoje"><div class="mut" style="padding:10px">Carregando…</div></div>
     <div style="display:none"><span id="t-atr"></span><span id="t-pen"></span><span id="t-fin"></span></div>
-    <div class="h" id="h-minhas-tarefas" style="display:none"><i class=i-inbox></i> Tarefas enviadas para mim</div>
+    <div class="h" id="h-minhas-tarefas" style="display:none">📥 Tarefas enviadas para mim</div>
     <div id="minhas-tarefas"></div>
-    <div class="h"><i class=i-users></i> Execução por consultor · semana</div>
+    <div class="h">👥 Execução por consultor · semana</div>
     <div class="card" id="execucao"></div>
   </div>
 </div>
@@ -93,7 +93,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- MAIS (v159): todos os recursos -->
 <div class="aba" id="aba-mais">
   <div class="sec">
-    <div class="h" style="font-size:18px!important"><i class=i-menu-2></i> Mais</div>
+    <div class="h" style="font-size:18px!important">☰ Mais</div>
     <div id="mais-grid"></div>
   </div>
 </div>
@@ -102,7 +102,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <div class="aba" id="aba-agenda">
   <div class="sec">
     <div class="card" style="margin-bottom:12px">
-      <div class="row" style="cursor:pointer" onclick="const f=document.getElementById('form-reuniao-g');f.style.display=f.style.display==='none'?'block':'none'"><div class="titulo" style="font-weight:600"><i class=i-calendar></i> Reunião com outro gestor</div><span class="mut">＋</span></div>
+      <div class="row" style="cursor:pointer" onclick="const f=document.getElementById('form-reuniao-g');f.style.display=f.style.display==='none'?'block':'none'"><div class="titulo" style="font-weight:600">📅 Reunião com outro gestor</div><span class="mut">＋</span></div>
       <div id="form-reuniao-g" style="display:none;margin-top:10px">
         <select id="rg-para" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><option value="">Escolha o gestor…</option></select>
         <input type="text" id="rg-assunto" placeholder="Assunto da reunião" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-top:8px">
@@ -115,7 +115,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
         <div class="mut" style="font-size:11px;margin-top:6px">O outro gestor recebe o pedido na tela inicial dele e aceita.</div>
       </div>
     </div>
-    <div class="h"><i class=i-circle-check></i> Solicitações pendentes</div><div id="pendentes"></div>
+    <div class="h">✅ Solicitações pendentes</div><div id="pendentes"></div>
     <div class="h" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
       <button class="btn sec2" style="padding:5px 12px" onclick="mudarMes(-1)">◀</button>
       <span id="mes-label">Agenda</span>
@@ -133,8 +133,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- RANKING -->
 <div class="aba" id="aba-ranking">
   <div class="sec">
-    <div class="seg"><button onclick="Chama.abrir('mural')">Vendas do mês</button><button class="on">Premiação</button></div>
-    <div class="h"><i class=i-trophy></i> Premiação — vendas + check-in (todos os times)</div>
+    <div class="seg"><button onclick="Chama.abrir('mural')">🏅 Vendas do mês</button><button class="on">🏆 Premiação</button></div>
+    <div class="h">🏆 Premiação — vendas + check-in (todos os times)</div>
     <div class="card" style="margin-bottom:10px">
       <div class="row"><span class="mut" id="meta-rotulo">Meta semanal (rotinas por consultor)</span><span></span></div>
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -149,14 +149,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- VENDAS DO TIME (CRM gestor) -->
 <div class="aba" id="aba-vendasg">
   <div class="sec">
-    <div class="row"><div class="h"><i class=i-coin></i> Vendas do time</div><button class="btn" style="padding:6px 12px" onclick="novaVendaG()">+ Nova venda</button></div>
+    <div class="row"><div class="h">💰 Vendas do time</div><button class="btn" style="padding:6px 12px" onclick="novaVendaG()">+ Nova venda</button></div>
     <div id="vg-painel-wrap">
     <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px">
       <button class="btn sec2" style="padding:5px 12px" onclick="vgMes(-1)">◀</button>
       <div style="font-weight:600" id="vg-mes-lbl">—</div>
       <button class="btn sec2" style="padding:5px 12px" onclick="vgMes(1)">▶</button>
     </div>
-    <button class="btn sec2" style="width:100%;padding:9px;margin-bottom:8px" onclick="abrirExportVendasG()"><i class=i-download></i> Baixar planilha de vendas (Excel)</button>
+    <button class="btn sec2" style="width:100%;padding:9px;margin-bottom:8px" onclick="abrirExportVendasG()">⬇️ Baixar planilha de vendas (Excel)</button>
     <div class="mut" style="font-size:12px;margin:2px 2px 6px">Filtrar por time:</div>
     <div id="vg-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>
     <div style="position:relative;margin-bottom:10px">
@@ -167,16 +167,16 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
     <div class="card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><div id="vg-gauge" style="width:clamp(120px,36vw,170px);flex:none"></div>
       <div style="min-width:150px;flex:1"><div class="mut" style="font-size:12px">Total fechado</div><div id="vg-total" style="font-size:clamp(19px,5.6vw,26px);font-weight:650;color:var(--ok);white-space:nowrap">—</div>
       <div class="mut" style="font-size:12.5px">meta do time <b id="vg-meta" style="color:var(--txt)">—</b></div>
-      <div style="margin-top:8px"><span class="badge b-ok"><i class=i-trophy></i> <span id="vg-bateram">0</span> bateram a meta</span></div></div></div>
-    <div class="h"><i class=i-chart-bar></i> Fechado por consultor</div>
+      <div style="margin-top:8px"><span class="badge b-ok">🏆 <span id="vg-bateram">0</span> bateram a meta</span></div></div></div>
+    <div class="h">📊 Fechado por consultor</div>
     <div class="card"><div id="vg-bars"></div></div>
     <div class="h">Kanban do time</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start">
-      <div><div class="h" id="vg-neg-h" style="margin-top:2px"><i class=i-arrows-exchange></i> Em negociação</div><div id="vg-neg"></div></div>
-      <div><div class="h" id="vg-fec-h" style="margin-top:2px;color:var(--ok)"><i class=i-circle-check></i> Fechadas</div><div id="vg-fec"></div></div>
+      <div><div class="h" id="vg-neg-h" style="margin-top:2px">🤝 Em negociação</div><div id="vg-neg"></div></div>
+      <div><div class="h" id="vg-fec-h" style="margin-top:2px;color:var(--ok)">✅ Fechadas</div><div id="vg-fec"></div></div>
     </div>
-    <button class="btn sec2" style="width:100%;margin-top:12px" onclick="abrirNegTodasEquipes()"><i class=i-world></i> Negociações de todas as equipes</button>
-    <button class="btn sec2" style="width:100%;margin-top:8px" onclick="abrirHistoricoVendas()"><i class=i-history></i> Histórico de inclusões e exclusões</button>
+    <button class="btn sec2" style="width:100%;margin-top:12px" onclick="abrirNegTodasEquipes()">🌐 Negociações de todas as equipes</button>
+    <button class="btn sec2" style="width:100%;margin-top:8px" onclick="abrirHistoricoVendas()">🕘 Histórico de inclusões e exclusões</button>
     </div>
   </div>
 </div>
@@ -186,7 +186,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
   <div class="sec">
     <button class="btn sec2" style="margin-bottom:10px" onclick="irAba('consultores');carregarConsultores()">← Voltar</button>
     <div id="pf-ficha"></div>
-    <div class="h" style="margin-top:18px"><i class=i-clipboard-list></i> Detalhes</div>
+    <div class="h" style="margin-top:18px">📋 Detalhes</div>
     <div class="h" id="pf-sec-checkin">Check-in · últimos 7 dias <span class="mut" style="font-weight:400;font-size:11px">(toque num dia)</span></div>
     <div class="card"><div style="display:flex;align-items:flex-end;gap:6px;height:76px" id="pf-historico"></div></div>
     <div class="h" id="pf-rotinas-titulo">Rotinas do check-in</div>
@@ -203,9 +203,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- CONSULTORES -->
 <div class="aba" id="aba-consultores">
   <div class="sec">
-    <div class="h"><i class=i-users></i> Minha equipe</div>
+    <div class="h">👥 Minha equipe</div>
     <!-- v178: o antigo "Controle" virou as abas Check-in e Tarefas da Equipe -->
-    <div class="seg" id="eq-seg"><button data-eq="pessoas" class="on" onclick="equipeTab('pessoas')">Pessoas</button><button data-eq="checkin" onclick="equipeTab('checkin')">Check-in</button><button data-eq="tarefas" onclick="equipeTab('tarefas')">Tarefas</button></div>
+    <div class="seg" id="eq-seg"><button data-eq="pessoas" class="on" onclick="equipeTab('pessoas')">👥 Pessoas</button><button data-eq="checkin" onclick="equipeTab('checkin')">✅ Check-in</button><button data-eq="tarefas" onclick="equipeTab('tarefas')">📝 Tarefas</button></div>
     <div id="eq-pessoas">
       <input type="text" id="cons-busca" placeholder="Buscar consultor…" oninput="renderConsultores()" style="width:100%;padding:10px 12px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px">
       <div id="lista-consultores"></div>
@@ -241,15 +241,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- ACESSOS -->
 <div class="aba" id="aba-acessos">
   <div class="sec">
-    <div class="row" style="margin-bottom:10px"><div class="h" style="margin:0"><i class=i-settings></i> Configurações</div><button class="btn sec2" style="padding:6px 12px" onclick="irAba('painel')">← Voltar</button></div>
+    <div class="row" style="margin-bottom:10px"><div class="h" style="margin:0">⚙️ Configurações</div><button class="btn sec2" style="padding:6px 12px" onclick="irAba('painel')">← Voltar</button></div>
     <div class="chips-linha">
-      <button class="chip on" data-sa="acessos" onclick="subAcesso('acessos')"><i class=i-users></i> Acessos</button>
-      <button class="chip" data-sa="pedidos" onclick="subAcesso('pedidos')"><i class=i-mail></i> Pedidos <span id="cad-badge" class="badge b-no" style="display:none;margin-left:2px">0</span></button>
-      <button class="chip" data-sa="novo" onclick="subAcesso('novo')"><i class=i-plus></i> Novo</button>
-      <button class="chip" data-sa="times" onclick="subAcesso('times')"><i class=i-tag></i> Times</button>
-      <button class="chip" data-sa="estrutura" onclick="subAcesso('estrutura')"><i class=i-building></i> Estrutura</button>
-      <button class="chip" data-sa="arq" onclick="subAcesso('arq')"><i class=i-paperclip></i> Arquivos</button>
-      <button class="chip" data-sa="audit" onclick="subAcesso('audit')"><i class=i-user-search></i> Auditoria</button>
+      <button class="chip on" data-sa="acessos" onclick="subAcesso('acessos')">👥 Acessos</button>
+      <button class="chip" data-sa="pedidos" onclick="subAcesso('pedidos')">📩 Pedidos <span id="cad-badge" class="badge b-no" style="display:none;margin-left:2px">0</span></button>
+      <button class="chip" data-sa="novo" onclick="subAcesso('novo')">➕ Novo</button>
+      <button class="chip" data-sa="times" onclick="subAcesso('times')">🏷️ Times</button>
+      <button class="chip" data-sa="estrutura" onclick="subAcesso('estrutura')">🏢 Estrutura</button>
+      <button class="chip" data-sa="arq" onclick="subAcesso('arq')">📎 Arquivos</button>
+      <button class="chip" data-sa="audit" onclick="subAcesso('audit')">🕵️ Auditoria</button>
     </div>
 
     <div class="sa" id="sa-acessos">
@@ -259,9 +259,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       </div>
       <div id="lista-usuarios"></div>
       <div class="card" style="margin-top:18px;border-color:rgba(196,55,55,.35)">
-        <div style="font-weight:600;color:var(--no);margin-bottom:4px"><i class=i-alert-triangle></i> Ações perigosas</div>
+        <div style="font-weight:600;color:var(--no);margin-bottom:4px">⚠️ Ações perigosas</div>
         <div class="mut" style="font-size:12px;margin-bottom:10px">Afetam todos os consultores de uma vez. Pede confirmação digitada.</div>
-        <button class="btn sec2" id="btn-reset-todos" style="width:100%;color:var(--no)" onclick="resetSenhasConsultores()"><i class=i-key></i> Redefinir senha de TODOS os consultores para 1234</button>
+        <button class="btn sec2" id="btn-reset-todos" style="width:100%;color:var(--no)" onclick="resetSenhasConsultores()">🔑 Redefinir senha de TODOS os consultores para 1234</button>
       </div>
     </div>
 
@@ -298,8 +298,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 
     <div class="sa" id="sa-estrutura" style="display:none">
       <div class="card">
-        <div class="titulo" style="margin-bottom:4px"><i class=i-building></i> Estrutura de gestão</div>
-        <div class="mut" style="font-size:12px;margin-bottom:8px"><b class="dot pr"></b>Dono › <b class="dot pc"></b>Sócio › <b class="dot cz"></b>Gestor de loja › <b class="dot rx"></b>Gestor de equipe › <b class="dot lj"></b>Supervisor › <b class="dot r" style="background:#E23B3B"></b>Consultor › <b class="dot br"></b>Em experiência (branco, abaixo de quem indicou). Cada um enxerga a própria equipe e toda a estrutura abaixo. Para mudar quem responde a quem, toque na pessoa.</div>
+        <div class="titulo" style="margin-bottom:4px">🏢 Estrutura de gestão</div>
+        <div class="mut" style="font-size:12px;margin-bottom:8px"><b class="dot pr"></b>Dono › <b class="dot pc"></b>Sócio › <b class="dot cz"></b>Gestor de loja › <b class="dot rx"></b>Gestor de equipe › <b class="dot lj"></b>Supervisor › <b class="dot r" style="background:#E23B3B"></b>Consultor › <b class="dot br"></b>Consultor branco (pode ficar abaixo do vermelho do mesmo time que indicou). Cada um enxerga a própria equipe e toda a estrutura abaixo. Para mudar quem responde a quem, toque na pessoa.</div>
         <div id="estrutura-arvore"></div>
       </div>
     </div>
@@ -327,13 +327,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 
 <div class="aba" id="aba-mural">
   <div class="sec">
-    <div class="seg"><button class="on">Vendas do mês</button><button onclick="abrirPremiacao()">Premiação</button></div>
-    <div class="row" style="align-items:center"><div class="h" style="margin:0!important"><i class=i-medal></i> Mural</div><div style="display:flex;gap:6px;align-items:center"><button class="btn sec2" id="mural-edit" style="padding:6px 12px;display:none" onclick="abrirEditMural()"><i class=i-pencil></i> Editar</button></div></div>
+    <div class="seg"><button class="on">🏅 Vendas do mês</button><button onclick="abrirPremiacao()">🏆 Premiação</button></div>
+    <div class="row" style="align-items:center"><div class="h" style="margin:0!important">🏅 Mural</div><div style="display:flex;gap:6px;align-items:center"><button class="btn sec2" id="mural-edit" style="padding:6px 12px;display:none" onclick="abrirEditMural()">✏️ Editar</button></div></div>
     <div id="mural-nav" style="display:none;align-items:center;justify-content:center;gap:10px;margin:4px 0 10px"><button class="btn sec2" style="padding:5px 12px" onclick="muralMes(-1)">◀</button><div style="font-weight:600" id="mural-mes-lbl">—</div><button class="btn sec2" style="padding:5px 12px" onclick="muralMes(1)">▶</button></div>
     <div id="mural-recado"></div>
     <div id="mural-metas"></div>
     <div id="mural-podio"></div>
-    <div class="h" style="margin-top:30px">Ranking de consultores</div>
+    <div class="h" style="margin-top:30px">📊 Ranking de consultores</div>
     <div id="mural-ranking"></div>
     <div id="mural-times"></div>
     <div id="mural-chart" style="margin-top:12px"></div>
@@ -342,12 +342,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 
 <div class="aba" id="aba-comissoes">
   <div class="sec">
-    <div class="row"><div class="h"><i class=i-cash></i> Comissões / Repasse</div></div>
+    <div class="row"><div class="h">💸 Comissões / Repasse</div></div>
     <div style="display:flex;gap:6px;margin-bottom:10px">
-      <button class="chip on" id="cm-tab-novo" style="flex:1;text-align:center" onclick="setCmTab('novo')"><i class=i-file-import></i> Importar</button>
-      <button class="chip" id="cm-tab-hist" style="flex:1;text-align:center" onclick="setCmTab('hist')"><i class=i-folders></i> Histórico</button>
-      <button class="chip" id="cm-tab-imp" style="flex:1;text-align:center" onclick="setCmTab('imp')"><i class=i-calculator></i> Impostos</button>
-      <button class="chip" id="cm-tab-receber" style="flex:1;text-align:center" onclick="setCmTab('receber')"><i class=i-mailbox></i> A receber</button>
+      <button class="chip on" id="cm-tab-novo" style="flex:1;text-align:center" onclick="setCmTab('novo')">📥 Importar</button>
+      <button class="chip" id="cm-tab-hist" style="flex:1;text-align:center" onclick="setCmTab('hist')">🗂️ Histórico</button>
+      <button class="chip" id="cm-tab-imp" style="flex:1;text-align:center" onclick="setCmTab('imp')">🧮 Impostos</button>
+      <button class="chip" id="cm-tab-receber" style="flex:1;text-align:center" onclick="setCmTab('receber')">📬 A receber</button>
     </div>
 
     <div id="cm-novo">
@@ -355,7 +355,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
         <div class="mut" style="font-size:12px;margin-bottom:10px">Suba o relatório da <b>Ademicon</b> (.xlsx). O sistema cruza por <b>grupo + cota</b> com a carteira, aplica os impostos cadastrados sobre o valor cheio e mostra o <b>líquido a repassar por consultor</b>.</div>
         <label style="font-size:12px;color:var(--mut)">Competência (mês de referência)</label>
         <input type="month" id="cm-comp" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:10px">
-        <button class="btn" style="width:100%;padding:11px" onclick="document.getElementById('cm-file').click()"><i class=i-file-import></i> Escolher relatório (.xlsx)</button>
+        <button class="btn" style="width:100%;padding:11px" onclick="document.getElementById('cm-file').click()">📥 Escolher relatório (.xlsx)</button>
         <input type="file" id="cm-file" accept=".xlsx" style="display:none" onchange="importarComissao(this)">
       </div>
       <div id="cm-resultado"></div>
@@ -375,7 +375,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <div class="card" style="padding:12px;margin-bottom:10px">
         <div class="mut" style="font-size:12px;margin-bottom:10px">Cadastre os impostos descontados do valor cheio. <b>%</b> incide sobre o valor da comissão; <b>fixo</b> é rateado entre os consultores.</div>
         <div id="cm-imp-lista"></div>
-        <button class="btn sec2" style="width:100%;padding:8px;margin-top:6px" onclick="addImpostoRow()"><i class=i-plus></i> adicionar imposto</button>
+        <button class="btn sec2 ok-s" style="width:100%;padding:8px;margin-top:6px" onclick="addImpostoRow()">➕ adicionar imposto</button>
         <button class="btn" style="width:100%;padding:11px;margin-top:8px" onclick="salvarImpostos()">Salvar impostos</button>
       </div>
     </div>
@@ -384,25 +384,25 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 
 <div class="aba" id="aba-gestcli">
   <div class="sec">
-    <div class="h"><i class=i-users></i> Gestão de cliente</div>
+    <div class="h">👥 Gestão de cliente</div>
     <div style="display:flex;gap:6px;margin:8px 0 10px">
-      <button class="chip on" id="gc-tab-cliente" style="flex:1;text-align:center" onclick="setGcTab('cliente')"><i class=i-users></i> Cliente</button>
-      <button class="chip" id="gc-tab-sorteio" style="flex:1;text-align:center" onclick="setGcTab('sorteio')"><i class=i-target></i> Sorteio</button>
+      <button class="chip on" id="gc-tab-cliente" style="flex:1;text-align:center" onclick="setGcTab('cliente')">👥 Cliente</button>
+      <button class="chip" id="gc-tab-sorteio" style="flex:1;text-align:center" onclick="setGcTab('sorteio')">🎯 Sorteio</button>
     </div>
     <div id="gc-cliente">
-      <button class="btn" style="width:100%;padding:10px;margin-bottom:8px" onclick="novaClienteAntigoG()"><i class=i-plus></i> Cadastro de cliente</button>
+      <button class="btn" style="width:100%;padding:10px;margin-bottom:8px" onclick="novaClienteAntigoG()">➕ Cadastro de cliente</button>
       <label style="font-size:12px;color:var(--mut)">Atribuir a carteira ao consultor</label>
       <select id="gc-cons-import" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:6px"><option value="">— usar a coluna Consultor da planilha —</option></select>
-      <div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sec2" style="flex:1;padding:9px" onclick="baixarModeloClientes()"><i class=i-download></i> Baixar planilha modelo</button><button class="btn sec2" style="flex:1;padding:9px" onclick="document.getElementById('gc-upload').click()"><i class=i-upload></i> Subir planilha</button></div>
-      <button class="btn sec2" style="width:100%;padding:9px;margin-bottom:10px" onclick="Chama.exportarClientes()"><i class=i-file-export></i> Exportar carteira da equipe (Excel)</button>
+      <div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn sec2" style="flex:1;padding:9px" onclick="baixarModeloClientes()">⬇️ Baixar planilha modelo</button><button class="btn sec2" style="flex:1;padding:9px" onclick="document.getElementById('gc-upload').click()">⬆️ Subir planilha</button></div>
+      <button class="btn sec2" style="width:100%;padding:9px;margin-bottom:10px" onclick="Chama.exportarClientes()">📤 Exportar carteira da equipe (Excel)</button>
       <input type="file" id="gc-upload" accept=".xlsx" style="display:none" onchange="subirPlanilhaClientes(this)">
       <div class="card" style="padding:10px 12px;margin-bottom:10px">
         <input type="text" id="vgc-busca" placeholder="Buscar cliente por nome ou CPF" oninput="renderClientesG()" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA">
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
           <button class="chip on" id="gcsit-todos" onclick="setSitFiltro('todos')">Todos</button>
           <button class="chip" id="gcsit-ativo" onclick="setSitFiltro('ativo')"><b class=dot-v></b>Ativas</button>
-          <button class="chip" id="gcsit-contemplado" onclick="setSitFiltro('contemplado')"><i class=i-trophy></i> Contempladas</button>
-          <button class="chip" id="gcsit-cancelado" onclick="setSitFiltro('cancelado')"><i class=i-circle-x></i> Canceladas</button>
+          <button class="chip" id="gcsit-contemplado" onclick="setSitFiltro('contemplado')">🏆 Contempladas</button>
+          <button class="chip" id="gcsit-cancelado" onclick="setSitFiltro('cancelado')">❌ Canceladas</button>
         </div>
         <div class="mut" id="vgc-total" style="margin-top:8px;font-size:12px">—</div>
       </div>
@@ -411,7 +411,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
     <div id="gc-sorteio" style="display:none">
       <div class="card" style="padding:12px;margin-bottom:10px">
         <div class="mut" style="font-size:12px;margin-bottom:10px">Digite os números da <b>Loteria Federal</b> (5 prêmios) e escolha o grupo. O sistema lista <b>as nossas cotas</b> por proximidade do número sorteado, indicando de qual prêmio cada uma está mais perto. <i>Não é contemplação oficial — mostra só a nossa parte do grupo.</i></div>
-        <button class="btn sec2" style="width:100%;margin-bottom:8px;padding:9px" onclick="Chama.extrairLoteria('srt-premio','srt-lot-info',this)"><i class=i-file-import></i> Extrair números da Loteria</button>
+        <button class="btn sec2" style="width:100%;margin-bottom:8px;padding:9px" onclick="Chama.extrairLoteria('srt-premio','srt-lot-info',this)">📥 Extrair números da Loteria</button>
         <div id="srt-lot-info" style="font-size:11px;margin-bottom:8px"></div>
         <div id="srt-premios"></div>
         <label style="font-size:12px;color:var(--mut);display:block;margin-top:6px">Grupos — toque num grupo para calcular</label>
@@ -424,22 +424,22 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 
 <div class="aba" id="aba-simuladores">
   <div class="sec">
-    <div class="h"><i class=i-calculator></i> Simuladores</div>
+    <div class="h">🧮 Simuladores</div>
     <div id="sim-hub" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
       <div class="card" onclick="abrirSimulador('cxf')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
-        <div style="font-size:26px"><i class=i-scale></i></div>
+        <div style="font-size:26px">⚖️</div>
         <div><div style="font-weight:600;font-size:14px">Consórcio × Financiamento</div><div class="mut" style="font-size:12px">Compare parcela e custo total</div></div>
       </div>
       <div class="card" onclick="abrirSimulador('parcela')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
-        <div style="font-size:26px"><i class=i-receipt></i></div>
+        <div style="font-size:26px">🧾</div>
         <div><div style="font-weight:600;font-size:14px">Crédito → Parcela</div><div class="mut" style="font-size:12px">Parcela mensal do consórcio</div></div>
       </div>
       <div class="card" onclick="abrirSimulador('carta')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
-        <div style="font-size:26px"><i class=i-coin></i></div>
+        <div style="font-size:26px">💰</div>
         <div><div style="font-weight:600;font-size:14px">Venda da Carta × CDI</div><div class="mut" style="font-size:12px">Lucro de vender a carta contemplada vs. CDI</div></div>
       </div>
       <div class="card" onclick="abrirSimulador('custo')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
-        <div style="font-size:26px"><i class=i-chart-bar></i></div>
+        <div style="font-size:26px">📊</div>
         <div><div style="font-weight:600;font-size:14px">Custo de Operação, Atualização de INCC e Assunção</div><div class="mut" style="font-size:12px">Custo modo HP, parcela com INCC e assunção</div></div>
       </div>
     </div>
@@ -465,7 +465,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
         <div id="cxf-mercado" style="font-size:12px;margin-bottom:10px;background:var(--card2);border-radius:8px;padding:8px 10px"></div>
         <label style="font-size:12px;color:var(--mut)">Valor do crédito / bem (R$)</label>
         <input type="text" inputmode="decimal" id="cxf-credito" placeholder="Ex.: 100.000" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:10px">
-        <div style="font-weight:600;font-size:13px;margin-bottom:6px"><i class=i-puzzle></i> Consórcio</div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:6px">🧩 Consórcio</div>
         <div style="display:flex;gap:8px">
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Prazo (meses)</label><input type="text" inputmode="numeric" id="cxf-prazoC" placeholder="120" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Taxa adm total (%)</label><input type="text" inputmode="decimal" id="cxf-adm" placeholder="17" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
@@ -476,7 +476,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
           <select id="cxf-indice" onchange="cxfIndiceChange()" style="flex:1;padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:var(--bg)"><option value="incc">INCC (imóvel)</option><option value="ipca">IPCA (veículo)</option></select>
           <input type="text" inputmode="decimal" id="cxf-indicepct" placeholder="% a.a." style="flex:1;padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:var(--bg)">
         </div>
-        <div style="font-weight:600;font-size:13px;margin:12px 0 6px"><i class=i-building-bank></i> Financiamento</div>
+        <div style="font-weight:600;font-size:13px;margin:12px 0 6px">🏦 Financiamento</div>
         <div style="display:flex;gap:8px">
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Entrada (R$)</label><input type="text" inputmode="decimal" id="cxf-entrada" placeholder="0" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Juros ao mês (%)</label><input type="text" inputmode="decimal" id="cxf-juros" placeholder="1,5" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
@@ -495,15 +495,15 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 
 <!-- BALÃO DE NOTIFICAÇÕES (flutuante) -->
 <div id="notif-panel" style="display:none;position:fixed;top:64px;right:12px;width:min(360px,92vw);max-height:70vh;overflow:auto;background:var(--card);border:1px solid var(--bord);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);z-index:9997;padding:12px">
-  <div class="row" style="margin-bottom:8px"><div class="titulo"><i class=i-bell></i> Notificações</div><button onclick="apagarAvisos()" style="border:none;background:transparent;font-size:12px;color:var(--acc);cursor:pointer">Limpar todas</button></div>
+  <div class="row" style="margin-bottom:8px"><div class="titulo">🔔 Notificações</div><button onclick="apagarAvisos()" style="border:none;background:transparent;font-size:12px;color:var(--acc);cursor:pointer">Limpar todas</button></div>
   <div id="push-cta"></div>
   <div id="lista-avisos"></div>
 </div>
 
 <!-- CHAT FLUTUANTE (canto inferior direito) -->
-<button id="chat-fab" onclick="toggleChat()" style="position:fixed;bottom:88px;right:16px;width:56px;height:56px;border-radius:50%;background:var(--acc);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:9996"><i class=i-message></i><span id="badge-chat-g" style="display:none;position:absolute;top:-2px;right:-2px;background:#E24B4A;color:#fff;font-size:10px;font-weight:600;border-radius:99px;min-width:18px;height:18px;line-height:18px;text-align:center">0</span></button>
+<button id="chat-fab" onclick="toggleChat()" style="position:fixed;bottom:88px;right:16px;width:56px;height:56px;border-radius:50%;background:var(--acc);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:9996">💬<span id="badge-chat-g" style="display:none;position:absolute;top:-2px;right:-2px;background:#E24B4A;color:#fff;font-size:10px;font-weight:600;border-radius:99px;min-width:18px;height:18px;line-height:18px;text-align:center">0</span></button>
 <div id="chat-box" style="display:none;position:fixed;bottom:88px;right:16px;width:min(360px,92vw);height:min(480px,72vh);background:var(--card);border:1px solid var(--bord);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.25);z-index:9997;flex-direction:column;overflow:hidden">
-  <div style="background:var(--acc);color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:14px" id="chat-titulo"><i class=i-message></i> Conversas do time</span><button onclick="toggleChat()" style="border:none;background:transparent;color:#fff;font-size:18px;cursor:pointer">✕</button></div>
+  <div style="background:var(--acc);color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:14px" id="chat-titulo">💬 Conversas do time</span><button onclick="toggleChat()" style="border:none;background:transparent;color:#fff;font-size:18px;cursor:pointer">✕</button></div>
   <div style="flex:1;overflow:auto;background:var(--bg)">
     <div id="chat-lista-wrap" style="padding:10px"><div id="chat-lista"></div></div>
     <div id="chat-thread-wrap" style="display:none;flex-direction:column;height:100%">
@@ -511,7 +511,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
       <div id="chat-msgs" style="flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:10px"></div>
       <div style="display:flex;gap:8px;padding:10px;border-top:1px solid var(--bord)">
         <input type="text" id="chat-input" placeholder="Mensagem…" onkeydown="if(event.key==='Enter')enviarMsgGestor()" style="flex:1;padding:10px;border:1px solid var(--bord);border-radius:20px;font-size:14px;background:var(--bg)">
-        <button class="btn" onclick="enviarMsgGestor()" style="border-radius:20px;padding:8px 14px"><i class=i-send></i></button>
+        <button class="btn" onclick="enviarMsgGestor()" style="border-radius:20px;padding:8px 14px">➤</button>
       </div>
     </div>
   </div>
@@ -537,7 +537,7 @@ function voltarSimHub(){document.querySelectorAll('.sim-panel').forEach(p=>p.sty
 let _mercado=null;
 async function carregarMercado(){const box=document.getElementById('cxf-mercado');if(!box)return;if(_mercado){renderMercado();return;}box.textContent='Buscando taxas de mercado (BCB)…';try{_mercado=await(await fetch('/api/mercado')).json();}catch(e){_mercado={};}renderMercado();}
 function fmtPct(v){return v!=null&&isFinite(v)?Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'–';}
-function renderMercado(){const box=document.getElementById('cxf-mercado');if(!box)return;const m=_mercado||{};if(m.selic==null&&m.veiculosAM==null&&m.imovelAM==null){box.innerHTML='<i class=i-chart-bar></i> Taxas de mercado indisponíveis agora — digite o juros manualmente.';return;}box.innerHTML=`<i class=i-chart-bar></i> <b>Mercado hoje</b> (BCB${m.atualizadoEm?' · '+m.atualizadoEm:''}): Selic ${fmtPct(m.selic)}% a.a. · <i class=i-car></i> veículos ~${fmtPct(m.veiculosAM)}% a.m. · <i class=i-home></i> imóvel ~${fmtPct(m.imovelAM)}% a.m.<div style="margin-top:6px">Pré-preencher juros: <button class="btn sec2" style="padding:3px 9px;font-size:11px" onclick="usarJuros('veiculosAM')"><i class=i-car></i> Veículo</button> <button class="btn sec2" style="padding:3px 9px;font-size:11px" onclick="usarJuros('imovelAM')"><i class=i-home></i> Imóvel</button></div><div class="mut" style="font-size:10px;margin-top:4px">Médias de mercado do Banco Central — referência, não oferta de um banco.</div>`;const j=document.getElementById('cxf-juros');if(j&&!j.value&&m.veiculosAM!=null)j.value=String(m.veiculosAM).replace('.',',');}
+function renderMercado(){const box=document.getElementById('cxf-mercado');if(!box)return;const m=_mercado||{};if(m.selic==null&&m.veiculosAM==null&&m.imovelAM==null){box.innerHTML='📊 Taxas de mercado indisponíveis agora — digite o juros manualmente.';return;}box.innerHTML=`📊 <b>Mercado hoje</b> (BCB${m.atualizadoEm?' · '+m.atualizadoEm:''}): Selic ${fmtPct(m.selic)}% a.a. · 🚗 veículos ~${fmtPct(m.veiculosAM)}% a.m. · 🏠 imóvel ~${fmtPct(m.imovelAM)}% a.m.<div style="margin-top:6px">Pré-preencher juros: <button class="btn sec2" style="padding:3px 9px;font-size:11px" onclick="usarJuros('veiculosAM')">🚗 Veículo</button> <button class="btn sec2" style="padding:3px 9px;font-size:11px" onclick="usarJuros('imovelAM')">🏠 Imóvel</button></div><div class="mut" style="font-size:10px;margin-top:4px">Médias de mercado do Banco Central — referência, não oferta de um banco.</div>`;const j=document.getElementById('cxf-juros');if(j&&!j.value&&m.veiculosAM!=null)j.value=String(m.veiculosAM).replace('.',',');}
 function usarJuros(k){const m=_mercado||{};if(m[k]==null)return;document.getElementById('cxf-juros').value=String(m[k]).replace('.',',');}
 function calcParcela(){
   const credito=simNum('pc-credito');const prazo=simNum('pc-prazo');
@@ -599,26 +599,26 @@ function calcCxF(){
   box.innerHTML=`
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
     <div class="card" style="padding:12px;border:1.5px solid var(--acc)">
-      <div style="font-weight:600;margin-bottom:2px"><i class=i-puzzle></i> Consórcio</div>
+      <div style="font-weight:600;margin-bottom:2px">🧩 Consórcio</div>
       <div style="font-size:19px;font-weight:650;color:var(--acc)">${simBRL(parcConsIni)}</div><div class="mut" style="font-size:11px">1ª parcela · ${prazoC}x${reaj?' · reajuste '+(g*100).toFixed(1).replace('.',',')+'%/ano':''}</div>
       ${linha('Total pago',simBRL(totalCons))}
       ${linha('Custo (taxas'+(reaj?'+reajuste':'')+')',simBRL(custoCons)+' · '+pct(custoCons).toFixed(1)+'%','var(--no)')}
     </div>
     <div class="card" style="padding:12px">
-      <div style="font-weight:600;margin-bottom:2px"><i class=i-building-bank></i> Financiamento</div>
+      <div style="font-weight:600;margin-bottom:2px">🏦 Financiamento</div>
       <div style="font-size:19px;font-weight:650">${simBRL(parcFinIni)}</div><div class="mut" style="font-size:11px">1ª parcela · ${prazoF}x · ${tabela.toUpperCase()}${entrada>0?' + entrada':''}</div>
       ${linha('Total pago',simBRL(totalFin))}
       ${linha('Custo (juros)',simBRL(custoFin)+' · '+pct(custoFin).toFixed(1)+'%','var(--no)')}
     </div>
   </div>
   <div class="card" style="padding:12px;margin-top:10px">
-    <div style="font-weight:600;font-size:13px;margin-bottom:2px"><i class=i-trending-up></i> Evolução da parcela</div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:2px">📈 Evolução da parcela</div>
     <div class="mut" style="font-size:10px;margin-bottom:6px">Toque no ano para abrir os meses.</div>
     <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);font-weight:600"><span style="width:70px">Período</span><span style="flex:1;text-align:center">Consórcio</span><span style="flex:1;text-align:right">Financiam.</span></div>
     ${evo}
   </div>
   <div class="card" style="padding:12px;margin-top:10px;border:1.5px solid var(--ok);background:var(--okbg)">
-    <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600">${economia>=0?'<i class=i-circle-check></i> Consórcio economiza':'<i class=i-alert-triangle></i> Financiamento sai mais barato'}</div><div style="font-weight:650;font-size:18px;color:${economia>=0?'var(--ok)':'var(--no)'}">${simBRL(Math.abs(economia))}</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600">${economia>=0?'✅ Consórcio economiza':'⚠️ Financiamento sai mais barato'}</div><div style="font-weight:650;font-size:18px;color:${economia>=0?'var(--ok)':'var(--no)'}">${simBRL(Math.abs(economia))}</div></div>
     <div class="mut" style="font-size:11px;margin-top:4px">${economia>=0?'A favor do consórcio no total pago':'Financiamento custa menos no total'} · ${pct(Math.abs(economia)).toFixed(1)}% do crédito.</div>
   </div>
   <div class="mut" style="font-size:10px;margin-top:8px">Estimativa simplificada, sem IOF/seguro. Consórcio: adm + fundo${reaj?' + reajuste anual pelo índice':' (sem juros)'}. Financiamento pela tabela ${tabela.toUpperCase()}.</div>`;
@@ -636,17 +636,17 @@ function cmFechHTML(f){
   const comp=(f.competencia||'').split('-');const compL=comp.length===2?comp[1]+'/'+comp[0]:f.competencia;
   const impL=(f.impostos||[]).map(im=>`${esc(im.nome)} ${im.tipo==='fixo'?moneyG(im.valor):im.valor+'%'}`).join(' · ')||'sem imposto';
   const g=f.gestor||{cheio:0,imposto:0,liquido:0,qtdCotas:0,cotas:[]};
-  let h=`<div class="card" style="padding:12px;margin-bottom:10px"><div style="font-weight:600;margin-bottom:4px">Competência ${compL}${f.gestorNome?(' · '+esc(f.gestorNome)):''}</div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Cheio total</div><div class="v">${moneyG(f.totalCheio)}</div></div><div class="kpi"><div class="l">Imposto</div><div class="v" style="color:var(--no)">${moneyG(f.totalImposto)}</div></div></div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Minha retenção</div><div class="v" style="color:var(--acc)">${moneyG(g.liquido)}</div></div><div class="kpi"><div class="l">A repassar (total)</div><div class="v" style="color:var(--ok)">${moneyG(f.totalRepasse!=null?f.totalRepasse:f.totalLiquido)}</div></div></div><div class="mut" style="font-size:11px">Impostos: ${impL} · ${f.qtdCotas} cota(s)</div>${f.totalPendente!=null?`<div style="font-size:12px;margin-top:4px"><span style="color:var(--ok)">✓ pago ${moneyG(f.totalPago||0)}</span> · <span style="color:#B8791F">⏳ pendente ${moneyG(f.totalPendente)}</span></div>`:''}${f.id?`<button class="btn sec2" style="width:100%;padding:9px;margin-top:8px" onclick="baixarRelatorioComissao('${f.id}')"><i class=i-download></i> Retirar relatório (Excel)</button>`:''}</div>`;
+  let h=`<div class="card" style="padding:12px;margin-bottom:10px"><div style="font-weight:600;margin-bottom:4px">Competência ${compL}${f.gestorNome?(' · '+esc(f.gestorNome)):''}</div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Cheio total</div><div class="v">${moneyG(f.totalCheio)}</div></div><div class="kpi"><div class="l">Imposto</div><div class="v" style="color:var(--no)">${moneyG(f.totalImposto)}</div></div></div><div class="kpis" style="margin:6px 0"><div class="kpi"><div class="l">Minha retenção</div><div class="v" style="color:var(--acc)">${moneyG(g.liquido)}</div></div><div class="kpi"><div class="l">A repassar (total)</div><div class="v" style="color:var(--ok)">${moneyG(f.totalRepasse!=null?f.totalRepasse:f.totalLiquido)}</div></div></div><div class="mut" style="font-size:11px">Impostos: ${impL} · ${f.qtdCotas} cota(s)</div>${f.totalPendente!=null?`<div style="font-size:12px;margin-top:4px"><span style="color:var(--ok)">✓ pago ${moneyG(f.totalPago||0)}</span> · <span style="color:#B8791F">⏳ pendente ${moneyG(f.totalPendente)}</span></div>`:''}${f.id?`<button class="btn sec2" style="width:100%;padding:9px;margin-top:8px" onclick="baixarRelatorioComissao('${f.id}')">⬇️ Retirar relatório (Excel)</button>`:''}</div>`;
   // card do gestor (LICENCIADO)
-  {const key=(f.id||'x')+'_gestor';const ab=_cmExpand[key];const cotas=(g.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border:1.5px solid var(--acc)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:600;font-size:14px"><i class=i-medal></i> ${esc(g.nome||'Gestor')} <span class="mut" style="font-weight:400">(minha retenção · ${(g.nivel||f.nivelImportador)==='laranja'?'0,2%':'0,5%'})</span></div><div class="mut" style="font-size:11px">${g.qtdCotas} cota(s) · cheio ${moneyG(g.cheio)} · imp ${moneyG(g.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:650;color:var(--acc)">${moneyG(g.liquido)}</div><div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;}
+  {const key=(f.id||'x')+'_gestor';const ab=_cmExpand[key];const cotas=(g.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border:1.5px solid var(--acc)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:600;font-size:14px">🏅 ${esc(g.nome||'Gestor')} <span class="mut" style="font-weight:400">(minha retenção · ${(g.nivel||f.nivelImportador)==='laranja'?'0,2%':'0,5%'})</span></div><div class="mut" style="font-size:11px">${g.qtdCotas} cota(s) · cheio ${moneyG(g.cheio)} · imp ${moneyG(g.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:650;color:var(--acc)">${moneyG(g.liquido)}</div><div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;}
   // repasses a supervisores (laranja 0,2%) e a outros gestores roxos (0,5% integral)
   [['repassesSupervisor','<b class="dot lj"></b>','Supervisor · 0,2%','#B8791F'],['repassesRoxo','<b class="dot rx"></b>','Repasse a gestor · 0,5%','#7C5CE0']].forEach(([campo,ic,tag,cor])=>{(f[campo]||[]).forEach((rp,i)=>{const key=(f.id||'x')+'_'+campo+'_'+i;const ab=_cmExpand[key];const cotas=(rp.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border-left:3px solid ${cor}"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:600;font-size:14px">${ic} ${esc(rp.nome)}${rp.time?` <span class="mut" style="font-weight:400">· ${esc(rp.time)}</span>`:''}</div><div class="mut" style="font-size:11px">${tag} · ${rp.qtdCotas} cota(s) · cheio ${moneyG(rp.cheio)} · imp ${moneyG(rp.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:650;color:${cor}">${moneyG(rp.liquido)}</div>${cmBotaoPago(f,rp)}<div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;});});
   h+=(f.porConsultor||[]).map((pc,i)=>{const key=(f.id||'x')+'_'+i;const ab=_cmExpand[key];const cotas=(pc.cotas||[]).map(c=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0"><span style="flex:1;font-size:12px">Gr ${esc(c.grupo)} · Cota ${esc(c.cota)}${c.cliente?' · '+esc(c.cliente):''}</span><b style="font-size:12px">${moneyG(c.valor)}</b></div>`).join('');return `<div class="card" style="padding:10px 12px;margin-bottom:7px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer" onclick="_cmExpand['${key}']=!_cmExpand['${key}'];rerenderFech()"><div style="min-width:0"><div style="font-weight:600;font-size:14px">${esc(pc.nome)}</div><div class="mut" style="font-size:11px">${pc.qtdCotas} cota(s) · cheio ${moneyG(pc.cheio)} · imp ${moneyG(pc.imposto)}</div></div><div style="text-align:right;flex:none"><div style="font-weight:650;color:var(--ok)">${moneyG(pc.liquido)}</div>${cmBotaoPago(f,pc)}<div class="mut" style="font-size:10px">${ab?'▲ ocultar':'▼ cotas'}</div></div></div><div style="display:${ab?'block':'none'}">${cotas}</div></div>`;}).join('')||'<div class="mut" style="padding:8px">Nenhuma comissão casou com a carteira.</div>';
-  if((f.naoBateram||[]).length){const nb=f.naoBateram.map(n=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0;align-items:center;gap:6px"><span style="flex:1;font-size:12px">Gr ${esc(n.grupo)} · Cota ${esc(n.cota)}${n.cliente?' · '+esc(n.cliente):''} <span class="mut">(${n.tipo==='override'?'override':'autorizado'})</span></span><b style="font-size:12px;color:var(--no)">${moneyG(n.valor)}</b>${f.id&&f.cotasBase?`<button class="btn sec2 sm" style="padding:3px 8px;font-size:11px" onclick="cmVincularPop('${f.id}','${encodeURIComponent(n.grupo)}','${encodeURIComponent(n.cota)}')"><i class=i-link></i> Vincular</button>`:''}</div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border:1px solid var(--no)"><div style="font-weight:600;color:var(--no)"><i class=i-alert-triangle></i> Não bateram com a carteira (${f.naoBateram.length}) · ${moneyG(f.naoBateuTotal)}</div><div class="mut" style="font-size:11px;margin-bottom:4px">Cotas do relatório que não achei na carteira — confira grupo/cota.</div>${nb}</div>`;}
+  if((f.naoBateram||[]).length){const nb=f.naoBateram.map(n=>`<div class="lin" style="border-top:1px solid var(--bord);padding:6px 0;align-items:center;gap:6px"><span style="flex:1;font-size:12px">Gr ${esc(n.grupo)} · Cota ${esc(n.cota)}${n.cliente?' · '+esc(n.cliente):''} <span class="mut">(${n.tipo==='override'?'override':'autorizado'})</span></span><b style="font-size:12px;color:var(--no)">${moneyG(n.valor)}</b>${f.id&&f.cotasBase?`<button class="btn sec2 sm" style="padding:3px 8px;font-size:11px" onclick="cmVincularPop('${f.id}','${encodeURIComponent(n.grupo)}','${encodeURIComponent(n.cota)}')">🔗 Vincular</button>`:''}</div>`).join('');h+=`<div class="card" style="padding:10px 12px;margin-bottom:7px;border:1px solid var(--no)"><div style="font-weight:600;color:var(--no)">⚠️ Não bateram com a carteira (${f.naoBateram.length}) · ${moneyG(f.naoBateuTotal)}</div><div class="mut" style="font-size:11px;margin-bottom:4px">Cotas do relatório que não achei na carteira — confira grupo/cota.</div>${nb}</div>`;}
   return h;
 }
 // ---- pago / vincular / a receber (v155) ----
-function cmBotaoPago(f,p){if(!f.id||p.pago==null&&f.totalPendente==null)return '';return p.pago?`<button class="btn sec2 sm" style="padding:2px 7px;font-size:10px;color:var(--ok);margin:3px 0" title="Pago em ${p.pagoEm?new Date(p.pagoEm).toLocaleDateString('pt-BR'):''} — toque para voltar a pendente" onclick="event.stopPropagation();cmPago('${f.id}','${encodeURIComponent(p.email)}',false)">✓ pago</button>`:`<button class="btn sm" style="padding:2px 7px;font-size:10px;margin:3px 0" onclick="event.stopPropagation();cmPago('${f.id}','${encodeURIComponent(p.email)}',true)">marcar pago</button>`;}
+function cmBotaoPago(f,p){if(!f.id||p.pago==null&&f.totalPendente==null)return '';return p.pago?`<button class="btn sec2 sm ok-s" style="padding:2px 7px;font-size:10px;color:var(--ok);margin:3px 0" title="Pago em ${p.pagoEm?new Date(p.pagoEm).toLocaleDateString('pt-BR'):''} — toque para voltar a pendente" onclick="event.stopPropagation();cmPago('${f.id}','${encodeURIComponent(p.email)}',false)">✓ pago</button>`:`<button class="btn sm" style="padding:2px 7px;font-size:10px;margin:3px 0" onclick="event.stopPropagation();cmPago('${f.id}','${encodeURIComponent(p.email)}',true)">marcar pago</button>`;}
 async function cmPago(id,email,pago){const r=await fetch('/api/gestor/comissoes/pago',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,email:decodeURIComponent(email),pago})});const j=await r.json();if(!j.ok){toast(j.erro||'Erro');return;}toast(pago?'Marcado como pago ✓ (a pessoa foi avisada)':'Voltou para pendente');_cmFechAtual=j.fechamento;rerenderFech();carregarHistComissao();}
 async function cmVincularPop(id,grupo,cota){grupo=decodeURIComponent(grupo);cota=decodeURIComponent(cota);let us=[];try{us=((await(await fetch('/api/gestor/usuarios')).json()).usuarios||[]).filter(u=>u.ativo!==false);}catch(e){}
   us.sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt'));window._cmVinc={id,grupo,cota};
@@ -655,12 +655,12 @@ async function cmVincular(){const sel=document.getElementById('cmv-sel');if(!sel
 async function carregarReceber(){const el=document.getElementById('cm-receber-lista');if(!el)return;try{const j=await(await fetch('/api/comissoes/minhas')).json();const it=j.itens||[];el.innerHTML=`<div class="kpis" style="margin:0 0 8px"><div class="kpi"><div class="l">A receber</div><div class="v" style="color:var(--acc)">${moneyG(j.totalPendente||0)}</div></div><div class="kpi"><div class="l">Recebido</div><div class="v" style="color:var(--ok)">${moneyG(j.totalRecebido||0)}</div></div></div>`+(it.length?it.map(x=>{const c=String(x.competencia||'').split('-');return `<div class="card" style="padding:10px 12px;margin-bottom:7px"><div style="display:flex;justify-content:space-between;gap:8px"><div><div style="font-weight:600">${c.length===2?c[1]+'/'+c[0]:esc(x.competencia)} · ${esc(x.deNome||'')}</div><div class="mut" style="font-size:11px">${esc(x.tipo)} · ${x.qtdCotas} cota(s) · cheio ${moneyG(x.cheio)}</div></div><div style="text-align:right"><div style="font-weight:650">${moneyG(x.liquido)}</div><div style="font-size:10px;font-weight:600;color:${x.pago?'var(--ok)':'#B8791F'}">${x.pago?'✓ PAGO':'⏳ PENDENTE'}</div></div></div></div>`;}).join(''):'<div class="mut" style="padding:10px">Nenhum repasse de outros gestores para você.</div>');}catch(e){el.innerHTML='<div class="mut" style="padding:10px">Erro ao carregar</div>';}}
 // ---- auditoria (v155) ----
 let _audit=[];
-async function carregarAuditoria(){const el=document.getElementById('audit-lista');try{const j=await(await fetch('/api/gestor/auditoria?limite=500')).json();_audit=j.registros||[];document.getElementById('audit-backup').innerHTML=j.master?'<div class="card" style="padding:10px 12px;margin-bottom:8px"><div style="font-weight:600;margin-bottom:4px"><i class=i-download></i> Backup completo</div><div class="mut" style="font-size:11px;margin-bottom:8px">Baixa tudo (vendas, carteira, clientes, comissões, agenda, acessos) num arquivo .json.gz. O servidor também guarda uma cópia por dia dos últimos 14 dias.</div><a class="btn full" style="display:block;text-align:center;text-decoration:none;padding:9px" href="/api/gestor/backup" download><i class=i-download></i> Baixar backup agora</a></div>':'';renderAuditoria();}catch(e){el.innerHTML='<div class="mut" style="padding:10px">Erro ao carregar</div>';}}
+async function carregarAuditoria(){const el=document.getElementById('audit-lista');try{const j=await(await fetch('/api/gestor/auditoria?limite=500')).json();_audit=j.registros||[];document.getElementById('audit-backup').innerHTML=j.master?'<div class="card" style="padding:10px 12px;margin-bottom:8px"><div style="font-weight:600;margin-bottom:4px">⬇️ Backup completo</div><div class="mut" style="font-size:11px;margin-bottom:8px">Baixa tudo (vendas, carteira, clientes, comissões, agenda, acessos) num arquivo .json.gz. O servidor também guarda uma cópia por dia dos últimos 14 dias.</div><a class="btn full" style="display:block;text-align:center;text-decoration:none;padding:9px" href="/api/gestor/backup" download>⬇️ Baixar backup agora</a></div>':'';renderAuditoria();}catch(e){el.innerHTML='<div class="mut" style="padding:10px">Erro ao carregar</div>';}}
 function renderAuditoria(){const el=document.getElementById('audit-lista');if(!el)return;const q=(document.getElementById('audit-busca').value||'').toLowerCase();const l=_audit.filter(a=>!q||[a.porNome,a.por,a.acao,a.alvo,a.alvoNome,a.detalhe].join(' ').toLowerCase().includes(q));el.innerHTML=l.length?l.slice(0,300).map(a=>`<div class="card" style="padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;gap:8px"><div style="font-size:13px"><b>${esc(a.porNome||a.por||'sistema')}</b> ${esc(a.acao)}${a.alvo?` <span class="mut">→ ${esc(a.alvoNome||a.alvo)}</span>`:''}</div><div class="mut" style="font-size:10px;flex:none">${new Date(a.quando).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>${a.detalhe?`<div class="mut" style="font-size:11px;margin-top:3px">${esc(a.detalhe)}</div>`:''}</div>`).join(''):'<div class="mut" style="padding:10px">Nenhum registro.</div>';}
 function baixarRelatorioComissao(id){const a=document.createElement('a');a.href='/api/gestor/comissoes/exportar?id='+encodeURIComponent(id);a.download='';document.body.appendChild(a);a.click();a.remove();toast('Gerando relatório…');}
 let _cmFechAtual=null,_cmFechContainer='cm-resultado';
 function rerenderFech(){if(_cmFechAtual){const el=document.getElementById(_cmFechContainer);if(el)el.innerHTML=cmFechHTML(_cmFechAtual);}}
-async function carregarHistComissao(){const el=document.getElementById('cm-hist-lista');if(!el)return;try{const j=await(await fetch('/api/gestor/comissoes/fechamentos')).json();const fs=j.fechamentos||[];el.innerHTML=fs.length?fs.map(f=>{const c=(f.competencia||'').split('-');const cl=c.length===2?c[1]+'/'+c[0]:f.competencia;const d=new Date(f.criadoEm);return `<div class="card" style="padding:10px 12px;margin-bottom:7px;cursor:pointer" onclick="abrirFechamento('${f.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-weight:600">${cl}${j.master&&f.gestorNome?(' · '+esc(f.gestorNome)):''}</div><div class="mut" style="font-size:11px">${f.qtdCotas} cota(s)${f.naoBateu?(' · <i class=i-alert-triangle></i> '+f.naoBateu+' s/ match'):''} · ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</div></div><div style="text-align:right;flex:none"><div style="font-weight:650;color:var(--ok)">${moneyG(f.totalRepasse!=null?f.totalRepasse:f.totalLiquido)}<span class="mut" style="font-size:9px;font-weight:600"> repassar</span></div><div class="mut" style="font-size:10px;color:var(--acc)">seu ${moneyG(f.seuLiquido||0)}</div><button class="btn sec2 sm" style="color:var(--no);margin-top:3px" onclick="event.stopPropagation();excluirFechamento('${f.id}')"><i class=i-trash></i></button></div></div></div>`;}).join(''):'<div class="mut" style="padding:10px">Nenhuma importação salva ainda.</div>';}catch(e){el.innerHTML='<div class="mut" style="padding:10px">Erro ao carregar histórico</div>';}}
+async function carregarHistComissao(){const el=document.getElementById('cm-hist-lista');if(!el)return;try{const j=await(await fetch('/api/gestor/comissoes/fechamentos')).json();const fs=j.fechamentos||[];el.innerHTML=fs.length?fs.map(f=>{const c=(f.competencia||'').split('-');const cl=c.length===2?c[1]+'/'+c[0]:f.competencia;const d=new Date(f.criadoEm);return `<div class="card" style="padding:10px 12px;margin-bottom:7px;cursor:pointer" onclick="abrirFechamento('${f.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-weight:600">${cl}${j.master&&f.gestorNome?(' · '+esc(f.gestorNome)):''}</div><div class="mut" style="font-size:11px">${f.qtdCotas} cota(s)${f.naoBateu?(' · ⚠️ '+f.naoBateu+' s/ match'):''} · ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</div></div><div style="text-align:right;flex:none"><div style="font-weight:650;color:var(--ok)">${moneyG(f.totalRepasse!=null?f.totalRepasse:f.totalLiquido)}<span class="mut" style="font-size:9px;font-weight:600"> repassar</span></div><div class="mut" style="font-size:10px;color:var(--acc)">seu ${moneyG(f.seuLiquido||0)}</div><button class="btn sec2 sm" style="color:var(--no);margin-top:3px" onclick="event.stopPropagation();excluirFechamento('${f.id}')">🗑️</button></div></div></div>`;}).join(''):'<div class="mut" style="padding:10px">Nenhuma importação salva ainda.</div>';}catch(e){el.innerHTML='<div class="mut" style="padding:10px">Erro ao carregar histórico</div>';}}
 async function abrirFechamento(id){const j=await(await fetch('/api/gestor/comissoes/fechamento?id='+encodeURIComponent(id))).json();if(j.erro){toast(j.erro);return;}_cmFechAtual=j;document.getElementById('cm-hist-detalhe').innerHTML=cmFechHTML(j);document.getElementById('cm-hist-detalhe').scrollIntoView({behavior:'smooth',block:'start'});}
 async function excluirFechamento(id){if(!confirm('Excluir este fechamento do histórico?'))return;const r=await fetch('/api/gestor/comissoes/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await r.json();if(j.ok){toast('Excluído ✓');document.getElementById('cm-hist-detalhe').innerHTML='';carregarHistComissao();}else toast(j.erro||'Erro');}
 function fmtData(iso){const d=new Date(iso);const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];return `${dias[d.getDay()]} ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
@@ -680,8 +680,8 @@ function setFotoEd(input){const f=input.files[0];if(!f)return;const rd=new FileR
 function removerFotoEd(){document.getElementById('ed-foto').value='';document.getElementById('ed-foto-prev').style.backgroundImage='';}
 function trocarMinhaFoto(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=async()=>{const max=400,s=Math.min(1,max/Math.max(img.width,img.height));const w=Math.round(img.width*s),h=Math.round(img.height*s);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);const d=c.toDataURL('image/jpeg',0.75);const r=await fetch('/api/minha-foto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({foto:d})});const j=await r.json();if(j.ok){toast('Foto atualizada ✓');carregar();}else toast(j.erro||'Erro');};img.src=rd.result;};rd.readAsDataURL(f);}
 // v172: ESTRUTURA DE GESTÃO — níveis (do topo para a base) e a cor de cada um
-// v178: + BRANCO (consultor em experiência) — fica abaixo do vermelho que indicou, só para saber de onde veio
-const NIVEIS_G=[{id:'dono',n:'Dono de loja',c:'#111318',ic:'⚫',cn:'preto'},{id:'socio',n:'Sócio de loja',c:'gradpc',ic:'⚫⚪',cn:'preto e cinza'},{id:'gestorLoja',n:'Gestor de loja',c:'#9CA3AF',ic:'⚪',cn:'cinza'},{id:'gestorEquipe',n:'Gestor de equipe',c:'#A78BFA',ic:'🟣',cn:'roxo'},{id:'supervisor',n:'Supervisor de equipe',c:'#FB923C',ic:'🟠',cn:'laranja'},{id:'consultor',n:'Consultor',c:'#E23B3B',ic:'🔴',cn:'vermelho'},{id:'branco',n:'Consultor em experiência',c:'#FFFFFF',ic:'⚪',cn:'branco'}];
+// v178/v179: + BRANCO — é consultor (mesmo nome), só muda a cor; pode ficar abaixo de um vermelho do mesmo time que indicou
+const NIVEIS_G=[{id:'dono',n:'Dono de loja',c:'#111318',ic:'⚫',cn:'preto'},{id:'socio',n:'Sócio de loja',c:'gradpc',ic:'⚫⚪',cn:'preto e cinza'},{id:'gestorLoja',n:'Gestor de loja',c:'#9CA3AF',ic:'⚪',cn:'cinza'},{id:'gestorEquipe',n:'Gestor de equipe',c:'#A78BFA',ic:'🟣',cn:'roxo'},{id:'supervisor',n:'Supervisor de equipe',c:'#FB923C',ic:'🟠',cn:'laranja'},{id:'consultor',n:'Consultor',c:'#E23B3B',ic:'🔴',cn:'vermelho'},{id:'branco',n:'Consultor',c:'#FFFFFF',ic:'⚪',cn:'branco'}];
 const RANK_G=id=>['branco','consultor','supervisor','gestorEquipe','gestorLoja','socio','dono'].indexOf(id);
 const ehCons=id=>id==='consultor'||id==='branco'; // níveis com acesso de consultor
 const nivelInfo=id=>NIVEIS_G.find(x=>x.id===id)||NIVEIS_G.find(x=>x.id==='consultor');
@@ -703,12 +703,12 @@ async function carregar(){
   if(painel.foto){gav.textContent='';gav.style.cssText='width:38px;height:38px;border-radius:50%;background-image:url('+painel.foto+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
   else{gav.textContent=(painel.nome||painel.time||'G').replace(/^Gestor\s+/i,'').trim().slice(0,2).toUpperCase();aplicarCorAvatar(gav,painel.cor);}
   if(painel.tarefas){document.getElementById('t-atr').textContent=painel.tarefas.atrasadas;document.getElementById('t-pen').textContent=painel.tarefas.pendentes;document.getElementById('t-fin').textContent=painel.tarefas.finalizadas;}
-  document.getElementById('execucao').innerHTML = painel.execucao.slice().sort((a,b)=>b.pct-a.pct||a.nome.localeCompare(b.nome)).map(e=>`<div class="exe" style="cursor:pointer;margin-bottom:10px" onclick="abrirPerfil('${e.email}')"><span class="n" style="width:auto;min-width:0;flex:0 0 38%;display:flex;align-items:center;gap:8px;overflow:hidden">${avatarHTML(e.nome,e.cor,28,e.foto)}<span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.nome)}</span></span>${Chama.ui.barra(e.pct,{alt:10})}<span class="pct" style="font-weight:600;color:${corPct(e.pct)}">${e.pct}%</span></div>`).join('');
-  if(document.getElementById('atrasadas'))document.getElementById('atrasadas').innerHTML = painel.atividadesAtrasadas.map(a=>`<div class="card row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(a.consultor,'',30,a.foto)}<div><div class="titulo" style="font-weight:500;color:var(--acc);cursor:pointer" onclick="abrirPerfil('${a.consultorEmail||''}')">${esc(a.consultor)}</div><div class="mut">${esc(a.titulo)} · venceu ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma</div>';
+  document.getElementById('execucao').innerHTML = painel.execucao.slice().sort((a,b)=>b.pct-a.pct||a.nome.localeCompare(b.nome)).map((e,iE)=>`<div class="exe" style="cursor:pointer;margin-bottom:10px" onclick="abrirPerfil('${e.email}')"><span class="n" style="width:auto;min-width:0;flex:0 0 42%;display:flex;align-items:center;gap:8px;overflow:hidden">${e.pct>0?medalhaHTML(iE+1,24):'<span style="width:24px;flex:none"></span>'}${avatarHTML(e.nome,e.cor,28,e.foto)}<span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.nome)}</span></span>${Chama.ui.barra(e.pct,{alt:10})}<span class="pct" style="font-weight:600;color:${corPct(e.pct)}">${e.pct}%</span></div>`).join('');
+  if(document.getElementById('atrasadas'))document.getElementById('atrasadas').innerHTML = painel.atividadesAtrasadas.map(a=>`<div class="card row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(a.consultor,'',30,a.foto)}<div><div class="titulo" style="font-weight:500;color:var(--acc);cursor:pointer" onclick="abrirPerfil('${a.consultorEmail||''}')">${esc(a.consultor)}</div><div class="mut">${esc(a.titulo)} · venceu ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div></div><button class="btn sec2 ok-s" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma</div>';
   // Minhas tarefas (enviadas por outros gestores)
   const mt=(painel.minhasTarefas||[]).filter(t=>t.status!=='Feito');
   document.getElementById('h-minhas-tarefas').style.display=mt.length?'block':'none';
-  document.getElementById('minhas-tarefas').innerHTML=mt.map(a=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${esc(a.titulo)}</div><div class="mut">${a.tipo}${a.de?' · de '+esc(a.de):''} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('');
+  document.getElementById('minhas-tarefas').innerHTML=mt.map(a=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${esc(a.titulo)}</div><div class="mut">${a.tipo}${a.de?' · de '+esc(a.de):''} · até ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div><button class="btn sec2 ok-s" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('');
   carregarDestinatarios();
   carregarCadastros();
   document.getElementById('decididas').innerHTML=(painel.decididas||[]).map(s=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${esc(s.consultor)} · ${fmtData(s.inicio)}</div><div class="mut">${esc(s.resposta||'')}</div></div><span class="badge ${s.status==='Aprovada'?'b-ok':s.status==='Recusada'?'b-no':'b-warn'}">${s.status}</span></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma ainda</div>';
@@ -727,11 +727,11 @@ function cardPendente(s){return `
           ${avatarHTML(s.consultor,s.cor,38,s.foto)}
           <div style="min-width:0"><div>${balaoNome(s.consultor,s.cor)}${s.deGestor?' <span class="badge b-blue">gestor</span>':''}</div><div class="mut" style="margin-top:3px">${esc(s.assunto||'Reunião')} · ${fmtData(s.inicio)} · ${s.duracao} min${s.local?' · '+esc(s.local):''}</div></div>
         </div>
-        <span class="badge ${s.conflito?'b-no':'b-ok'}" style="flex:none">${s.conflito?'<i class=i-alert-triangle></i> conflito':'livre ✓'}</span>
+        <span class="badge ${s.conflito?'b-no':'b-ok'}" style="flex:none">${s.conflito?'⚠️ conflito':'livre ✓'}</span>
       </div>
       <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
         <button class="btn no" style="padding:7px 11px" onclick="decidir('${s.id}','Recusada')">Recusar</button>
-        <button class="btn sec2" style="padding:7px 11px" onclick="decidir('${s.id}','Reagendar')">Reagendar</button>
+        <button class="btn warn" style="padding:7px 11px" onclick="decidir('${s.id}','Reagendar')">Reagendar</button>
         <button class="btn sec2" style="padding:7px 11px" onclick="transferir('${s.id}')">Transferir</button>
         <button class="btn" style="padding:7px 11px" onclick="decidir('${s.id}','Aprovada')">Aprovar</button>
       </div>
@@ -771,7 +771,7 @@ function renderTarefas(){
         <div style="display:flex;gap:6px"><span class="badge b-warn">${ab.length} abertas</span><span class="badge b-ok">${ft.length} feitas</span></div>
       </div>
       ${ab.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--bord)"><span style="font-size:13px">${t.atrasada?'<b class="dot r"></b>':'<b class="dot a"></b>'} ${esc(t.titulo)}</span><span style="display:flex;gap:6px;align-items:center;white-space:nowrap;margin-left:8px"><span class="mut">${t.status}${t.prazo?' · '+t.prazo.slice(8,10)+'/'+t.prazo.slice(5,7):''}</span>${t.id?`<button class="btn sec2" style="padding:4px 8px;font-size:11px;color:var(--no)" onclick="cancelarAtvGestor('${t.id}')" title="Cancelar">✕</button>`:''}</span></div>`).join('')}
-      ${ft.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--bord);opacity:.55"><span style="font-size:13px"><i class=i-circle-check></i> <s>${esc(t.titulo)}</s></span><span class="mut">${t.tipo}</span></div>`).join('')}
+      ${ft.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid var(--bord);opacity:.55"><span style="font-size:13px">✅ <s>${esc(t.titulo)}</s></span><span class="mut">${t.tipo}</span></div>`).join('')}
       ${!ab.length&&!ft.length?'<div class="mut">Sem tarefas nesse filtro</div>':''}
     </div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nada encontrado</div>';
@@ -810,7 +810,7 @@ async function carregarClientesG(){
 }
 let _gcFiltroSit='todos';
 function sitDe(v){return v.situacao||'ativo';}
-function sitBadge(s){if(s==='cancelado')return '<span class="badge b-no" style="font-size:10px"><i class=i-circle-x></i> Cancelada</span>';if(s==='contemplado')return '<span class="badge" style="font-size:10px;background:#FBE7C0;color:#8A6D1F"><i class=i-trophy></i> Contemplada</span>';return '<span class="badge b-ok" style="font-size:10px"><b class=dot-v></b>Ativa</span>';}
+function sitBadge(s){if(s==='cancelado')return '<span class="badge b-no" style="font-size:10px">❌ Cancelada</span>';if(s==='contemplado')return '<span class="badge" style="font-size:10px;background:#FBE7C0;color:#8A6D1F">🏆 Contemplada</span>';return '<span class="badge b-ok" style="font-size:10px"><b class=dot-v></b>Ativa</span>';}
 function setSitFiltro(s){_gcFiltroSit=s;['todos','ativo','contemplado','cancelado'].forEach(x=>document.getElementById('gcsit-'+x).classList.toggle('on',x===s));renderClientesGList();}
 function renderClientesG(){renderClientesGList();}
 function renderClientesGList(){
@@ -838,8 +838,8 @@ function toggleGcCons(email){_gcExpand[email]=!_gcExpand[email];renderClientesGL
 function abrirClienteGC(ci,kj){
   const p=(window._gcCons||[])[ci];if(!p)return;const c=(p.clientes||[])[kj];if(!c)return;
   window._gcCliAtual={ci,kj};
-  const linhas=(c.vendas||[]).map(v=>{const s=sitDe(v);const btn=(k,lbl)=>`<button class="btn sec2 sm" style="padding:4px 8px;font-size:11px;${s===k?'border-color:var(--acc);font-weight:600':''}" onclick="setSituacaoCota('${v.id}','${k}')">${lbl}</button>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div style="cursor:pointer" onclick="editarCotaCliente('${v.id}')"><div style="font-weight:600;color:var(--ok)">${moneyG(v.valor)} <span style="font-weight:400"><i class=i-pencil></i></span></div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''}${v.tamanhoGrupo?(' · '+v.tamanhoGrupo+'p'):''} · ${(v.data||'').split('-').reverse().join('/')}</div></div><div style="flex:none">${sitBadge(s)}</div></div><div style="display:flex;gap:5px;margin-top:7px">${btn('ativo','<b class=dot-v></b>Ativa')}${btn('contemplado','<i class=i-trophy></i> Contemplada')}${btn('cancelado','<i class=i-circle-x></i> Cancelada')}</div></div>`;}).join('');
-  abrirPop(''+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:4px">Consultor: ${esc(p.nome)}</div><div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s)</div>${Chama.fichaHTML()}<div class="mut" style="font-size:11px;margin-bottom:8px">Marque a situação de cada cota. Toque no valor (<i class=i-pencil></i>) para editar a cota.</div>${linhas}`);
+  const linhas=(c.vendas||[]).map(v=>{const s=sitDe(v);const btn=(k,lbl)=>`<button class="btn sec2 sm" style="padding:4px 8px;font-size:11px;${s===k?'border-color:var(--acc);font-weight:600':''}" onclick="setSituacaoCota('${v.id}','${k}')">${lbl}</button>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div style="cursor:pointer" onclick="editarCotaCliente('${v.id}')"><div style="font-weight:600;color:var(--ok)">${moneyG(v.valor)} <span style="font-weight:400">✏️</span></div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''}${v.tamanhoGrupo?(' · '+v.tamanhoGrupo+'p'):''} · ${(v.data||'').split('-').reverse().join('/')}</div></div><div style="flex:none">${sitBadge(s)}</div></div><div style="display:flex;gap:5px;margin-top:7px">${btn('ativo','<b class=dot-v></b>Ativa')}${btn('contemplado','🏆 Contemplada')}${btn('cancelado','❌ Cancelada')}</div></div>`;}).join('');
+  abrirPop(''+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:4px">Consultor: ${esc(p.nome)}</div><div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${c.qtd} cota(s)</div>${Chama.fichaHTML()}<div class="mut" style="font-size:11px;margin-bottom:8px">Marque a situação de cada cota. Toque no valor (✏️) para editar a cota.</div>${linhas}`);
   Chama.carregarFicha(c.cpf,c.nome);
 }
 async function setSituacaoCota(id,sit){const r=await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,situacao:sit})});const j=await r.json();if(j.ok){toast('Situação atualizada ✓');await carregarClientesG();const a=window._gcCliAtual;if(a)abrirClienteGC(a.ci,a.kj);}else toast(j.erro||'Erro');}
@@ -860,7 +860,7 @@ function abrirExportVendasG(){
       <div style="flex:1"><label style="font-size:12px;color:var(--mut)">Até</label><input type="date" id="exp-ate" value="${ultimo}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
     </div>
     <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:12px"><input type="checkbox" id="exp-tudo" style="width:18px;height:18px"> Ignorar datas — baixar todas as vendas</label>
-    <button class="btn" style="width:100%;padding:11px" onclick="baixarVendasG()"><i class=i-download></i> Baixar Excel</button>`);
+    <button class="btn" style="width:100%;padding:11px" onclick="baixarVendasG()">⬇️ Baixar Excel</button>`);
 }
 function baixarVendasG(){
   const tudo=document.getElementById('exp-tudo').checked;
@@ -892,7 +892,7 @@ async function calcularSorteio(grupo,tamanho){
   const chips=(j.sorteados||[]).map(s=>`<span class="badge b-blue" style="font-size:11px">${s.premio}º prêmio → nº <b>${s.numero}</b></span>`).join(' ');
   let html=`<div class="card" style="padding:12px;margin-bottom:10px"><div style="font-weight:600;margin-bottom:4px">Grupo ${esc(j.grupo)} · ${j.tamanho} participantes</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">${chips}</div><div class="mut" style="font-size:11px">Nossas cotas, da mais próxima para a mais distante. O número entre parênteses são as "casas" de distância.</div></div>`;
   if(!(j.itens||[]).length){html+='<div class="mut" style="padding:10px">Nenhuma cota nossa nesse grupo.</div>';}
-  else{html+=(j.itens).map((it,i)=>{const top=i===0;return `<div class="card" style="padding:10px 12px;margin-bottom:7px;${top?'border:1.5px solid var(--acc)':''}"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div style="min-width:0"><div style="font-weight:600;font-size:14px">${i+1}º ${top?'<i class=i-target></i> ':''}${esc(it.cliente)}</div><div class="mut" style="font-size:12px;margin-top:2px">Grupo ${esc(it.grupo)} · Cota <b>${it.cota}</b> · ${esc(it.consultor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${it.tipo?esc(it.tipo)+' · ':''}${moneyG(it.valor)}</div></div><div style="text-align:right;flex:none"><div class="badge b-blue" style="font-size:11px">${it.premio}º prêmio</div><div style="font-weight:650;font-size:15px;margin-top:3px">${it.casa} <span class="mut" style="font-size:10px;font-weight:600">casas</span></div><div class="mut" style="font-size:10px">sorteado ${it.sorteado}</div></div></div></div>`;}).join('');}
+  else{html+=(j.itens).map((it,i)=>{const top=i===0;return `<div class="card" style="padding:10px 12px;margin-bottom:7px;${top?'border:1.5px solid var(--acc)':''}"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div style="min-width:0"><div style="font-weight:600;font-size:14px">${i+1}º ${top?'🎯 ':''}${esc(it.cliente)}</div><div class="mut" style="font-size:12px;margin-top:2px">Grupo ${esc(it.grupo)} · Cota <b>${it.cota}</b> · ${esc(it.consultor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${it.tipo?esc(it.tipo)+' · ':''}${moneyG(it.valor)}</div></div><div style="text-align:right;flex:none"><div class="badge b-blue" style="font-size:11px">${it.premio}º prêmio</div><div style="font-weight:650;font-size:15px;margin-top:3px">${it.casa} <span class="mut" style="font-size:10px;font-weight:600">casas</span></div><div class="mut" style="font-size:10px">sorteado ${it.sorteado}</div></div></div></div>`;}).join('');}
   res.innerHTML=html;
 }
 async function carregarVendasG(){
@@ -904,7 +904,7 @@ async function carregarVendasG(){
   window._vgDash=dash.consultores||[];
   renderVgTimes();renderSelConsultor();
   const max=Math.max(1,...window._vgDash.map(c=>Math.max(c.total,c.meta||0)));
-  document.getElementById('vg-bars').innerHTML=window._vgDash.map(c=>`<div onclick="selVgConsultor('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')" style="margin-bottom:10px;cursor:pointer;padding:6px;border-radius:10px;border:1px solid ${vgConsultor===c.email?'var(--acc)':'transparent'};${vgFiltroAtivo()&&!vgConsVisivel(c)?'opacity:.45':''}"><div class="row" style="font-size:12px"><span style="display:flex;align-items:center;gap:6px">${avatarHTML(c.nome,c.cor,22,c.foto)}${c.bateu?'<i class=i-circle-check></i> ':''}${balaoNome(c.nome,c.cor)}${c.papel==='gestor'?' <span class="mut" style="font-weight:400">(gestor)</span>':''}</span><span style="font-weight:600">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#3E8E6E':'var(--acc)'}"></div></div></div>${c.negociando?`<div class="mut" style="font-size:11px;margin-top:3px"><i class=i-arrows-exchange></i> em negociação: <b style="color:var(--warn)">${moneyG(c.negociando)}</b></div>`:''}</div>`).join('')||'<div class="mut">Nenhum vendedor</div>';
+  document.getElementById('vg-bars').innerHTML=window._vgDash.map((c,iC)=>`<div onclick="selVgConsultor('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')" style="margin-bottom:10px;cursor:pointer;padding:6px;border-radius:10px;border:1px solid ${vgConsultor===c.email?'var(--acc)':'transparent'};${vgFiltroAtivo()&&!vgConsVisivel(c)?'opacity:.45':''}"><div class="row" style="font-size:12px"><span style="display:flex;align-items:center;gap:6px">${c.total>0?medalhaHTML(iC+1,22):''}${avatarHTML(c.nome,c.cor,22,c.foto)}${c.bateu?'✅ ':''}${balaoNome(c.nome,c.cor)}${c.papel==='gestor'?' <span class="mut" style="font-weight:400">(gestor)</span>':''}</span><span style="font-weight:600">${moneyG(c.total)}${c.meta?` <span class="mut" style="font-weight:400">/ ${moneyG(c.meta)}</span>`:''}</span></div><div class="exe" style="margin-top:4px"><div class="bar"><div style="width:${Math.round(100*c.total/max)}%;height:100%;background:${c.bateu?'#17915F':BARRA_FOGO};border-radius:99px"></div></div></div>${c.negociando?`<div class="mut" style="font-size:11px;margin-top:3px">🤝 em negociação: <b style="color:var(--warn)">${moneyG(c.negociando)}</b></div>`:''}</div>`).join('')||'<div class="mut">Nenhum vendedor</div>';
   // busca TODAS as vendas do time (negociação aparece sempre; fechadas são filtradas pelo mês no render)
   const vd=await (await fetch('/api/vendas')).json();window._vgAll=vd.vendas||[];
   renderVgKanban();
@@ -924,7 +924,7 @@ function renderSelConsultor(){
   const el=document.getElementById('vg-sel-consultor');if(!el)return;
   if(!vgConsultor){el.style.display='none';el.innerHTML='';return;}
   el.style.display='block';
-  el.innerHTML=`<span class="chip on" style="display:inline-flex;align-items:center;gap:8px"><i class=i-user></i> ${esc(vgConsultorNome||vgConsultor)}<span onclick="limparVgConsultor()" style="cursor:pointer;font-weight:600">✕</span></span>`;
+  el.innerHTML=`<span class="chip on" style="display:inline-flex;align-items:center;gap:8px">👤 ${esc(vgConsultorNome||vgConsultor)}<span onclick="limparVgConsultor()" style="cursor:pointer;font-weight:600">✕</span></span>`;
 }
 function renderVgBusca(){
   const inp=document.getElementById('vg-busca'),drop=document.getElementById('vg-busca-drop');if(!inp||!drop)return;
@@ -951,14 +951,14 @@ function renderVgKanban(){
   window._gruposVG=[];
   const mk=arr=>{const gs=grupoKanbanG(arr);gs.forEach(g=>{g._i=window._gruposVG.length;window._gruposVG.push(g);});return gs;};
   const gNeg=mk(neg), gFec=mk(fec);
-  document.getElementById('vg-neg-h').innerHTML=`<i class=i-arrows-exchange></i> Em negociação <span class="mut" style="font-weight:400">(${gNeg.length})</span>`;
-  document.getElementById('vg-fec-h').innerHTML=`<i class=i-circle-check></i> Fechadas <span class="mut" style="font-weight:400">(${gFec.length})</span>`;
+  document.getElementById('vg-neg-h').innerHTML=`🤝 Em negociação <span class="mut" style="font-weight:400">(${gNeg.length})</span>`;
+  document.getElementById('vg-fec-h').innerHTML=`✅ Fechadas <span class="mut" style="font-weight:400">(${gFec.length})</span>`;
   document.getElementById('vg-neg').innerHTML=gNeg.map(cardGrupoG).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
   document.getElementById('vg-fec').innerHTML=gFec.map(cardGrupoG).join('')||'<div class="mut" style="font-size:12px;padding:6px 2px">Nenhuma</div>';
 }
 function grupoKanbanG(list){const map=new Map();list.forEach(v=>{const cpf=((v.cliente&&v.cliente.cpf)||'').replace(/\D/g,'');const ck=cpf||('n:'+(((v.cliente&&v.cliente.nome)||'').trim().toLowerCase()));const key=ck+'|'+(v.tipo||'')+'|'+(v.consultorEmail||'');if(!map.has(key))map.set(key,{key,cliente:v.cliente||{},tipo:v.tipo||'',status:v.status,consultor:v.consultor,vendas:[],total:0});const g=map.get(key);g.vendas.push(v);g.total+=(+v.valor||0);});return [...map.values()].sort((a,b)=>b.total-a.total);}
 function cardGrupoG(g){const n=g.vendas.length;const nome=(g.cliente&&g.cliente.nome)||'';const dt=g.vendas[0]?g.vendas[0].data:'';return `<div class="card" style="padding:10px 11px;margin-bottom:8px;cursor:pointer" onclick="abrirGrupoVG(${g._i})"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px"><div style="min-width:0"><div style="font-size:16px;font-weight:600;color:var(--ok)">${moneyG(g.total)}</div><div class="titulo" style="font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nome)}${n>1?` <span class="mut" style="font-weight:600;font-size:11px">· ${n} cotas</span>`:''}</div></div><input type="checkbox" ${g.status==='fechada'?'checked':''} title="Marcar como fechada" onclick="event.stopPropagation();toggleGrupoFechadaG(${g._i},this.checked)" style="width:22px;height:22px;accent-color:var(--ok);flex:none"></div><div class="mut" style="font-size:11px;margin-top:3px">${esc(g.consultor)} · ${(dt||'').slice(8,10)}/${(dt||'').slice(5,7)}</div>${g.tipo?`<div style="margin-top:5px">${tipoPill(g.tipo)}</div>`:''}</div>`;}
-function abrirGrupoVG(i){const g=(window._gruposVG||[])[i];if(!g)return;if(g.vendas.length===1)return abrirVendaG(g.vendas[0].id);const c=g.cliente||{};const linhas=g.vendas.map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="fecharPop();abrirVendaG('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:600;color:var(--ok)">${moneyG(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${esc(v.consultor)} · ${(v.data||'').split('-').reverse().join('/')}</div></div><div style="display:flex;gap:6px;align-items:center;flex:none"><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'<i class=i-circle-check></i>':'<i class=i-arrows-exchange></i>'}</span><button class="btn sec2" title="Excluir esta cota" style="padding:4px 8px;font-size:13px;color:var(--no)" onclick="event.stopPropagation();excluirCotaGrupoG('${v.id}')"><i class=i-trash></i></button></div></div></div>`).join('');abrirPop((c.nome||'Cliente')+(g.tipo?' · '+(tipoInfo(g.tipo)?tipoInfo(g.tipo).label:''):''),`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${g.vendas.length} cota(s) · total ${moneyG(g.total)}</div>${linhas}<button class="btn sec2 full" style="color:var(--no);margin-top:8px" onclick="excluirGrupoG(${i})"><i class=i-trash></i> Excluir as ${g.vendas.length} cotas deste cliente</button>`);}
+function abrirGrupoVG(i){const g=(window._gruposVG||[])[i];if(!g)return;if(g.vendas.length===1)return abrirVendaG(g.vendas[0].id);const c=g.cliente||{};const linhas=g.vendas.map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="fecharPop();abrirVendaG('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:600;color:var(--ok)">${moneyG(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${esc(v.consultor)} · ${(v.data||'').split('-').reverse().join('/')}</div></div><div style="display:flex;gap:6px;align-items:center;flex:none"><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅':'🤝'}</span><button class="btn sec2" title="Excluir esta cota" style="padding:4px 8px;font-size:13px;color:var(--no)" onclick="event.stopPropagation();excluirCotaGrupoG('${v.id}')">🗑️</button></div></div></div>`).join('');abrirPop((c.nome||'Cliente')+(g.tipo?' · '+(tipoInfo(g.tipo)?tipoInfo(g.tipo).label:''):''),`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpfG(c.cpf):'sem CPF'} · ${g.vendas.length} cota(s) · total ${moneyG(g.total)}</div>${linhas}<button class="btn full no" style="color:var(--no);margin-top:8px" onclick="excluirGrupoG(${i})">🗑️ Excluir as ${g.vendas.length} cotas deste cliente</button>`);}
 // Excluir uma cota direto da janela do grupo, ou o grupo inteiro (todas as cotas do cliente). v162
 async function excluirCotaGrupoG(id){if(!confirm('Excluir esta cota?'))return;const j=await(await fetch('/api/vendas/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})})).json();if(j.ok){fecharPop();toast('Cota excluída ✓');carregarVendasG();if(gestaoAberta())carregarClientesG();}else toast(j.erro||'Erro');}
 async function excluirGrupoG(i){const g=(window._gruposVG||[])[i];if(!g)return;const n=g.vendas.length;const nome=(g.cliente&&g.cliente.nome)||'este cliente';if(!confirm('Excluir as '+n+' cotas de '+nome+'?\n\nIsso não pode ser desfeito.'))return;const j=await(await fetch('/api/vendas/excluir-lote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:g.vendas.map(v=>v.id)})})).json();if(j.ok){fecharPop();toast(j.qtd+' cota(s) excluída(s) ✓');carregarVendasG();if(gestaoAberta())carregarClientesG();}else toast(j.erro||'Erro');}
@@ -986,7 +986,7 @@ function formVendaG(v,novo){v=v||{};const c=v.cliente||{};return `
   <div style="margin-top:8px">${selTamanhoGrupo(v.tamanhoGrupo||'')}</div>
   <label style="font-size:12px;color:var(--mut);margin-top:8px;display:block">Tipo da cota</label>${tipoSelectorG(v.tipo||'')}
   <label style="font-size:12px;color:var(--mut);margin-top:8px;display:block">Data do fechamento</label><input type="date" id="vgf-data" value="${v.data||new Date().toISOString().slice(0,10)}" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
-  <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-bottom:6px"><input type="checkbox" id="vgf-fechada" ${v.status==='fechada'?'checked':''} style="width:20px;height:20px;accent-color:var(--ok)"> <i class=i-circle-check></i> Venda fechada</label>`;}
+  <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-bottom:6px"><input type="checkbox" id="vgf-fechada" ${v.status==='fechada'?'checked':''} style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Venda fechada</label>`;}
 function formVendaGMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre.lock;const inp='width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)';return `
   ${lock?(pre.consultorEmail?`<input type="hidden" id="vgf-consultor" value="${esc(pre.consultorEmail)}">`:''):selConsultorVenda('')}
   <label style="font-size:12px;color:var(--mut)">Cliente</label><input type="text" id="vgf-nome" value="${esc(c.nome||'')}" placeholder="Nome do cliente" ${lock?'readonly':''} style="${inp};margin-bottom:8px${lock?';opacity:.7':''}">
@@ -996,8 +996,8 @@ function formVendaGMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre
   <label style="font-size:12px;color:var(--mut)">Tipo da cota</label>${tipoSelectorG(pre.tipo||'')}
   <div style="font-weight:600;font-size:13px;margin:10px 0 6px">Cotas</div>
   <div id="vgf-cotas"></div>
-  <button class="btn sec2" style="width:100%;padding:8px" onclick="addCotaRowG()"><i class=i-plus></i> adicionar outra cota</button>
-  ${pre.carteira?'<div class="mut" style="font-size:12px;margin-top:10px"><i class=i-circle-check></i> Cliente cadastrado já entra como <b>venda fechada</b>.</div>':'<label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-top:10px"><input type="checkbox" id="vgf-fechada" style="width:20px;height:20px;accent-color:var(--ok)"> <i class=i-circle-check></i> Já efetivada(s) — fechada(s)</label>'}`;}
+  <button class="btn sec2 ok-s" style="width:100%;padding:8px" onclick="addCotaRowG()">➕ adicionar outra cota</button>
+  ${pre.carteira?'<div class="mut" style="font-size:12px;margin-top:10px">✅ Cliente cadastrado já entra como <b>venda fechada</b>.</div>':'<label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;margin-top:10px"><input type="checkbox" id="vgf-fechada" style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Já efetivada(s) — fechada(s)</label>'}`;}
 function addCotaRowG(g,co,val){const wrap=document.getElementById('vgf-cotas');if(!wrap)return;const inp='padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin:0;min-width:0';const div=document.createElement('div');div.className='cotaG-row';div.style.cssText='display:flex;gap:5px;margin-bottom:6px;align-items:center;width:100%';div.innerHTML=`<input class="cg-grupo" placeholder="Grupo" value="${esc(g||'')}" style="flex:1;${inp}"><input class="cg-cota" placeholder="Cota" value="${esc(co||'')}" style="flex:1;${inp}"><div style="display:flex;align-items:center;gap:2px;flex:1;min-width:0"><span class="mut" style="font-size:12px">R$</span><input class="cg-valor" inputmode="decimal" placeholder="0,00" value="${val?moneyG(val).replace('R$ ',''):''}" onblur="this.value=this.value?moneyG(parseBRG(this.value)).replace('R$ ',''):''" style="width:100%;${inp}"></div><button class="btn sec2" onclick="this.closest('.cotaG-row').remove()" style="padding:7px 9px;margin:0;color:var(--no);flex:none">✕</button>`;wrap.appendChild(div);}
 let _gcCadCliente=false;
 function novaVendaG(){_gcCadCliente=false;abrirPop('Nova venda',formVendaGMulti()+`<button class="btn" style="width:100%;margin-top:10px" onclick="salvarVendaGMulti()">Salvar</button>`);addCotaRowG();}
@@ -1064,17 +1064,18 @@ function abrirVendaG(id){const v=(window._vgAll||[]).find(x=>x.id===id);if(!v)re
   // gestor pode editar/excluir qualquer venda do time
   const titulo=(minha?'Minha venda · ':'Venda de '+esc(v.consultor)+' · ')+moneyG(v.valor);
   const cab=minha?'':`<div class="mut" style="font-size:12px;margin-bottom:8px;display:flex;align-items:center;gap:6px">Vendedor: ${avatarHTML(v.consultor,'',22)}<b>${esc(v.consultor)}</b></div>`;
-  const btnCota=(c.cpf||c.nome)?`<button class="btn sec2" style="width:100%;margin-top:8px" onclick="novaCotaClienteG('${encodeURIComponent(c.nome||'')}','${(c.cpf||'')}','${(v.consultorEmail||'')}')"><i class=i-plus></i> Nova cota deste cliente</button>`:'';
-  abrirPop(titulo,cab+formVendaG(v)+`<div style="display:flex;gap:6px;margin-top:6px"><button class="btn sec2" style="flex:1;color:var(--no)" onclick="excluirVendaG('${v.id}')"><i class=i-trash></i> Excluir</button><button class="btn" style="flex:2" onclick="salvarVendaG('${v.id}')">Salvar</button></div>${btnCota}`);
+  const btnCota=(c.cpf||c.nome)?`<button class="btn sec2 ok-s" style="width:100%;margin-top:8px" onclick="novaCotaClienteG('${encodeURIComponent(c.nome||'')}','${(c.cpf||'')}','${(v.consultorEmail||'')}')">➕ Nova cota deste cliente</button>`:'';
+  abrirPop(titulo,cab+formVendaG(v)+`<div style="display:flex;gap:6px;margin-top:6px"><button class="btn no" style="flex:1;color:var(--no)" onclick="excluirVendaG('${v.id}')">🗑️ Excluir</button><button class="btn" style="flex:2" onclick="salvarVendaG('${v.id}')">Salvar</button></div>${btnCota}`);
 }
 async function carregarRanking(){
   const res=await fetch('/api/gestor/ranking');const r=await res.json();
   document.getElementById('meta-input').value=r.metaSemanal;
   {const ml=document.getElementById('meta-rotulo');if(ml)ml.textContent=r.metaTime?('Meta semanal da equipe '+r.metaTime+' (rotinas por consultor)'):'Meta semanal (rotinas por consultor)';}
-  document.getElementById('ranking-lista').innerHTML=r.ranking.map(x=>`<div class="card"><div class="row"><div class="titulo" style="cursor:pointer;color:var(--acc);display:flex;align-items:center;gap:8px" onclick="abrirPerfil('${x.email}')"><span style="font-weight:600">${x.medalha||x.pos+'º'}</span>${avatarHTML(x.nome,x.cor,28,x.foto)}${esc(x.nome)}${x.time?` <span class="mut" style="font-weight:400">· ${esc(x.time)}</span>`:''}</div><div style="font-weight:650">${x.pontos}<span class="mut" style="font-weight:400;font-size:11px"> / 200 pts</span></div></div>
-    <div style="margin-top:8px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span><i class=i-coin></i> ${moneyG(x.vendido)}${x.metaVenda?(' / '+moneyG(x.metaVenda)):' (sem meta)'}</span><span style="font-weight:600;color:#3E8E6E">${x.vendasPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.vendasPct}%;height:100%;background:#3E8E6E"></div></div></div>
-    <div style="margin-top:6px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span><i class=i-circle-check></i> Check-in ${x.checkAtual}/${x.checkAlvo}</span><span style="font-weight:600;color:#5175A0">${x.checkPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.checkPct}%;height:100%;background:#5175A0"></div></div></div>
-  </div>`).join('')||'<div class="mut" style="padding:0 4px">Sem consultores</div>';
+  const MEDP=[['#FFF6DB','#F2D98A','#B7860B'],['#F2F4F7','#D5DAE0','#6B7480'],['#FBEDE3','#EBC6A8','#A8622E']];
+  document.getElementById('ranking-lista').innerHTML=r.ranking.map(x=>{const md=x.pos<=3?MEDP[x.pos-1]:null;return `<div class="card" style="${md?`background:${md[0]};border-color:${md[1]}!important`:''}"><div class="row"><div class="titulo" style="cursor:pointer;color:#111318;display:flex;align-items:center;gap:8px" onclick="abrirPerfil('${x.email}')">${medalhaHTML(x.pos,26)}${avatarHTML(x.nome,x.cor,28,x.foto)}${esc(x.nome)}${x.time?` <span class="mut" style="font-weight:400">· ${esc(x.time)}</span>`:''}</div><div style="font-weight:650;font-size:18px;color:${md?md[2]:'#111318'}">${x.pontos}<span class="mut" style="font-weight:400;font-size:11px"> / 200 pts</span></div></div>
+    <div style="margin-top:8px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>💰 ${moneyG(x.vendido)}${x.metaVenda?(' / '+moneyG(x.metaVenda)):' (sem meta)'}</span><span style="font-weight:650;color:#17915F">${x.vendasPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.vendasPct}%;height:100%;background:#17915F"></div></div></div>
+    <div style="margin-top:6px"><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>✅ Check-in ${x.checkAtual}/${x.checkAlvo}</span><span style="font-weight:650;color:#2D6CDF">${x.checkPct}%</span></div><div class="prog" style="margin-top:3px"><div style="width:${x.checkPct}%;height:100%;background:#2D6CDF"></div></div></div>
+  </div>`;}).join('')||'<div class="mut" style="padding:0 4px">Sem consultores</div>';
 }
 // ---------- MURAL ----------
 let muralMesRef='', _mural=null;
@@ -1089,10 +1090,13 @@ async function carregarMural(mes){
   renderMural(m);
 }
 function muralMes(d){const [y,mm]=muralMesRef.split('-').map(Number);const dt=new Date(y,mm-1+d,1);muralMesRef=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');carregarMural(muralMesRef);}
+// v179: medalha de posição igual à do ranking do Mural (ouro/prata/bronze com brilho; demais em cinza)
+function medalhaHTML(pos,tam){tam=tam||26;const g=['linear-gradient(160deg,#F0DA8E,#C99A2E)','linear-gradient(160deg,#E8EBEF,#9DA3AA)','linear-gradient(160deg,#E2A672,#A8622E)'][pos-1];return `<div style="width:${tam}px;height:${tam}px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:${Math.round(tam*.48)}px;font-weight:650;${g?`background:${g};color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.25)`:'background:#F1F3F6;color:#5B616B'}">${pos}</div>`;}
+const BARRA_FOGO='linear-gradient(90deg,#F9A826,#E8432E)';
 function medalhaCor(pos){return pos===1?'#E6B800':pos===2?'#9AA0A6':pos===3?'#B87333':'var(--mut)';}
 const MILHAO=1000000;
 // v157: demais posições do ranking — só um fogo pequeno ao lado da foto de quem passou de R$ 1 milhão no mês
-function avFogo(inner,on){return on?inner+'<span class="fogo-lado" title="Acima de R$ 1 milhão no mês"><i class=i-flame style=color:#E8590C></i></span>':inner;}
+function avFogo(inner,on){return on?inner+'<span class="fogo-lado" title="Acima de R$ 1 milhão no mês">🔥</span>':inner;}
 // v157: pódio (1º, 2º e 3º) — foto dentro da chama animada (desenho em public/comum.js)
 function avAnel(inner,tam){return Chama.chamaHTML(inner,tam);}
 function seloBadge(s){if(!s)return '';const c=s==='LENDÁRIO'?'#B23B3B':s==='CAMPEÃO'?'#2E7D50':'#7A6A1F';const bg=s==='LENDÁRIO'?'#F5E4E4':s==='CAMPEÃO'?'#E5F1EA':'#F3EFDD';return `<span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:5px;background:${bg};color:${c}">${s}</span>`;}
@@ -1112,12 +1116,13 @@ function muralChartSVG(meses,cfg){
 }
 function renderMural(m){
   // recado
-  document.getElementById('mural-recado').innerHTML=m.config.recado?`<div style="background:linear-gradient(90deg,#FFF6DC,#FDEFC9);border:1px solid #E9D8A0;color:#7A5B12;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-weight:600;text-align:center"><i class=i-speakerphone></i> ${esc(m.config.recado)}</div>`:'';
+  document.getElementById('mural-recado').innerHTML=m.config.recado?`<div style="background:linear-gradient(90deg,#FFF6DC,#FDEFC9);border:1px solid #E9D8A0;color:#7A5B12;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-weight:600;text-align:center">📣 ${esc(m.config.recado)}</div>`:'';
   // metas do ano
-  const cardMeta=(icon,label,val,cor)=>`<div class="card" style="padding:10px 8px;text-align:center"><div style="font-size:18px">${icon}</div><div class="mut" style="font-size:11px;margin-top:2px">${label}</div><div style="font-weight:650;font-size:14px;color:${cor||'var(--txt)'};margin-top:2px">${moneyG(val)}</div></div>`;
-  document.getElementById('mural-metas').innerHTML=`<div class="mut" style="font-size:12px;margin:2px 2px 6px">Desafio de ${labelMesM(m.mes)} · total vendido no mês: <b style="color:var(--ok)">${moneyG(m.totalVendidoMes)}</b></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px">${cardMeta('<i class=i-trophy></i>','Desafio',m.config.desafio,'#3E8E6E')}${cardMeta('<i class=i-target></i>','Expectativa',m.config.expectativa,'#4F79A8')}${cardMeta('<i class=i-star></i>','Piso',m.config.piso,'#8A8F98')}</div>`;
+  const vMes=m.totalVendidoMes||0;
+  const cardMeta=(icon,label,val,cor)=>{const pc=val?Math.min(100,Math.round(100*vMes/val)):0,ok=val&&vMes>=val;return `<div class="card" style="padding:12px 8px 10px;text-align:center${ok?';border-color:#CDEBDD!important;background:#F3FBF7':''}"><div style="font-size:26px;line-height:1.1">${icon}</div><div style="font-size:12px;margin-top:3px;color:#111318;font-weight:600">${label}</div><div style="font-weight:650;font-size:14px;color:${cor||'var(--txt)'};margin-top:1px">${moneyG(val)}</div>${val?`<div style="height:6px;border-radius:99px;background:#EEF0F3;overflow:hidden;margin:7px 6px 3px"><div style="height:100%;width:${pc}%;border-radius:99px;background:${ok?'#17915F':'linear-gradient(90deg,#F9A826,#E8432E)'}"></div></div><div style="font-size:11px;font-weight:600;color:${ok?'#17915F':'#C2410C'}">${ok?'batida ✓':pc+'% atingido'}</div>`:''}</div>`;};
+  document.getElementById('mural-metas').innerHTML=`<div class="mut" style="font-size:12px;margin:2px 2px 6px">Desafio de ${labelMesM(m.mes)} · total vendido no mês: <b style="color:var(--ok)">${moneyG(m.totalVendidoMes)}</b></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px">${cardMeta('🏆','Desafio',m.config.desafio,'#3E8E6E')}${cardMeta('🎯','Expectativa',m.config.expectativa,'#4F79A8')}${cardMeta('⭐','Piso',m.config.piso,'#8A8F98')}</div>`;
   // gráfico
-  document.getElementById('mural-chart').innerHTML=`<div class="card" style="padding:10px 8px;text-align:center;margin-bottom:8px"><div style="font-size:18px"><i class=i-coin></i></div><div class="mut" style="font-size:11px;margin-top:2px">Vendido no ano ${m.ano}</div><div style="font-weight:650;font-size:16px;color:var(--ok);margin-top:2px">${moneyG(m.totalVendidoAno)}</div></div><div class="card" style="padding:8px 10px"><div class="mut" style="font-size:11px;margin:0 0 2px"><i class=i-trending-up></i> Evolução mensal de ${m.ano}</div>${muralChartSVG(m.meses,m.config)}</div>`;
+  document.getElementById('mural-chart').innerHTML=`<div class="card" style="padding:10px 8px;text-align:center;margin-bottom:8px"><div style="font-size:26px;line-height:1.1">💰</div><div class="mut" style="font-size:11px;margin-top:2px">Vendido no ano ${m.ano}</div><div style="font-weight:650;font-size:16px;color:var(--ok);margin-top:2px">${moneyG(m.totalVendidoAno)}</div></div><div class="card" style="padding:8px 10px"><div class="mut" style="font-size:11px;margin:0 0 2px">📈 Evolução mensal de ${m.ano}</div>${muralChartSVG(m.meses,m.config)}</div>`;
   // pódio top3
   const p=m.top3;
   const PODIO={1:{grad:'linear-gradient(160deg,#FBEFB8 0%,#E7C65C 30%,#B8892A 55%,#F0DA8E 72%,#CBA23C 100%)',bd:'#B8912E',ac:'#6E4E00',mh:310},2:{grad:'linear-gradient(160deg,#F5F7F9 0%,#CBD0D6 30%,#9DA3AA 55%,#E8EBEF 72%,#B4BAC1 100%)',bd:'#9DA3AB',ac:'#3E444A',mh:258},3:{grad:'linear-gradient(160deg,#EDC69C 0%,#C98A57 30%,#96602F 55%,#DFA871 72%,#B07A48 100%)',bd:'#A5713F',ac:'#5E3818',mh:200}};
@@ -1132,11 +1137,11 @@ function renderMural(m){
     <div style="margin-top:5px">${seloBadge(r.selo)}</div>
     <div style="margin-top:auto;padding-top:8px;font-size:11px;font-weight:650;letter-spacing:.5px;color:${p2.ac};${sh}">${ordem}º LUGAR</div>
   </div>`;};
-  document.getElementById('mural-podio').innerHTML=p.length?`<div class="h" style="text-align:center;margin-top:14px"><i class=i-trophy></i> Top 3 consultores</div><div style="display:flex;gap:10px;align-items:flex-end;margin-top:6px">${col(p[1],2,false)}${col(p[0],1,true)}${col(p[2],3,false)}</div>`:'';
+  document.getElementById('mural-podio').innerHTML=p.length?`<div class="h" style="justify-content:center;margin-top:14px">🥇 Top 3 consultores</div><div style="display:flex;gap:10px;align-items:flex-end;margin-top:6px">${col(p[1],2,false)}${col(p[0],1,true)}${col(p[2],3,false)}</div>`:'';
   // times
-  document.getElementById('mural-times').innerHTML=m.times.length?`<div class="h" style="margin-top:16px">Por time</div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${m.times.map(t=>`<div class="card" style="padding:10px 12px"><div style="font-weight:600">${esc(t.time)}</div><div style="font-weight:650;color:var(--ok);margin:2px 0">${moneyG(t.vendido)}</div><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>${t.meta?('meta '+moneyG(t.meta)):'sem meta'}</span><span style="font-weight:600">${t.pct}%</span></div><div class="prog" style="margin-top:4px"><div style="width:${Math.min(100,t.pct)}%;height:100%;background:var(--acc)"></div></div><div class="mut" style="font-size:10px;margin-top:3px">${t.consultores} consultor(es)</div></div>`).join('')}</div>`:'';
+  document.getElementById('mural-times').innerHTML=m.times.length?`<div class="h" style="margin-top:16px">👥 Por time</div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${m.times.map(t=>`<div class="card" style="padding:10px 12px"><div style="font-weight:600">${esc(t.time)}</div><div style="font-weight:650;color:var(--ok);margin:2px 0">${moneyG(t.vendido)}</div><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>${t.meta?('meta '+moneyG(t.meta)):'sem meta'}</span><span style="font-weight:600">${t.pct}%</span></div><div class="prog" style="margin-top:4px;height:7px"><div style="width:${Math.min(100,t.pct)}%;height:100%;background:${t.pct>=100?'#17915F':'linear-gradient(90deg,#F9A826,#E8432E)'}"></div></div><div class="mut" style="font-size:10px;margin-top:3px">${t.consultores} consultor(es)</div></div>`).join('')}</div>`:'';
   // ranking
-  document.getElementById('mural-ranking').innerHTML=m.ranking.map(r=>`<div class="card" style="padding:9px 11px;margin-bottom:7px"><div class="row" style="align-items:center"><div style="display:flex;align-items:center;gap:9px;min-width:0"><div style="width:22px;text-align:center;font-weight:650;color:${medalhaCor(r.pos)}">${r.pos}</div>${avFogo(avatarHTML(r.primeiro,r.cor,34,r.foto),r.vendido>=MILHAO)}<div style="min-width:0"><div class="titulo" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.nome)}${r.papel==='gestor'?' <span class="badge b-blue" style="font-size:9px">gestor</span>':''} ${r.time?`<span class="badge b-blue" style="font-size:9px">${esc(r.time)}</span>`:''} ${seloBadge(r.selo)}</div><div class="mut" style="font-size:11px">${r.qtd} venda(s)${r.meta?(' · meta '+moneyG(r.meta)):''}</div></div></div><div style="text-align:right;flex:none"><div style="font-weight:650;color:var(--ok)">${moneyG(r.vendido)}</div><div class="mut" style="font-size:11px;font-weight:600;color:${r.pct>=100?'#3E8E6E':'var(--mut)'}">${r.pct}%</div></div></div>${r.meta?`<div class="prog" style="margin-top:5px"><div style="width:${Math.min(100,r.pct)}%;height:100%;background:${r.pct>=100?'#3E8E6E':'var(--acc)'}"></div></div>`:''}</div>`).join('')||'<div class="mut" style="padding:10px">Sem consultores</div>';
+  document.getElementById('mural-ranking').innerHTML=m.ranking.map(r=>`<div class="card" style="padding:9px 11px;margin-bottom:7px"><div class="row" style="align-items:center"><div style="display:flex;align-items:center;gap:9px;min-width:0">${medalhaHTML(r.pos,26)}${avFogo(avatarHTML(r.primeiro,r.cor,34,r.foto),r.vendido>=MILHAO)}<div style="min-width:0"><div class="titulo" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.nome)}${r.papel==='gestor'?' <span class="badge b-blue" style="font-size:9px">gestor</span>':''} ${r.time?`<span class="badge b-blue" style="font-size:9px">${esc(r.time)}</span>`:''} ${seloBadge(r.selo)}</div><div class="mut" style="font-size:11px">${r.qtd} venda(s)${r.meta?(' · meta '+moneyG(r.meta)):''}</div></div></div><div style="text-align:right;flex:none"><div style="font-weight:650;color:var(--ok)">${moneyG(r.vendido)}</div><div class="mut" style="font-size:11px;font-weight:600;color:${r.pct>=100?'#3E8E6E':'var(--mut)'}">${r.pct}%</div></div></div>${r.meta?`<div class="prog" style="margin-top:6px;height:7px"><div style="width:${Math.min(100,r.pct)}%;height:100%;background:${r.pct>=100?'#17915F':'linear-gradient(90deg,#F9A826,#E8432E)'}"></div></div>`:''}</div>`).join('')||'<div class="mut" style="padding:10px">Sem consultores</div>';
 }
 function abrirEditMural(){
   const c=(_mural&&_mural.config)||{desafio:0,expectativa:0,piso:0,recado:'',metasTime:{}};
@@ -1144,11 +1149,11 @@ function abrirEditMural(){
   const inp=(id,val,ph)=>`<input id="${id}" inputmode="decimal" value="${val?moneyG(val).replace('R$ ',''):''}" placeholder="${ph||'0,00'}" onblur="this.value=this.value?moneyG(parseBRG(this.value)).replace('R$ ',''):''" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)">`;
   const timesHtml=times.map(t=>`<div style="margin-bottom:6px"><label style="font-size:12px;color:var(--mut)">Meta ${esc(t.time)}</label>${inp('mt-'+btoa(unescape(encodeURIComponent(t.time))).replace(/=/g,''),t.meta,'')}</div>`).join('');
   abrirPop('Editar Mural',`
-    <label style="font-size:12px;color:var(--mut)"><i class=i-speakerphone></i> Recado (topo)</label><input id="mm-recado" value="${esc(c.recado||'')}" maxlength="200" placeholder="Ex: Corrida de agosto — bora!" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:10px">
+    <label style="font-size:12px;color:var(--mut)">📢 Recado (topo)</label><input id="mm-recado" value="${esc(c.recado||'')}" maxlength="200" placeholder="Ex: Corrida de agosto — bora!" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:10px">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div><label style="font-size:12px;color:var(--mut)"><i class=i-trophy></i> Desafio (mês)</label>${inp('mm-desafio',c.desafio)}</div>
-      <div><label style="font-size:12px;color:var(--mut)"><i class=i-target></i> Expectativa (mês)</label>${inp('mm-expectativa',c.expectativa)}</div>
-      <div><label style="font-size:12px;color:var(--mut)"><i class=i-star></i> Piso (mês)</label>${inp('mm-piso',c.piso)}</div>
+      <div><label style="font-size:12px;color:var(--mut)">🏆 Desafio (mês)</label>${inp('mm-desafio',c.desafio)}</div>
+      <div><label style="font-size:12px;color:var(--mut)">🎯 Expectativa (mês)</label>${inp('mm-expectativa',c.expectativa)}</div>
+      <div><label style="font-size:12px;color:var(--mut)">⭐ Piso (mês)</label>${inp('mm-piso',c.piso)}</div>
       <div><label style="font-size:12px;color:var(--mut)">Ano do gráfico</label><input id="mm-ano" type="number" value="${_mural?_mural.ano:new Date().getFullYear()}" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
     </div>
     <div class="h" style="margin:12px 0 6px;font-size:13px">Metas por time</div>${timesHtml||'<div class="mut" style="font-size:12px">Nenhum time com vendas ainda.</div>'}
@@ -1169,7 +1174,7 @@ async function abrirChatLista(){
   document.getElementById('chat-titulo').textContent='Conversas do time';
   const res=await fetch('/api/chat');const j=await res.json();
   const nEq=j.equipe||(j.lista||[]).length;
-  document.getElementById('chat-lista').innerHTML=(nEq?`<div class="card row" style="cursor:pointer;border:1.5px solid var(--acc);background:var(--accbg,#fde8ea)" onclick="abrirChatThread('#equipe','Toda a equipe')"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-size:17px;flex:none"><i class=i-speakerphone></i></div><div><div class="titulo">${(typeof painel!=='undefined'&&painel&&painel.estrutura)?'Toda a estrutura':'Toda a equipe'}</div><div class="mut" style="font-size:11px">Mensagem para os ${nEq} consultor(es) ${(typeof painel!=='undefined'&&painel&&painel.estrutura)?'da sua estrutura':'do time'}</div></div></div><span class="mut">›</span></div>`:'')+(j.lista||[]).map(c=>`<div class="card row" style="cursor:pointer" onclick="abrirChatThread('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,'',34,c.foto)}<div class="titulo">${esc(c.nome)}</div></div>${c.naoLidas>0?`<span class="badge b-no">${c.naoLidas} nova(s)</span>`:'<span class="mut">›</span>'}</div>`).join('')||'<div class="mut" style="padding:10px">Nenhum consultor no time</div>';
+  document.getElementById('chat-lista').innerHTML=(nEq?`<div class="card row" style="cursor:pointer;border:1.5px solid var(--acc);background:var(--accbg,#fde8ea)" onclick="abrirChatThread('#equipe','Toda a equipe')"><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-size:17px;flex:none">📢</div><div><div class="titulo">${(typeof painel!=='undefined'&&painel&&painel.estrutura)?'Toda a estrutura':'Toda a equipe'}</div><div class="mut" style="font-size:11px">Mensagem para os ${nEq} consultor(es) ${(typeof painel!=='undefined'&&painel&&painel.estrutura)?'da sua estrutura':'do time'}</div></div></div><span class="mut">›</span></div>`:'')+(j.lista||[]).map(c=>`<div class="card row" style="cursor:pointer" onclick="abrirChatThread('${c.email}','${(c.nome||'').replace(/'/g,"\\'")}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,'',34,c.foto)}<div class="titulo">${esc(c.nome)}</div></div>${c.naoLidas>0?`<span class="badge b-no">${c.naoLidas} nova(s)</span>`:'<span class="mut">›</span>'}</div>`).join('')||'<div class="mut" style="padding:10px">Nenhum consultor no time</div>';
 }
 async function abrirChatThread(login,nome){
   chatConsultor=login;
@@ -1180,8 +1185,8 @@ async function abrirChatThread(login,nome){
   const box=document.getElementById('chat-msgs');
   const eq=login==='#equipe';
   document.getElementById('chat-input').placeholder=eq?('Mensagem para os '+(j.equipe||0)+' consultor(es)…'):'Mensagem…';
-  if(eq){box.innerHTML=(j.mensagens||[]).map(m=>`<div style="align-self:flex-end;max-width:85%;background:var(--acc);color:#fff;border-radius:14px;padding:8px 12px"><div style="font-size:10.5px;font-weight:600;opacity:.85;margin-bottom:3px"><i class=i-speakerphone></i> Para toda a equipe${m.por?' · '+esc(m.por):''}</div><div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.8;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} · lida por ${m.lidas} de ${m.total}</div></div>`).join('')||'<div class="mut" style="text-align:center;padding:20px">Escreva abaixo: a mensagem chega no chat de cada consultor do time, com notificação no celular. As respostas chegam no particular de cada um.</div>';box.scrollTop=box.scrollHeight;return;}
-  box.innerHTML=(j.mensagens||[]).map(m=>{const meu=m.de==='gestor';return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px">${m.equipe?'<div style="font-size:10.5px;font-weight:600;opacity:.85;margin-bottom:3px"><i class=i-speakerphone></i> Para toda a equipe</div>':''}<div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`}).join('')||'<div class="mut" style="text-align:center;padding:20px">Sem mensagens ainda</div>';
+  if(eq){box.innerHTML=(j.mensagens||[]).map(m=>`<div style="align-self:flex-end;max-width:85%;background:var(--acc);color:#fff;border-radius:14px;padding:8px 12px"><div style="font-size:10.5px;font-weight:600;opacity:.85;margin-bottom:3px">📢 Para toda a equipe${m.por?' · '+esc(m.por):''}</div><div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.8;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} · lida por ${m.lidas} de ${m.total}</div></div>`).join('')||'<div class="mut" style="text-align:center;padding:20px">Escreva abaixo: a mensagem chega no chat de cada consultor do time, com notificação no celular. As respostas chegam no particular de cada um.</div>';box.scrollTop=box.scrollHeight;return;}
+  box.innerHTML=(j.mensagens||[]).map(m=>{const meu=m.de==='gestor';return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px">${m.equipe?'<div style="font-size:10.5px;font-weight:600;opacity:.85;margin-bottom:3px">📢 Para toda a equipe</div>':''}<div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`}).join('')||'<div class="mut" style="text-align:center;padding:20px">Sem mensagens ainda</div>';
   box.scrollTop=box.scrollHeight;
 }
 // v176: abre o balão do chat direto na conversa com um consultor (atalho da ficha)
@@ -1205,7 +1210,7 @@ function renderConsultores(){
   if(C.estrutura){renderQuadroEquipe(lista,C);return;}
   document.getElementById('lista-consultores').innerHTML=lista.map(c=>{
     const ab=c.tarefas.abertas.length,ft=c.tarefas.feitas.length;
-    return `<div class="card row" style="cursor:pointer" onclick="abrirPerfil('${c.email}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,c.cor,34,c.foto)}<div>${balaoNome(c.nome,c.cor)}${c.nivel==='branco'?' <span class="badge" style="background:#F3F4F6;color:#4B5563">em experiência'+(c.indicadoPor?' · indicado(a) por '+esc(nomeDoLogin(c.indicadoPor).split(' ')[0]):'')+'</span>':''}<div class="mut" style="font-size:11px;margin-top:2px">${c.totalEnvios}/7 check-ins · ${ab} tarefas abertas · ${ft} feitas</div></div></div><span class="mut">›</span></div>`;
+    return `<div class="card row" style="cursor:pointer" onclick="abrirPerfil('${c.email}')"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,c.cor,34,c.foto)}<div>${balaoNome(c.nome,c.cor)}${c.nivel==='branco'&&c.indicadoPor?' <span class="badge" style="background:#F3F4F6;color:#4B5563">indicado(a) por '+esc(nomeDoLogin(c.indicadoPor).split(' ')[0])+'</span>':''}<div class="mut" style="font-size:11px;margin-top:2px">${c.totalEnvios}/7 check-ins · ${ab} tarefas abertas · ${ft} feitas</div></div></div><span class="mut">›</span></div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nenhum consultor</div>';
 }
 // v176: "Toda a minha estrutura" em colunas (estilo Trello): 1ª coluna = consultores direto com você; depois uma por gestor
@@ -1221,7 +1226,7 @@ function renderQuadroEquipe(lista,C){
     return `<div style="flex:0 0 min(260px,82vw);background:var(--card2);border-radius:14px;padding:10px;display:flex;flex-direction:column;max-height:70vh">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">${g?bolinhaNivel(g.nivel,12):bolinhaNivel('gestorLoja',12)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g?esc(g.nome.split(' ')[0])+(g.time?' · '+esc(g.time):''):'Outros'}</div><div class="mut" style="font-size:11px">${k===C.eu?'direto com você':g?nivelInfo(g.nivel).n:'sem gestor na sua estrutura'} · ${cs.length}</div></div>
       <div title="Check-in de hoje (média)" style="font-size:11px;font-weight:600;color:${corPct(Math.round(ck*100))}">${Math.round(ck*100)}%</div></div>
-      <div style="overflow-y:auto;margin-top:6px">${cs.map(c=>`<div onclick="abrirPerfil('${c.email}')" style="background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:8px 10px;margin-top:7px;display:flex;align-items:center;gap:9px;cursor:pointer">${avatarHTML(c.nome,c.cor,32,c.foto)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:11px">${c.nivel==='branco'?'em experiência'+(c.indicadoPor?' · indicado(a) por '+esc(nomeDoLogin(c.indicadoPor).split(' ')[0]):'')+'<br>':''}${Chama.E('✅','circle-check')} ${c.checkinHoje}/${c.checkinTotal} hoje · ${Chama.E('📝','checklist')} ${c.tarefas.abertas.length} abertas</div></div></div>`).join('')}</div></div>`;};
+      <div style="overflow-y:auto;margin-top:6px">${cs.map(c=>`<div onclick="abrirPerfil('${c.email}')" style="background:var(--card);border:1px solid var(--bord);border-radius:12px;padding:8px 10px;margin-top:7px;display:flex;align-items:center;gap:9px;cursor:pointer">${avatarHTML(c.nome,c.cor,32,c.foto)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:11px">${c.nivel==='branco'&&c.indicadoPor?'indicado(a) por '+esc(nomeDoLogin(c.indicadoPor).split(' ')[0])+'<br>':''}${Chama.E('✅','circle-check')} ${c.checkinHoje}/${c.checkinTotal} hoje · ${Chama.E('📝','checklist')} ${c.tarefas.abertas.length} abertas</div></div></div>`).join('')}</div></div>`;};
   document.getElementById('lista-consultores').innerHTML=lista.length?`<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity">${ordem.map(col).join('')}</div><div class="mut" style="font-size:11px;margin-top:4px">Toque no consultor para abrir a ficha. Para ver uma equipe só, troque no topo.</div>`:'<div class="mut" style="padding:0 4px">Nenhum consultor</div>';
 }
 function estiloCorSolidaG(cor){if(GRADS[cor])return 'background:'+GRADS[cor]+';color:#fff';if((cor||'').toLowerCase()==='#ffffff')return 'background:#fff;color:#1a1a18;border:1px solid #d4d2cb';if(cor)return `background:${cor};color:#fff`;return ''}
@@ -1254,7 +1259,7 @@ function verDiaCheckin(i){
   const bar=document.getElementById('pf-bar-'+i);if(bar)bar.style.border='2px solid var(--acc)';
   document.getElementById('pf-rotinas-titulo').innerHTML=`Rotinas de ${h.hoje?'hoje':h.dia+' '+h.data} <span class="mut" style="font-weight:400;font-size:12px">· ${h.feitas}/${h.total}</span>`;
   const feitasSet=new Set(h.rotinasFeitas||[]);
-  document.getElementById('pf-rotinas').innerHTML=(p.todasRotinas||[]).map(r=>{const ok=feitasSet.has(r);return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bord)"><span style="font-size:15px">${ok?'<i class=i-square-check style=color:#2E8A63></i>':'<i class=i-square style=color:#B4B9C0></i>'}</span><span style="font-size:13px;${ok?'':'color:var(--mut)'}">${r}</span></div>`}).join('');
+  document.getElementById('pf-rotinas').innerHTML=(p.todasRotinas||[]).map(r=>{const ok=feitasSet.has(r);return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bord)"><span style="font-size:15px">${ok?'✅':'⬜'}</span><span style="font-size:13px;${ok?'':'color:var(--mut)'}">${r}</span></div>`}).join('');
 }
 function mudarMes(dir){if(!mesRef)mesRef=new Date();mesRef=new Date(mesRef.getFullYear(),mesRef.getMonth()+dir,1);diaSel=null;renderCalendario()}
 async function cancelarAgendaGestor(id){if(!confirm('Cancelar este compromisso? Sai da agenda e o consultor é avisado.'))return;const r=await fetch('/api/gestor/solicitacao/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await r.json();toast(j.ok?'Cancelado ✓':(j.erro||'Erro'));carregar()}
@@ -1332,7 +1337,7 @@ function selDia(iso){diaSel=iso;renderCalendario()}
 function renderDiaAgenda(){
   const apps=appsDoDia(diaSel), dd=diaSel.split('-');
   document.getElementById('dia-label').textContent='Compromissos · '+dd[2]+'/'+dd[1];
-  document.getElementById('eventos').innerHTML=apps.map(e=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${e.assunto||'Reunião'}${e.google?'':' · '+e.consultor}</div><div class="mut">${fmtData(e.inicio)} · ${e.duracao} min · ${e.local||''}</div></div><div style="display:flex;gap:6px;align-items:center">${e.vinculado||e.google?`<a href="${e.link||'#'}" target="_blank" class="badge b-blue" style="text-decoration:none"><i class=i-link></i> Google</a>`:''}<span class="badge ${e.status==='Aprovada'?'b-ok':e.status==='Google'?'b-blue':'b-warn'}">${e.status}</span>${!e.google?`<button class="btn sec2" style="padding:5px 9px;font-size:11px;color:var(--no)" onclick="cancelarAgendaGestor('${e.id}')" title="Cancelar">✕</button>`:''}</div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum compromisso neste dia</div>';
+  document.getElementById('eventos').innerHTML=apps.map(e=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${e.assunto||'Reunião'}${e.google?'':' · '+e.consultor}</div><div class="mut">${fmtData(e.inicio)} · ${e.duracao} min · ${e.local||''}</div></div><div style="display:flex;gap:6px;align-items:center">${e.vinculado||e.google?`<a href="${e.link||'#'}" target="_blank" class="badge b-blue" style="text-decoration:none">🔗 Google</a>`:''}<span class="badge ${e.status==='Aprovada'?'b-ok':e.status==='Google'?'b-blue':'b-warn'}">${e.status}</span>${!e.google?`<button class="btn sec2" style="padding:5px 9px;font-size:11px;color:var(--no)" onclick="cancelarAgendaGestor('${e.id}')" title="Cancelar">✕</button>`:''}</div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum compromisso neste dia</div>';
 }
 async function decidir(id,decisao){
   let resposta='';
@@ -1364,9 +1369,9 @@ async function abrirEquipes(){
   if(!j||!j.ok){toast((j&&j.erro)||'Erro');return}
   window._minhasEquipes=j.equipes||[];
   // v173: modo "Toda a minha estrutura" — vê de uma vez todos abaixo de você (vendas, clientes, painel, check-in, chat…)
-  const est=j.estrutura?`<div class="card" style="padding:10px 12px;margin-bottom:10px;${j.estrutura.ativa?'border-color:var(--acc);background:var(--accbg)':''}"><div class="row" style="align-items:center"><div style="min-width:0"><div class="titulo"><i class=i-building></i> Toda a minha estrutura</div><div class="mut" style="font-size:11px">${j.estrutura.pessoas} pessoa(s) abaixo de você + suas equipes</div></div><div style="flex:none">${j.estrutura.ativa?'<span class="badge b-ok">aberta</span>':'<button class="btn" style="padding:6px 12px" onclick="entrarEstrutura()">Abrir</button>'}</div></div></div><div class="mut" style="font-size:11px;margin:0 0 6px">Ou uma equipe só:</div>`:'';
-  const lista=est+window._minhasEquipes.map((e,i)=>`<div class="card" style="padding:10px 12px;margin-bottom:7px;${e.ativa?'border-color:var(--acc);background:var(--accbg)':''}"><div class="row" style="align-items:center"><div style="min-width:0"><div class="titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.nome)}${e.principal?' <span class="badge" style="font-size:9px;background:var(--card2);color:var(--mut)">principal</span>':''}${e.daEstrutura?' <span class="badge" style="font-size:9px;background:var(--card2);color:var(--mut)">da estrutura</span>':''}</div><div class="mut" style="font-size:11px">${e.consultores} consultor(es)</div></div><div style="display:flex;gap:6px;flex:none">${e.ativa?'<span class="badge b-ok">aberta</span>':`<button class="btn" style="padding:6px 12px" onclick="entrarEquipe(${i})">Abrir</button>`}${(!e.principal&&!e.consultores&&!e.daEstrutura)?`<button class="btn sec2" style="padding:6px 9px;color:var(--no)" title="Remover equipe vazia" onclick="removerEquipeG(${i})"><i class=i-trash></i></button>`:''}</div></div></div>`).join('');
-  abrirPop('Minhas equipes',`<div class="mut" style="font-size:12px;margin-bottom:10px">Trocar de equipe muda só o quadro (consultores, vendas, clientes, agenda e ranking). Os avisos de todas as equipes continuam chegando aqui.</div>${lista}<div class="h" style="margin-top:14px"><i class=i-plus></i> Nova equipe</div><div style="display:flex;gap:8px"><input type="text" id="nova-equipe" placeholder="Nome da equipe (ex: Chama Batel)" maxlength="40" onkeydown="if(event.key==='Enter')novaEquipe()" style="flex:1;min-width:0;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><button class="btn" onclick="novaEquipe()">Criar</button></div><div class="mut" style="font-size:11px;margin-top:6px">Você vira o gestor dessa equipe. Depois cadastre os consultores dela em <i class=i-settings></i> → Novo.</div>`);
+  const est=j.estrutura?`<div class="card" style="padding:10px 12px;margin-bottom:10px;${j.estrutura.ativa?'border-color:var(--acc);background:var(--accbg)':''}"><div class="row" style="align-items:center"><div style="min-width:0"><div class="titulo">🏢 Toda a minha estrutura</div><div class="mut" style="font-size:11px">${j.estrutura.pessoas} pessoa(s) abaixo de você + suas equipes</div></div><div style="flex:none">${j.estrutura.ativa?'<span class="badge b-ok">aberta</span>':'<button class="btn" style="padding:6px 12px" onclick="entrarEstrutura()">Abrir</button>'}</div></div></div><div class="mut" style="font-size:11px;margin:0 0 6px">Ou uma equipe só:</div>`:'';
+  const lista=est+window._minhasEquipes.map((e,i)=>`<div class="card" style="padding:10px 12px;margin-bottom:7px;${e.ativa?'border-color:var(--acc);background:var(--accbg)':''}"><div class="row" style="align-items:center"><div style="min-width:0"><div class="titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.nome)}${e.principal?' <span class="badge" style="font-size:9px;background:var(--card2);color:var(--mut)">principal</span>':''}${e.daEstrutura?' <span class="badge" style="font-size:9px;background:var(--card2);color:var(--mut)">da estrutura</span>':''}</div><div class="mut" style="font-size:11px">${e.consultores} consultor(es)</div></div><div style="display:flex;gap:6px;flex:none">${e.ativa?'<span class="badge b-ok">aberta</span>':`<button class="btn" style="padding:6px 12px" onclick="entrarEquipe(${i})">Abrir</button>`}${(!e.principal&&!e.consultores&&!e.daEstrutura)?`<button class="btn sec2" style="padding:6px 9px;color:var(--no)" title="Remover equipe vazia" onclick="removerEquipeG(${i})">🗑️</button>`:''}</div></div></div>`).join('');
+  abrirPop('Minhas equipes',`<div class="mut" style="font-size:12px;margin-bottom:10px">Trocar de equipe muda só o quadro (consultores, vendas, clientes, agenda e ranking). Os avisos de todas as equipes continuam chegando aqui.</div>${lista}<div class="h" style="margin-top:14px">➕ Nova equipe</div><div style="display:flex;gap:8px"><input type="text" id="nova-equipe" placeholder="Nome da equipe (ex: Chama Batel)" maxlength="40" onkeydown="if(event.key==='Enter')novaEquipe()" style="flex:1;min-width:0;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA"><button class="btn" onclick="novaEquipe()">Criar</button></div><div class="mut" style="font-size:11px;margin-top:6px">Você vira o gestor dessa equipe. Depois cadastre os consultores dela em ⚙️ → Novo.</div>`);
 }
 async function entrarEstrutura(){
   const j=await(await fetch('/api/gestor/equipes/ativa',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({time:'*estrutura'})})).json();
@@ -1415,13 +1420,13 @@ async function carregarAvisos(){
   notificarNovos(_avisos);
   const b=document.getElementById('badge-avisos');
   if(j.naoLidas>0){b.textContent=j.naoLidas;b.style.display='block'}else b.style.display='none';
-  document.getElementById('lista-avisos').innerHTML=(_avisos.length?`<div style="text-align:right;margin-bottom:8px"><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="apagarAvisos()">Limpar todas</button></div>`:'')+
-    (_avisos.map((a,i)=>`<div class="card row" style="${a.lida?'opacity:.65':''}"><div style="cursor:pointer;flex:1" onclick="abrirAviso(${i})"><div class="titulo">${a.lida?'':'<b class="dot az"></b> '}${esc(a.titulo)}</div><div class="mut" style="font-size:12px;margin-top:2px">${new Date(a.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div><button onclick="apagarAviso('${a.id}')" title="Apagar" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--mut)"><i class=i-trash></i></button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum aviso</div>');
+  document.getElementById('lista-avisos').innerHTML=(_avisos.length?`<div style="text-align:right;margin-bottom:8px"><button class="btn sec2 no-s" style="padding:6px 10px;font-size:12px" onclick="apagarAvisos()">Limpar todas</button></div>`:'')+
+    (_avisos.map((a,i)=>`<div class="card row" style="${a.lida?'opacity:.65':''}"><div style="cursor:pointer;flex:1" onclick="abrirAviso(${i})"><div class="titulo">${a.lida?'':'<b class="dot az"></b> '}${esc(a.titulo)}</div><div class="mut" style="font-size:12px;margin-top:2px">${new Date(a.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div><button onclick="apagarAviso('${a.id}')" title="Apagar" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--mut)">🗑️</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum aviso</div>');
 }
 function abrirAvisos(){const p=document.getElementById('notif-panel');if(p.style.display==='none'||!p.style.display){p.style.display='block';carregarAvisos()}else p.style.display='none'}
 document.addEventListener('click',e=>{const p=document.getElementById('notif-panel');if(p.style.display==='block'&&!p.contains(e.target)&&!e.target.closest('[onclick*="abrirAvisos"]'))p.style.display='none'});
 function toggleChat(){const box=document.getElementById('chat-box');const abrir=box.style.display==='none'||!box.style.display;box.style.display=abrir?'flex':'none';document.getElementById('chat-fab').style.display=abrir?'none':'block';if(abrir)abrirChatLista()}
-async function abrirAviso(i){const a=_avisos[i];abrirPop(a.titulo,`<div style="font-size:14px;line-height:1.7">${esc(a.texto)}</div><div class="mut" style="margin-top:10px;font-size:12px">${new Date(a.data).toLocaleString('pt-BR')}</div><div style="text-align:right;margin-top:12px"><button class="btn sec2" style="padding:6px 12px" onclick="apagarAviso('${a.id}');fecharPop()"><i class=i-trash></i> Apagar</button></div>`);if(!a.lida){await fetch('/api/avisos/ler',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id})});carregarAvisos()}}
+async function abrirAviso(i){const a=_avisos[i];abrirPop(a.titulo,`<div style="font-size:14px;line-height:1.7">${esc(a.texto)}</div><div class="mut" style="margin-top:10px;font-size:12px">${new Date(a.data).toLocaleString('pt-BR')}</div><div style="text-align:right;margin-top:12px"><button class="btn sec2 no-s" style="padding:6px 12px" onclick="apagarAviso('${a.id}');fecharPop()">🗑️ Apagar</button></div>`);if(!a.lida){await fetch('/api/avisos/ler',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:a.id})});carregarAvisos()}}
 async function apagarAviso(id){await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});carregarAvisos()}
 async function apagarAvisos(){if(!confirm('Apagar todas as notificações?'))return;await fetch('/api/avisos/apagar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({todos:true})});carregarAvisos()}
 function subAcesso(n){document.querySelectorAll('#aba-acessos .sa').forEach(e=>e.style.display='none');const el=document.getElementById('sa-'+n);if(el)el.style.display='block';document.querySelectorAll('[data-sa]').forEach(c=>c.classList.toggle('on',c.dataset.sa===n));if(n==='pedidos')carregarCadastros();if(n==='audit')carregarAuditoria();if(n==='estrutura')carregarEstrutura();}
@@ -1432,7 +1437,7 @@ function colocarAbaixo(login){
   const acima=new Set();let x=chefe;while(x&&x.superior&&!acima.has(x.superior)){acima.add(x.superior);x=por.get(x.superior);} // não deixa criar ciclo
   const cand=ps.filter(p=>p.login!==login&&!acima.has(p.login)&&RANK_G(p.nivel)<RANK_G(chefe.nivel)).sort((a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome));
   const lin=p=>{const sup=por.get(p.superior);const ja=p.superior===login;const trava=ja&&p.pelotime;const abx=ps.filter(q=>q.superior===p.login).length;
-    return `<label style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--bord);cursor:pointer"><input type="checkbox" value="${esc(p.login)}" ${ja?'checked':''} ${trava?'disabled data-trava="1"':''} style="width:18px;height:18px;accent-color:var(--acc)">${bolinhaNivel(p.nivel,12)}<div style="min-width:0;flex:1"><div style="font-size:13.5px;font-weight:600">${esc(p.nome)}${abx?` <span class="mut" style="font-weight:400">+ ${abx} abaixo dele(a)</span>`:''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''} · ${trava?'<i class=i-refresh></i> pelo time (para tirar, troque o time no cadastro)':ja?'já está aqui':sup?'hoje responde a '+esc(sup.nome)+(p.pelotime?' (pelo time)':''):'sem chefe definido'}</div></div></label>`;};
+    return `<label style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--bord);cursor:pointer"><input type="checkbox" value="${esc(p.login)}" ${ja?'checked':''} ${trava?'disabled data-trava="1"':''} style="width:18px;height:18px;accent-color:var(--acc)">${bolinhaNivel(p.nivel,12)}<div style="min-width:0;flex:1"><div style="font-size:13.5px;font-weight:600">${esc(p.nome)}${abx?` <span class="mut" style="font-weight:400">+ ${abx} abaixo dele(a)</span>`:''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''} · ${trava?'🔄 pelo time (para tirar, troque o time no cadastro)':ja?'já está aqui':sup?'hoje responde a '+esc(sup.nome)+(p.pelotime?' (pelo time)':''):'sem chefe definido'}</div></div></label>`;};
   abrirPop('＋ Abaixo de '+chefe.nome,`<div class="mut" style="font-size:12px;margin-bottom:8px">Marque quem fica abaixo de <b>${esc(chefe.nome)}</b> (${nivelInfo(chefe.nivel).n}). Só aparecem níveis abaixo dele(a). Ao mover um gestor ou supervisor, as pessoas abaixo dele(a) vão juntas.</div>
     <input type="text" placeholder="Buscar nome ou time…" oninput="const q=this.value.toLowerCase();document.querySelectorAll('#ca-lista label').forEach(l=>l.style.display=l.innerText.toLowerCase().includes(q)?'':'none')" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:6px">
     <div id="ca-lista" style="max-height:52vh;overflow:auto">${cand.map(lin).join('')||'<div class="mut" style="padding:10px">Ninguém de nível abaixo para colocar aqui.</div>'}</div>
@@ -1470,13 +1475,13 @@ function editarEstrutura(login){
 function eeSuperiores(login){
   const us=window._usuarios||[];const u=us.find(x=>x.email===login)||{};const sel=document.getElementById('ee-superior');if(!sel)return;
   const nv=document.getElementById('ee-nivel').value,tm=document.getElementById('ee-time').value,atual=sel.value||sel.dataset.atual||'';
-  const ops=us.filter(x=>x.ativo!==false&&x.email!==login&&RANK_G(x.nivel||'consultor')>RANK_G(nv)).sort((a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome));
+  const ops=us.filter(x=>x.ativo!==false&&x.email!==login&&RANK_G(x.nivel||'consultor')>RANK_G(nv)&&(nv!=='branco'||(x.nivel==='consultor'&&(x.time||'')===tm))).sort((a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome));
   const auto=ehCons(nv)?us.filter(x=>x.papel==='gestor'&&x.ativo!==false&&x.time&&x.time===tm).sort((a,b)=>RANK_G(a.nivel)-RANK_G(b.nivel))[0]:null;
-  const lbl=document.getElementById('ee-sup-lbl');if(lbl)lbl.textContent=nv==='branco'?'Indicado por (fica abaixo de quem indicou)':'Responde a';
+  const lbl=document.getElementById('ee-sup-lbl');if(lbl)lbl.textContent=nv==='branco'?'Indicado por (consultor vermelho do mesmo time)':'Responde a';
   sel.innerHTML=(ehCons(nv)?`<option value="">Automático pelo time${auto?' — '+esc(auto.nome):' (time sem gestor)'}</option>`:'<option value="">— ninguém (topo da estrutura) —</option>')+ops.map(x=>`<option value="${esc(x.email)}"${x.email===atual?' selected':''}>${esc(x.nome)} · ${nivelOpcao(nivelInfo(x.nivel))}</option>`).join('');
   const av=document.getElementById('ee-aviso');const mudouPapel=ehCons(nv)!==(u.papel!=='gestor');
-  av.innerHTML=(mudouPapel?(ehCons(nv)?'<i class=i-alert-triangle></i> Vai virar <b>consultor</b>: o acesso de gestor sai.':'<i class=i-alert-triangle></i> Vai virar <b>gestor</b>: passa a entrar no painel do gestor.'):'')
-    +(nv==='branco'?'<div style="margin-top:6px">Branco = consultor em período de experiência. Fica abaixo de quem indicou só para saber de onde veio: quem indicou não ganha comissão nem vira gestor dele. O dia a dia (check-in, atividades, chat) continua com o gestor do time.</div>':'');
+  av.innerHTML=(mudouPapel?(ehCons(nv)?'⚠️ Vai virar <b>consultor</b>: o acesso de gestor sai.':'⚠️ Vai virar <b>gestor</b>: passa a entrar no painel do gestor.'):'')
+    +(nv==='branco'?'<div style="margin-top:6px">Consultor branco: mesmo acesso do consultor, só muda a cor. Pode ficar abaixo de um consultor vermelho <b>do mesmo time</b> que indicou, só para saber de onde veio — quem indicou não ganha comissão nem vira gestor dele. O dia a dia (check-in, atividades, chat) continua com o gestor do time.</div>':'');
 }
 async function salvarEstruturaPessoa(login){
   const us=window._usuarios||[];const u=us.find(x=>x.email===login)||{};
@@ -1500,12 +1505,12 @@ async function carregarEstrutura(){
   const idx=login=>(window._usuarios||[]).findIndex(u=>u.email===login);
   const no=(p,prof)=>{const fs=(filhos.get(p.login)||[]).sort(ord);const gs=fs.filter(f=>!ehCons(f.nivel)),cs=fs.filter(f=>ehCons(f.nivel));const nCons=fs.length;const aberto=(window._estrAbertos||{})[p.login];
     return `<div style="margin-left:${prof?14:0}px;${prof?'border-left:2px solid var(--bord);padding-left:10px;':''}margin-top:6px">
-      <div onclick="editarEstrutura('${esc(p.login)}')" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;background:${p.login===j.eu?'var(--accbg)':'var(--card2)'};cursor:pointer">${bolinhaNivel(p.nivel,14)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nome)}${p.login===j.eu?' <span class="mut" style="font-weight:400">(você)</span>':''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''}${nCons?' · '+nCons+' abaixo':''}${p.pelotime?' · pelo time':''}</div></div>${!ehCons(p.nivel)?`<button class="btn sec2" title="Colocar pessoas ou times abaixo" onclick="event.stopPropagation();colocarAbaixo('${esc(p.login)}')" style="padding:4px 9px;font-size:12px;flex:none">＋ Abaixo</button>`:''}</div>
-      ${cs.length?`<div style="margin-left:14px;border-left:2px solid var(--bord);padding-left:10px;margin-top:6px"><div onclick="toggleConsEstr('${esc(p.login)}')" style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;background:var(--bg);cursor:pointer;font-size:12.5px;color:var(--mut)">${bolinhaNivel('consultor',10)} ${cs.length} consultor(es)${cs.some(c=>(filhos.get(c.login)||[]).length)?' + em experiência':''} ${aberto?'▾':'▸'}</div>${aberto?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px">${cs.map(c=>`<span onclick="editarEstrutura('${esc(c.login)}')" style="cursor:pointer;font-size:12px;padding:4px 10px;border-radius:8px;background:var(--card2);border:1px solid var(--bord);display:inline-flex;align-items:center;gap:5px">${bolinhaNivel(c.nivel,9)}${esc(c.nome)}${c.nivel==='branco'?' <span class=mut>· em experiência</span>':''}</span>${(filhos.get(c.login)||[]).filter(b=>b.nivel==='branco').sort(ord).map(b=>`<span onclick="editarEstrutura('${esc(b.login)}')" style="cursor:pointer;font-size:12px;padding:4px 10px;border-radius:8px;background:#fff;border:1px dashed #C9CDD4;display:inline-flex;align-items:center;gap:5px"><i class=i-chevron-right style="color:#9AA0A8"></i>${bolinhaNivel('branco',9)}${esc(b.nome)} <span class=mut>· indicado(a) por ${esc(c.nome.split(' ')[0])}</span></span>`).join('')}`).join('')}</div>`:''}</div>`:''}
+      <div onclick="editarEstrutura('${esc(p.login)}')" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;background:${p.login===j.eu?'var(--accbg)':'var(--card2)'};cursor:pointer">${bolinhaNivel(p.nivel,14)}<div style="min-width:0;flex:1"><div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.nome)}${p.login===j.eu?' <span class="mut" style="font-weight:400">(você)</span>':''}</div><div class="mut" style="font-size:11px">${nivelInfo(p.nivel).n}${p.time?' · '+esc(p.time):''}${nCons?' · '+nCons+' abaixo':''}${p.pelotime?' · pelo time':''}</div></div>${!ehCons(p.nivel)?`<button class="btn sec2 ok-s" title="Colocar pessoas ou times abaixo" onclick="event.stopPropagation();colocarAbaixo('${esc(p.login)}')" style="padding:4px 9px;font-size:12px;flex:none">＋ Abaixo</button>`:''}</div>
+      ${cs.length?`<div style="margin-left:14px;border-left:2px solid var(--bord);padding-left:10px;margin-top:6px"><div onclick="toggleConsEstr('${esc(p.login)}')" style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;background:var(--bg);cursor:pointer;font-size:12.5px;color:var(--mut)">${bolinhaNivel('consultor',10)} ${cs.length} consultor(es) ${aberto?'▾':'▸'}</div>${aberto?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px">${cs.map(c=>`<span onclick="editarEstrutura('${esc(c.login)}')" style="cursor:pointer;font-size:12px;padding:4px 10px;border-radius:8px;background:var(--card2);border:1px solid var(--bord);display:inline-flex;align-items:center;gap:5px">${bolinhaNivel(c.nivel,9)}${esc(c.nome)}</span>${(filhos.get(c.login)||[]).filter(b=>b.nivel==='branco').sort(ord).map(b=>`<span onclick="editarEstrutura('${esc(b.login)}')" style="cursor:pointer;font-size:12px;padding:4px 10px;border-radius:8px;background:#fff;border:1px dashed #C9CDD4;display:inline-flex;align-items:center;gap:5px"><i class=i-chevron-right style="color:#9AA0A8"></i>${bolinhaNivel('branco',9)}${esc(b.nome)} <span class=mut>· indicado(a) por ${esc(c.nome.split(' ')[0])}</span></span>`).join('')}`).join('')}</div>`:''}</div>`:''}
       ${gs.map(f=>no(f,prof+1)).join('')}</div>`;};
   const topo=(filhos.get('')||[]).sort(ord);
   // v178: aviso quando o sistema consertou sozinho alguém que estava respondendo a si mesmo / em círculo
-  const corr=(j.corrigidos||[]).length?`<div style="background:#FDF5E8;border:1px solid #F3DDB0;color:#7A5410;border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.45;margin:6px 0 8px"><i class=i-alert-triangle></i> <b>Ajuste automático:</b> ${j.corrigidos.map(c=>`${esc(c.nome)} estava respondendo ${c.antes===c.nome?'a si mesmo(a)':'a '+esc(c.antes)+' em círculo'} e foi para o topo`).join('; ')}. Toque na pessoa para colocar no lugar certo.</div>`:'';
+  const corr=(j.corrigidos||[]).length?`<div style="background:#FDF5E8;border:1px solid #F3DDB0;color:#7A5410;border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.45;margin:6px 0 8px">⚠️ <b>Ajuste automático:</b> ${j.corrigidos.map(c=>`${esc(c.nome)} estava respondendo ${c.antes===c.nome?'a si mesmo(a)':'a '+esc(c.antes)+' em círculo'} e foi para o topo`).join('; ')}. Toque na pessoa para colocar no lugar certo.</div>`:'';
   el.innerHTML=corr+(topo.map(p=>no(p,0)).join('')||'<div class="mut">Ninguém cadastrado</div>');
 }
 async function carregarUsuarios(){
@@ -1533,7 +1538,7 @@ async function carregarCadastros(){
 function renderCadastros(){
   const el=document.getElementById('lista-cadastros');if(!el)return;
   const cs=window._cadastros||[];
-  el.innerHTML=cs.length?cs.map(c=>{const dt=new Date(c.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});return `<div class="card"><div class="row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,'',38)}<div><div class="titulo">${esc(c.nome)} <span class="badge b-ok" style="margin-left:2px">consultor</span></div><div class="mut" style="font-size:12px">usuário: ${esc(c.email)}${c.time?' · '+esc(c.time):''} · ${dt}</div></div></div></div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px"><button class="btn sec2" style="padding:6px 12px;color:var(--no)" onclick="decidirCadastro('${c.id}',false)">✕ Recusar</button><button class="btn" style="padding:6px 14px" onclick="decidirCadastro('${c.id}',true,'${esc((c.time||'').replace(/'/g,""))}')">✓ Aprovar</button></div></div>`;}).join(''):'<div class="mut" style="padding:14px;text-align:center">Nenhum pedido pendente.</div>';
+  el.innerHTML=cs.length?cs.map(c=>{const dt=new Date(c.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});return `<div class="card"><div class="row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(c.nome,'',38)}<div><div class="titulo">${esc(c.nome)} <span class="badge b-ok" style="margin-left:2px">consultor</span></div><div class="mut" style="font-size:12px">usuário: ${esc(c.email)}${c.time?' · '+esc(c.time):''} · ${dt}</div></div></div></div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px"><button class="btn no" style="padding:6px 12px;color:var(--no)" onclick="decidirCadastro('${c.id}',false)">✕ Recusar</button><button class="btn" style="padding:6px 14px" onclick="decidirCadastro('${c.id}',true,'${esc((c.time||'').replace(/'/g,""))}')">✓ Aprovar</button></div></div>`;}).join(''):'<div class="mut" style="padding:14px;text-align:center">Nenhum pedido pendente.</div>';
 }
 async function decidirCadastro(id,aprovar,time){
   if(!aprovar&&!confirm('Recusar este pedido de acesso?'))return;
@@ -1552,7 +1557,7 @@ async function carregarTimes(){
 function renderTimes(){
   const el=document.getElementById('lista-times');if(!el)return;
   const ts=timesExistentes();
-  el.innerHTML=ts.map((t,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border:1px solid var(--bord);border-radius:10px;margin-bottom:6px"><span style="font-size:14px">${t}</span><button class="btn sec2" style="padding:5px 9px;font-size:12px;color:var(--no)" onclick="excluirTimeIdx(${i})"><i class=i-trash></i></button></div>`).join('')||'<div class="mut" style="font-size:12px">Nenhum time ainda</div>';
+  el.innerHTML=ts.map((t,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border:1px solid var(--bord);border-radius:10px;margin-bottom:6px"><span style="font-size:14px">${t}</span><button class="btn sec2" style="padding:5px 9px;font-size:12px;color:var(--no)" onclick="excluirTimeIdx(${i})">🗑️</button></div>`).join('')||'<div class="mut" style="font-size:12px">Nenhum time ainda</div>';
 }
 function excluirTimeIdx(i){const nome=(timesExistentes()||[])[i];if(nome)excluirTime(nome);}
 async function criarTime(){
@@ -1578,7 +1583,7 @@ async function carregarArquivosG(){
   const el=document.getElementById('lista-arquivos');if(!el)return;
   try{
     const r=await fetch('/api/arquivos');const d=await r.json();
-    el.innerHTML=(d.arquivos||[]).map(a=>{const dr=diasAte(a.expiraEm);const bx=(a.baixadoPor||[]);const bxTxt=bx.length?`<i class=i-circle-check></i> baixado por ${bx.join(', ')}`:'⏳ ninguém baixou ainda';return `<div class="card" style="margin-bottom:6px"><div class="row"><div style="min-width:0"><div class="titulo" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.titulo)}</div><div class="mut" style="font-size:11px">${esc(a.nome)} · ${fmtTam(a.tamanho)} · ${a.destino} · expira em ${dr}d</div></div><div style="display:flex;gap:6px"><a class="btn sec2" style="padding:6px 10px;font-size:12px;text-decoration:none" href="/api/arquivo?id=${a.id}"><i class=i-download></i></a><button class="btn sec2" style="padding:6px 9px;font-size:12px;color:var(--no)" onclick="excluirArquivo('${a.id}')"><i class=i-trash></i></button></div></div><div class="mut" style="font-size:11px;margin-top:6px">${bxTxt}</div></div>`}).join('')||'<div class="mut" style="font-size:12px">Nenhum arquivo enviado ainda</div>';
+    el.innerHTML=(d.arquivos||[]).map(a=>{const dr=diasAte(a.expiraEm);const bx=(a.baixadoPor||[]);const bxTxt=bx.length?`✅ baixado por ${bx.join(', ')}`:'⏳ ninguém baixou ainda';return `<div class="card" style="margin-bottom:6px"><div class="row"><div style="min-width:0"><div class="titulo" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.titulo)}</div><div class="mut" style="font-size:11px">${esc(a.nome)} · ${fmtTam(a.tamanho)} · ${a.destino} · expira em ${dr}d</div></div><div style="display:flex;gap:6px"><a class="btn sec2" style="padding:6px 10px;font-size:12px;text-decoration:none" href="/api/arquivo?id=${a.id}">⬇️</a><button class="btn sec2" style="padding:6px 9px;font-size:12px;color:var(--no)" onclick="excluirArquivo('${a.id}')">🗑️</button></div></div><div class="mut" style="font-size:11px;margin-top:6px">${bxTxt}</div></div>`}).join('')||'<div class="mut" style="font-size:12px">Nenhum arquivo enviado ainda</div>';
   }catch(e){}
 }
 async function enviarArquivo(){
@@ -1616,7 +1621,7 @@ async function carregarRotinasEdit(alvo){
     const op=(v,t)=>`<option value="${esc(v)}"${v===_rotAlvo?' selected':''}>${t}</option>`;
     sel.innerHTML=op('time:',`Equipe aberta${j.time?' — '+esc(j.time):''}`)
       +((j.estruturas||[]).length?`<optgroup label="Estrutura (todos abaixo)">${j.estruturas.map(e=>op('estrutura:'+e.login,`${e.login===(j.estruturas[0]||{}).login?'Toda a minha estrutura':'Estrutura de '+esc(e.nome)} (${e.abaixo})${e.propria?' ★':''}`)).join('')}</optgroup>`:'')
-      +((j.pessoas||[]).length?`<optgroup label="Uma pessoa (individual)">${j.pessoas.map(p=>op('pessoa:'+p.login,`${esc(p.nome)}${p.nivel==='branco'?' (em experiência)':''}${p.individual?' ★':''}`)).join('')}</optgroup>`:'');
+      +((j.pessoas||[]).length?`<optgroup label="Uma pessoa (individual)">${j.pessoas.map(p=>op('pessoa:'+p.login,`${esc(p.nome)}${p.nivel==='branco'?' (branco)':''}${p.individual?' ★':''}`)).join('')}</optgroup>`:'');
   }
   const d=document.getElementById('rot-desc'),bp=document.getElementById('rot-padrao');
   if(bp)bp.style.display=(tipo!=='time'&&j.propriaAlvo)?'block':'none';
@@ -1642,9 +1647,9 @@ function renderRotinasEdit(){
     _rotMovida=-1;return;
   }
   el.innerHTML=`<div class="mut" style="margin:2px 0 8px">Segure o ⋮⋮ e arraste para mudar a ordem. Toque no texto para editar.</div><div id="rot-ed">`
-    +_rotinas.map((r,i)=>`<div class="rot-i${i===_rotMovida?' mov':''}" data-i="${i}"><span class="rot-h" title="Arrastar" onpointerdown="rotArrasta(event,${i})"><i class=i-grip-vertical></i></span><input type="text" value="${esc(r)}" oninput="_rotinas[${i}]=this.value" aria-label="Rotina ${i+1}"><button class="rot-x" title="Apagar" onclick="removerRotina(${i})"><i class=i-trash></i></button></div>`).join('')
-    +`</div><div style="display:flex;gap:8px;margin-top:4px"><input type="text" id="nova-rotina" placeholder="Nova rotina…" onkeydown="if(event.key==='Enter')addRotina()" style="flex:1;min-width:0;padding:10px;border:1px solid var(--bord);border-radius:8px;font-size:14px"><button class="btn sec2" onclick="addRotina()">Adicionar</button></div>
-    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn sec2" style="flex:1" onclick="cancelarRotinas()">Cancelar</button><button class="btn" style="flex:1.6" onclick="salvarRotinas()">Salvar check-in</button></div>`;
+    +_rotinas.map((r,i)=>`<div class="rot-i${i===_rotMovida?' mov':''}" data-i="${i}"><span class="rot-h" title="Arrastar" onpointerdown="rotArrasta(event,${i})"><i class=i-grip-vertical></i></span><input type="text" value="${esc(r)}" oninput="_rotinas[${i}]=this.value" aria-label="Rotina ${i+1}"><button class="rot-x" title="Apagar" onclick="removerRotina(${i})">🗑️</button></div>`).join('')
+    +`</div><div style="display:flex;gap:8px;margin-top:4px"><input type="text" id="nova-rotina" placeholder="Nova rotina…" onkeydown="if(event.key==='Enter')addRotina()" style="flex:1;min-width:0;padding:10px;border:1px solid var(--bord);border-radius:8px;font-size:14px"><button class="btn sec2 ok-s" onclick="addRotina()">Adicionar</button></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn sec2 no-s" style="flex:1" onclick="cancelarRotinas()">Cancelar</button><button class="btn" style="flex:1.6" onclick="salvarRotinas()">Salvar check-in</button></div>`;
   _rotMovida=-1;
 }
 function editarRotinas(){_rotBackup=_rotinas.slice();_rotEditando=true;renderRotinasEdit();}
@@ -1683,7 +1688,7 @@ function renderUsuarios(){
   });
   const ativos=(window._usuarios||[]).filter(u=>u.ativo!==false).length;
   document.getElementById('lista-usuarios').innerHTML=`<div class="mut" style="font-size:12px;margin-bottom:6px">${ativos} ativos · ${(window._usuarios||[]).length-ativos} inativos</div>`+
-    lista.map(({u,i})=>`<div class="card" style="${u.ativo===false?'opacity:.55':''}"><div class="row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(u.nome,u.cor,38)}<div><div class="titulo">${u.nome} <span class="badge ${u.papel==='gestor'?'b-blue':'b-ok'}" style="margin-left:4px">${u.papel}</span>${u.ativo===false?' <span class="badge b-no">inativo</span>':''}</div><div class="mut" style="font-size:12px">usuário: ${u.email}${u.time?' · '+u.time:''}${u.calendarId?' · <i class=i-calendar></i> '+u.calendarId:''}</div></div></div></div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap"><button class="btn sec2" style="padding:5px 10px;font-size:12px;color:${u.ativo===false?'var(--ok)':'var(--warn)'}" onclick="toggleAtivo('${u.email}',${u.ativo===false})">${u.ativo===false?'✓ Ativar':'⏸ Desativar'}</button><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="editarUsuario(${i})"><i class=i-pencil></i> Editar</button><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="resetSenha('${u.email}')"><i class=i-key></i> Senha</button><button class="btn sec2" style="padding:5px 10px;font-size:12px;color:var(--no)" onclick="removerUsuario('${u.email}')">✕</button></div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum acesso</div>';
+    lista.map(({u,i})=>`<div class="card" style="${u.ativo===false?'opacity:.55':''}"><div class="row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(u.nome,u.cor,38)}<div><div class="titulo">${u.nome} <span class="badge ${u.papel==='gestor'?'b-blue':'b-ok'}" style="margin-left:4px">${u.papel}</span>${u.ativo===false?' <span class="badge b-no">inativo</span>':''}</div><div class="mut" style="font-size:12px">usuário: ${u.email}${u.time?' · '+u.time:''}${u.calendarId?' · 📅 '+u.calendarId:''}</div></div></div></div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap"><button class="btn sec2" style="padding:5px 10px;font-size:12px;color:${u.ativo===false?'var(--ok)':'var(--warn)'}" onclick="toggleAtivo('${u.email}',${u.ativo===false})">${u.ativo===false?'✓ Ativar':'⏸ Desativar'}</button><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="editarUsuario(${i})">✏️ Editar</button><button class="btn sec2" style="padding:5px 10px;font-size:12px" onclick="resetSenha('${u.email}')">🔑 Senha</button><button class="btn sec2" style="padding:5px 10px;font-size:12px;color:var(--no)" onclick="removerUsuario('${u.email}')">✕</button></div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum acesso</div>';
 }
 // v175: ao desativar um gestor, quem está abaixo dele passa DE VEZ para o chefe direto (reativar não devolve)
 async function toggleAtivo(email,ativo){
@@ -1714,7 +1719,8 @@ async function resetSenhasConsultores(){
 function atualizarSuperiores(email){
   const sel=document.getElementById('ed-superior');if(!sel)return;
   const nv=document.getElementById('ed-nivel').value,atual=sel.value||sel.dataset.atual||'';
-  const ops=(window._usuarios||[]).filter(x=>x.ativo!==false&&x.email!==email&&RANK_G(x.nivel||'consultor')>RANK_G(nv)).sort((a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome));
+  const tmEd=(document.getElementById('ed-time')||{}).value||'';
+  const ops=(window._usuarios||[]).filter(x=>x.ativo!==false&&x.email!==email&&RANK_G(x.nivel||'consultor')>RANK_G(nv)&&(nv!=='branco'||(x.nivel==='consultor'&&(x.time||'')===tmEd))).sort((a,b)=>RANK_G(b.nivel)-RANK_G(a.nivel)||a.nome.localeCompare(b.nome));
   const auto=ehCons(nv)?((window._usuarios||[]).filter(x=>x.papel==='gestor'&&x.ativo!==false&&x.time&&x.time===(document.getElementById('ed-time')||{}).value).sort((a,b)=>RANK_G(a.nivel)-RANK_G(b.nivel))[0]):null;
   sel.innerHTML=(ehCons(nv)?`<option value="">Automático pelo time${auto?' — '+esc(auto.nome):' (time sem gestor)'}</option>`:'<option value="">— ninguém (topo da estrutura) —</option>')+ops.map(x=>`<option value="${esc(x.email)}"${x.email===atual?' selected':''}>${esc(x.nome)} · ${nivelOpcao(nivelInfo(x.nivel))}</option>`).join('');
   // papel acompanha o nível
@@ -1725,7 +1731,7 @@ function editarUsuario(i){
   abrirPop('Editar acesso — '+u.email,`
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
       <div id="ed-foto-prev" style="width:58px;height:58px;border-radius:50%;background:var(--card2);background-size:cover;background-position:center;border:1px solid var(--bord);${u.foto?`background-image:url('${u.foto}')`:''}"></div>
-      <div><button class="btn sec2" style="padding:7px 12px" onclick="document.getElementById('ed-foto-file').click()"><i class=i-camera></i> Foto</button><button class="btn sec2" style="padding:7px 10px;margin-left:6px;color:var(--no)" onclick="removerFotoEd()">Remover</button></div>
+      <div><button class="btn sec2" style="padding:7px 12px" onclick="document.getElementById('ed-foto-file').click()">📷 Foto</button><button class="btn no" style="padding:7px 10px;margin-left:6px;color:var(--no)" onclick="removerFotoEd()">Remover</button></div>
     </div>
     <input type="hidden" id="ed-foto" value="${u.foto||''}">
     <input id="ed-foto-file" type="file" accept="image/*" style="display:none" onchange="setFotoEd(this)">
@@ -1738,7 +1744,7 @@ function editarUsuario(i){
     <label style="font-size:12px;color:var(--mut)">Time</label>
     <select id="ed-time" onchange="atualizarSuperiores('${u.email}')" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px"><option value="">Time…</option>${[...new Set([...timesExistentes(),...(u.time?[u.time]:[])])].map(t=>`<option${u.time===t?' selected':''}>${t}</option>`).join('')}</select>
     <div style="background:var(--card2);border-radius:10px;padding:10px;margin-bottom:10px">
-      <div style="font-weight:600;font-size:13px;margin-bottom:6px"><i class=i-building></i> Estrutura de gestão</div>
+      <div style="font-weight:600;font-size:13px;margin-bottom:6px">🏢 Estrutura de gestão</div>
       <label style="font-size:12px;color:var(--mut)">Nível</label>
       <select id="ed-nivel" onchange="atualizarSuperiores('${u.email}')" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">${NIVEIS_G.map(n=>`<option value="${n.id}"${(u.nivel||'consultor')===n.id?' selected':''}>${nivelOpcao(n)}</option>`).join('')}</select>
       <label style="font-size:12px;color:var(--mut)">Responde a</label>
@@ -1749,7 +1755,7 @@ function editarUsuario(i){
     <input type="text" id="ed-cargo" value="${(u.cargo||'').replace(/"/g,'&quot;')}" placeholder="Ex: Consultor Sênior, Líder…" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
     <label style="font-size:12px;color:var(--mut)">Cor do cargo</label>
     <select id="ed-cor" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">${PALETA.map(p=>`<option value="${p.c}"${u.cor===p.c?' selected':''}>${p.n}</option>`).join('')}</select>
-    <div class="mut" style="font-size:11px;margin-bottom:8px;background:var(--card2);border-radius:8px;padding:7px 9px"><i class=i-cash></i> <b>Nível de comissão do gestor pela cor:</b> <b class="dot rx"></b>Roxo = gestor <b>0,5%</b> · <b class="dot lj"></b>Laranja = supervisor <b>0,2%</b>. As outras cores contam como 0,5%.</div>
+    <div class="mut" style="font-size:11px;margin-bottom:8px;background:var(--card2);border-radius:8px;padding:7px 9px">💸 <b>Nível de comissão do gestor pela cor:</b> <b class="dot rx"></b>Roxo = gestor <b>0,5%</b> · <b class="dot lj"></b>Laranja = supervisor <b>0,2%</b>. As outras cores contam como 0,5%.</div>
     <div style="margin-bottom:8px">Prévia: ${balaoNome(u.nome,u.cor)}</div>
     <label style="font-size:12px;color:var(--mut)">E-mail da agenda Google (só gestor)</label>
     <input type="text" id="ed-cal" value="${(u.calendarId||'').replace(/"/g,'&quot;')}" autocapitalize="none" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
@@ -1757,7 +1763,7 @@ function editarUsuario(i){
     <input type="number" id="ed-meta" value="${u.metaVenda||''}" placeholder="0" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:8px">
     <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="ed-master" ${u.master?'checked':''} style="width:18px;height:18px;accent-color:var(--acc)"> Acesso master (vê todos os times)</label>
     <button class="btn" style="width:100%;margin-top:6px" onclick="salvarEdicaoUsuario('${u.email}')">Salvar alterações</button>
-    <button class="btn sec2" style="width:100%;margin-top:8px" onclick="resetSenha('${u.email}')"><i class=i-key></i> Redefinir senha</button>`);
+    <button class="btn sec2" style="width:100%;margin-top:8px" onclick="resetSenha('${u.email}')">🔑 Redefinir senha</button>`);
 }
 async function salvarEdicaoUsuario(email){
   const b={email,novoEmail:document.getElementById('ed-email').value,nome:document.getElementById('ed-nome').value,papel:document.getElementById('ed-papel').value,time:document.getElementById('ed-time').value,calendarId:document.getElementById('ed-cal').value,cargo:document.getElementById('ed-cargo').value,cor:document.getElementById('ed-cor').value,master:document.getElementById('ed-master').checked,metaVenda:parseFloat(document.getElementById('ed-meta').value)||0,foto:document.getElementById('ed-foto').value,nivel:(document.getElementById('ed-nivel')||{}).value,superior:(document.getElementById('ed-superior')||{}).value||''};
@@ -1815,14 +1821,14 @@ async function renderHojeG(){
     +`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><span class="badge b-ok">${d.bateram||0} bateram a meta</span><span class="badge b-warn">${moneyG(neg)} em negociação</span></div></div></div></div>`;
   // v178: quadro único de atividades (em aberto / atrasadas / finalizadas) + botão que abre a janela de nova atividade
   h+=`<div class="cd" style="cursor:default"><div class="row" style="margin-bottom:8px"><div class="t" style="margin:0!important">${Chama.E('📝','checklist')} Atividades da equipe</div><button class="btn" style="padding:6px 11px;min-height:32px;font-size:12.5px" onclick="event.stopPropagation();abrirNovaAtividade()">${Chama.E('＋','plus')} Nova atividade</button></div>${U.blocos([
-    {n:nAb,rot:'em aberto',tom:nAb?'blue':'gray',acao:"irControleFiltro('emaberto')"},
-    {n:nAtr,rot:'atrasadas',tom:nAtr?'red':'gray',acao:"irControleFiltro('atrasadas')"},
-    {n:nFin,rot:'finalizadas',tom:nFin?'green':'gray',acao:"irControleFiltro('feitas')"}])}</div>`;
+    {n:nAb,rot:'em aberto',tom:nAb?'blue':'gray',em:'⏳',acao:"irControleFiltro('emaberto')"},
+    {n:nAtr,rot:'atrasadas',tom:nAtr?'red':'gray',em:'⚠️',acao:"irControleFiltro('atrasadas')"},
+    {n:nFin,rot:'finalizadas',tom:nFin?'green':'gray',em:'✅',acao:"irControleFiltro('feitas')"}])}</div>`;
   const tot=nReun+nCad+nSen;
   h+=`<div class="cd"><div class="t">${Chama.E('🔔','bell')} Precisa de você${tot?'':' · tudo em dia'}</div>${U.blocos([
-    {n:nReun,rot:'reuniões p/ aprovar',tom:nReun?'amber':'gray',acao:"Chama.abrir('agenda')"},
-    {n:nCad,rot:'pedidos de acesso',tom:nCad?'blue':'gray',acao:"Chama.abrir('config');subAcesso('pedidos')"},
-    {n:nSen,rot:'pedidos de senha',tom:nSen?'violet':'gray',acao:'abrirAvisos()'}])}</div>`;
+    {n:nReun,rot:'reuniões p/ aprovar',tom:nReun?'amber':'gray',em:'📅',acao:"Chama.abrir('agenda')"},
+    {n:nCad,rot:'pedidos de acesso',tom:nCad?'blue':'gray',em:'👤',acao:"Chama.abrir('config');subAcesso('pedidos')"},
+    {n:nSen,rot:'pedidos de senha',tom:nSen?'violet':'gray',em:'🔑',acao:'abrirAvisos()'}])}</div>`;
   const ckPct=rs.ckTotal?Math.round(100*(rs.ckEnviaram||0)/rs.ckTotal):0;
   h+=`<div class="cd" onclick="abrirEquipeTab('checkin')"><div class="t">${Chama.E('✅','circle-check')} Check-in da equipe hoje</div><div style="display:flex;align-items:center;gap:14px">${U.anel((rs.ckEnviaram||0)+'/'+(rs.ckTotal||0),ckPct,{tam:86})}<div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:600">${rs.ckEnviaram||0} de ${rs.ckTotal||0} enviaram</div><div class="mut" style="font-size:12px;margin:2px 0 6px">média das rotinas feitas: ${rs.ckMedia||0}%</div>${U.barra(rs.ckMedia||0,{alt:8})}</div></div></div>`;
   el.innerHTML=h;
@@ -1839,7 +1845,7 @@ async function abrirNovaAtividade(para){
     <div style="display:flex;gap:8px"><div style="flex:1"><label style="font-size:12px;color:var(--mut)">Tipo</label><select id="na-tipo" style="${inp}"><option>Prospecção</option><option>Conteúdo</option><option>Treinamento</option><option>Cobrança</option><option>Reunião</option><option>Outro</option></select></div>
     <div style="flex:1"><label style="font-size:12px;color:var(--mut)">Prazo</label><input type="date" id="na-prazo" style="${inp}"></div></div>
     <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--txt);cursor:pointer"><input type="checkbox" id="na-recorrente" style="width:18px;height:18px;accent-color:var(--acc)"> Repetir toda semana (recria ao concluir)</label>
-    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn sec2" style="flex:1" onclick="fecharPop()">Cancelar</button><button class="btn" style="flex:1.6" onclick="novaAtividade()">Enviar atividade</button></div>
+    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn sec2 no-s" style="flex:1" onclick="fecharPop()">Cancelar</button><button class="btn" style="flex:1.6" onclick="novaAtividade()">Enviar atividade</button></div>
     <div class="mut" style="font-size:11.5px;margin-top:8px">A pessoa recebe um aviso na tela, com som, e a notificação no celular.</div>`);
   await carregarDestinatarios(true);
   const sel=document.getElementById('na-consultor');if(sel&&para)sel.value=para;

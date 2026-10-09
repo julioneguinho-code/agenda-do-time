@@ -300,3 +300,20 @@ test('estrutura (v178): dado antigo em círculo é consertado (leitura e cadastr
   assert.ok(auth.atualizarUsuario('roxoD9', { nivel: 'gestorEquipe', superior: '' }).ok);
   assert.ok(auth.atualizarUsuario('larD9', { nivel: 'supervisor', superior: 'roxod9' }).ok);
 });
+
+test('estrutura (v179): branco é consultor e só fica abaixo de um vermelho do MESMO time', async () => {
+  auth.criarUsuario('larE', 'x1234', 'Lar E', 'gestor', { time: 'TE', cor: '#FB923C' });
+  auth.criarUsuario('vE1', 'x1234', 'Verm E1', 'consultor', { time: 'TE' });
+  auth.criarUsuario('vE2', 'x1234', 'Verm E2', 'consultor', { time: 'OUTRO' });
+  auth.criarUsuario('bE', 'x1234', 'Branco E', 'consultor', { time: 'TE' });
+  assert.ok(auth.atualizarUsuario('larE', { nivel: 'supervisor' }).ok);
+  assert.ok(auth.atualizarUsuario('bE', { nivel: 'branco', superior: 'vE2'.toLowerCase() }).erro);  // vermelho de outro time: não
+  assert.ok(auth.atualizarUsuario('bE', { nivel: 'branco', superior: 'lare' }).erro);               // gestor: não (só vermelho)
+  assert.ok(auth.atualizarUsuario('bE', { nivel: 'branco', superior: 've1' }).ok);                 // vermelho do mesmo time: sim
+  assert.ok(auth.atualizarUsuario('bE', { nivel: 'branco', superior: '' }).ok);                    // ou automático pelo time
+  assert.strictEqual(auth.usuarioPorEmail('bE').superior, 'lare');
+  assert.ok(auth.atualizarUsuario('bE', { nivel: 'branco', superior: 've1' }).ok);
+  assert.ok(auth.atualizarUsuario('vE1', { time: 'OUTRO' }).ok);                                    // o vermelho mudou de time
+  assert.strictEqual(auth.usuarioPorEmail('bE').superior, 'lare');                                  // o branco volta ao automático
+  assert.strictEqual(auth.ROTULO_NIVEL.branco, 'consultor (branco)');
+});

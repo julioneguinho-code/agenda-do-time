@@ -7,7 +7,8 @@
   // ---------- v178: VISUAL SÓBRIO (página com <body class="sobrio">) ----------
   // Mesma paleta em tons claros; emojis viram ícones de linha (public/icones.css: <i class=i-nome></i>).
   C.sobrio = function () { return !!(document.body && document.body.classList.contains('sobrio')); };
-  C.E = function (emoji, icone) { return C.sobrio() ? '<i class=i-' + icone + '></i>' : emoji; };
+  // v179: no conteúdo voltam os EMOJIS coloridos (padrão do Mural); só o menu usa ícone de linha (r.ico)
+  C.E = function (emoji, icone) { return emoji; };
   // tira emojis de textos que não aceitam ícone (título de janela, aviso rápido); mantém ✓ ✕ ★ ☆ ▲ ▼
   C.semEmoji = function (t) { return String(t == null ? '' : t).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B50}\u{2B06}\u{2B07}\u{FE0F}\u{200D}]/gu, c => '✓✔✕★☆'.includes(c) ? c : '').replace(/\s{2,}/g, ' ').trim(); };
 
@@ -204,6 +205,9 @@
   let CAT = [], MAPA = {}, PADRAO = [], INICIO = null, BADGE = () => '', FAV = null;
   const MAX_FAV = 8, NA_BARRA = 3;
   // v177: cada recurso tem um quadradinho de cor suave (fácil de achar pela cor) e um grupo no "Mais"
+  // v179: a partir de que largura vira "computador" (menu lateral). Gestor (visual sóbrio): 768 px — janelas menores e tablets
+  // deitados já ficam com o menu na LATERAL ESQUERDA; consultor continua em 900 px. Celular: barra de baixo.
+  const DESK = (document.body && document.body.classList.contains('sobrio')) ? 768 : 900;
   const TONS = { verde: ['#E1F5EE', '#0F6E56'], rosa: ['#FBEAF0', '#993556'], azul: ['#E6F1FB', '#185FA5'], roxo: ['#EEEDFE', '#534AB7'], dourado: ['#FAEEDA', '#854F0B'], coral: ['#FAECE7', '#993C1D'], cinza: ['#F1EFE8', '#5F5E5A'], vermelho: ['#FDE8EA', '#B71F2E'] };
   const TOM_DO = { vendas: 'verde', novavenda: 'verde', simuladores: 'verde', clientes: 'rosa', novocliente: 'rosa', agenda: 'azul', atividades: 'azul', novatarefa: 'azul', checkin: 'verde', novaatividade: 'coral', equipe: 'roxo', controle: 'roxo', minhaficha: 'vermelho', mural: 'dourado', ranking: 'dourado', comissoes: 'dourado', sorteio: 'dourado', config: 'cinza', arquivos: 'cinza' };
   const GRUPOS = [['Vendas e clientes', ['vendas', 'novavenda', 'clientes', 'novocliente', 'simuladores', 'sorteio']], ['Agenda e tarefas', ['agenda', 'atividades', 'novatarefa', 'novaatividade', 'checkin']], ['Equipe e gestão', ['equipe', 'controle', 'minhaficha']], ['Resultados', ['mural', 'ranking', 'comissoes']], ['Configurações e arquivos', ['config', 'arquivos']]];
@@ -238,38 +242,63 @@
     + '.hoje .cd{border-radius:18px!important;border:1px solid var(--bord)!important;box-shadow:0 1px 2px rgba(16,24,40,.04);padding:13px 14px!important}'
     + '.hoje .cd.esc{background:#fff!important;color:var(--txt)!important}.hoje .cd .t{font-size:12.5px!important;font-weight:650;color:var(--mut)!important;margin-bottom:6px!important}'
     // barra de baixo (celular): ícone grande, item aberto destacado, respeita a barrinha do iPhone
-    + '@media (max-width:899px){.nav{padding:6px 4px calc(10px + env(safe-area-inset-bottom))!important;box-shadow:0 -2px 12px rgba(16,24,40,.06);border-top:1px solid var(--bord)}'
+    + '@media (max-width:' + (DESK - 1) + 'px){.nav{padding:6px 4px calc(10px + env(safe-area-inset-bottom))!important;box-shadow:0 -2px 12px rgba(16,24,40,.06);border-top:1px solid var(--bord)}'
     + '.nav a{font-size:10.5px!important;font-weight:600;color:#8A919C!important;padding-top:2px}.nav a .ic{font-size:22px!important;display:block;margin:0 auto 1px;width:46px;border-radius:14px;padding:2px 0}'
     + '.nav a.on{color:var(--acc)!important;background:transparent!important}.nav a.on .ic{background:var(--accbg)}.nav .qd{display:none!important}}'
     // menu lateral (computador): quadradinho colorido por recurso
-    + '@media (min-width:900px){.nav{background:#fff!important}.nav a .ic{display:none!important}.nav a .qd{display:inline-flex!important;font-size:16px}.nav a{padding:6px 10px!important;border-radius:12px!important;font-weight:550}'
+    + '@media (min-width:' + DESK + 'px){.nav{background:#fff!important}.nav a .ic{display:none!important}.nav a .qd{display:inline-flex!important;font-size:16px}.nav a{padding:6px 10px!important;border-radius:12px!important;font-weight:550}'
     + '.nav a.on{background:var(--accbg)!important}.nav a.sem-qd .ic{display:inline-block!important;width:30px;text-align:center}}';
   // ===== v178: TEMA SÓBRIO (body.sobrio) — sério, tons claros, cantos menores, sem sombras =====
   const TEMA_SOBRIO = ''
-    + 'body.sobrio{--bg:#F7F8FA;--card2:#F3F4F6;--bord:#E8EAEE;--txt:#1F2328;--mut:#6B7280;--accbg:rgba(214,40,57,.07);--okbg:#ECF7F2;--ok:#2E8A63;--warnbg:#FDF5E8;--warn:#9A6A1F;--nobg:#FDF0F1;--no:#C2414B;background:#F7F8FA!important;color:#1F2328}'
+    + 'body.sobrio{--bg:#F4F5F8;--card2:#F1F3F6;--bord:#E3E6EB;--txt:#1F2328;--mut:#6B7280;--accbg:rgba(214,40,57,.07);--okbg:#ECF7F2;--ok:#2E8A63;--warnbg:#FDF5E8;--warn:#9A6A1F;--nobg:#FDF0F1;--no:#C2414B;background:#F4F5F8!important;color:#1F2328}'
     + '.sobrio .card{border-radius:12px!important;box-shadow:none!important}'
-    + '.sobrio .h{font-size:13.5px!important;font-weight:600!important;color:#374151!important;margin:16px 0 8px!important}'
-    + '.sobrio .h i[class^=i-],.sobrio .titulo i[class^=i-]{color:#8A9099}'
+    + '.sobrio .h{font-size:14.5px!important;font-weight:650!important;color:#111318!important;margin:16px 0 9px!important;display:flex;align-items:center;gap:8px}'
+    + '.sobrio .titulo i[class^=i-]{color:#6B7280}'
+    // títulos com ícone num quadradinho colorido (cor pelo tipo do recurso) — Chama.realcarTitulos
+    + '.ib{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;flex:none;font-size:15px;line-height:1}.ib i{vertical-align:0!important}'
+    + '.ib-vd{background:#E7F6EF;color:#17915F}.ib-az{background:#EAF1FD;color:#2D6CDF}.ib-vm{background:#FDECEE;color:#D93B48}.ib-am{background:#FDF3E1;color:#C47F0E}.ib-rx{background:#F0EDFD;color:#6A55D8}.ib-rs{background:#FCEBF2;color:#C2457A}.ib-cz{background:#F1F3F6;color:#5B616B}'
     + '.sobrio .titulo{font-weight:600}.sobrio .top .nome{font-size:18px!important;font-weight:650!important;letter-spacing:-.2px}'
     + '.sobrio .btn{border-radius:8px!important;font-weight:550!important;min-height:36px}.sobrio .btn.sec2{border-color:#DDE1E6!important;color:#1F2328!important}.sobrio .btn i[class^=i-]{vertical-align:-.22em}'
     + '.sobrio .btn.no{border-color:#F3C4C8!important}'
-    + '.sobrio .chip{border-radius:8px!important;padding:6px 12px!important;font-size:13px;color:#374151;border-color:#DDE1E6!important}.sobrio .chip.on{background:#FDF0F1!important;border-color:#F3C4C8!important;color:#C2414B!important;font-weight:600}'
+    + '.sobrio .chip{border-radius:8px!important;padding:6px 12px!important;font-size:13px;color:#111318;font-weight:550;border-color:#DDE1E6!important}.sobrio .chip.on{background:#FDF0F1!important;border-color:#F3C4C8!important;color:#C2414B!important;font-weight:600}'
     + '.sobrio .chip i[class^=i-]{vertical-align:-.22em}'
     + '.sobrio .badge{border-radius:6px!important;font-weight:500!important}'
     + '.sobrio input[type=text],.sobrio input[type=search],.sobrio input[type=number],.sobrio input[type=date],.sobrio input[type=time],.sobrio input[type=email],.sobrio input[type=password],.sobrio input[type=tel],.sobrio input[type=month],.sobrio input[type=datetime-local],.sobrio select,.sobrio textarea{border-radius:8px!important;border-color:#DDE1E6!important}'
     + '.sobrio .kpi{border-radius:12px!important}.sobrio .kpi .v{font-weight:650!important}'
     + '.sobrio #modal>div{border-radius:14px!important}.sobrio .toast{border-radius:10px!important}'
-    + '.sobrio .hoje .cd{border-radius:12px!important;box-shadow:none!important}.sobrio .hoje .cd .t{font-size:12.5px!important;font-weight:600!important;color:#4B5563!important;display:flex;align-items:center;gap:6px}.sobrio .hoje .cd .t i[class^=i-]{color:#8A9099}'
+    + '.sobrio .hoje .cd{border-radius:12px!important;box-shadow:none!important}.sobrio .hoje .cd .t{font-size:14px!important;font-weight:650!important;color:#111318!important;display:flex;align-items:center;gap:8px;margin-bottom:10px!important}'
+    + '.sobrio .hoje .cd[onclick] .t:after{content:"›";margin-left:auto;color:#9AA0A8;font-size:20px;line-height:1;font-weight:400}'
     + '.sobrio .atl .it{border-radius:12px!important;box-shadow:none!important;font-weight:550!important}.sobrio .mais-busca{border-radius:10px}.sobrio .mais-busca i{color:#8A9099}'
     + '.sobrio .mais-sec{font-weight:600;color:#374151}.sobrio .mais-sec i{color:#8A9099}'
     + '.sobrio .qd{border-radius:8px!important}'
     + '.sobrio #chat-fab{box-shadow:0 4px 14px rgba(16,24,40,.18)!important}'
+    // v179: COR DOS BOTÕES PELO SIGNIFICADO — verde = coisa boa (aprovar, criar, salvar, nova venda/atividade);
+    // amarelo = atenção (reagendar); vermelho = coisa ruim / sem volta (recusar, excluir, cancelar, remover)
+    + '.sobrio .btn:not(.sec2):not(.no):not(.warn){background:#17915F!important;color:#fff!important;border:1px solid #17915F!important}.sobrio .btn:not(.sec2):not(.no):not(.warn):hover{background:#127A50!important}'
+    + '.sobrio .btn.no{background:#D93B48!important;color:#fff!important;border:1px solid #D93B48!important}.sobrio .btn.no:hover{background:#BE2E3A!important}'
+    + '.sobrio .btn.warn{background:#F5B83D!important;color:#4A3200!important;border:1px solid #E9A92A!important}'
+    + '.sobrio .btn.sec2.no-s,.sobrio .btn.sec2[style*="var(--no)"]{background:#FDECEE!important;border-color:#F8D3D7!important;color:#C62F3C!important}'
+    + '.sobrio .btn.sec2.ok-s{background:#E7F6EF!important;border-color:#CDEBDD!important;color:#127A50!important}'
     + '.sobrio .seg{display:flex;background:#ECEEF1;border-radius:10px;padding:3px;gap:2px;margin:2px 0 12px}.sobrio .seg button{flex:1;border:0;background:transparent;border-radius:8px;padding:8px 6px;font-size:13px;color:#4B5563;cursor:pointer;font-family:inherit}.sobrio .seg button.on{background:#fff;color:#111318;font-weight:600;box-shadow:0 1px 2px rgba(16,24,40,.08)}'
-    + '@media (max-width:899px){.sobrio .nav a .ic{font-size:21px!important}.sobrio .nav a.on .ic{background:transparent!important}.sobrio .nav a{color:#8A9099!important;font-weight:500}.sobrio .nav a.on{color:var(--acc)!important}}'
-    + '@media (min-width:900px){.sobrio .nav a{color:#374151!important;font-weight:500!important;position:relative}.sobrio .nav a.on{background:#F3F4F6!important;color:#111318!important;font-weight:600!important}'
+    + '@media (max-width:' + (DESK - 1) + 'px){.sobrio .nav a .ic{font-size:21px!important}.sobrio .nav a.on .ic{background:transparent!important}.sobrio .nav a{color:#8A9099!important;font-weight:500}.sobrio .nav a.on{color:var(--acc)!important}}'
+    + '@media (min-width:' + DESK + 'px){.sobrio .nav a{color:#374151!important;font-weight:500!important;position:relative}.sobrio .nav a.on{background:#F3F4F6!important;color:#111318!important;font-weight:600!important}'
     + '.sobrio .nav a.on:before{content:"";position:absolute;left:-6px;top:9px;bottom:9px;width:3px;border-radius:2px;background:var(--acc)}'
     + '.sobrio .nav .nv-marca{color:#111318!important;font-weight:650!important;font-size:15px!important;align-items:center;gap:8px}.sobrio .nav .nv-marca b{width:9px;height:9px;border-radius:2px;background:var(--acc);display:inline-block}'
-    + '.sobrio .nav .nv-tit{letter-spacing:0!important;font-weight:500!important;color:#9AA0A8!important}.sobrio .nav a .qd{width:26px!important;height:26px!important;font-size:14px!important}}';
+    + '.sobrio .nav .nv-tit{letter-spacing:0!important;font-weight:500!important;color:#9AA0A8!important}.sobrio .nav a .qd{width:26px!important;height:26px!important;font-size:14px!important}}'
+    // v179: tela média (768–1099 px, com menu lateral): cartões do painel em uma coluna para não apertar os números
+    + '@media (min-width:768px) and (max-width:1099px){.sobrio .hoje{grid-template-columns:minmax(0,1fr)!important}.sobrio .desk-2{grid-template-columns:minmax(0,1fr)!important}}';
+  // v179: ícone dos títulos ganha um quadradinho colorido conforme o tipo (vendas verde, agenda azul, alerta vermelho…)
+  const TOM_ICONE = { vd: 'coin cash chart-line trending-up calculator circle-check square-check report-money wallet chart-pie', az: 'calendar calendar-event calendar-plus calendar-check calendar-time clock checklist clipboard-list history file-import file-export download upload inbox mail mailbox world search list-check', vm: 'alert-triangle circle-x flame trash', am: 'bell trophy medal target star speakerphone crown', rx: 'users user user-circle building building-store hierarchy-2 user-search sitemap users-group user-plus', rs: 'address-book tag id-badge heart-handshake' };
+  const tomIcone = n => { for (const k in TOM_ICONE) if ((' ' + TOM_ICONE[k] + ' ').includes(' ' + n + ' ')) return k; return 'cz'; };
+  C.realcarTitulos = function (raiz) {
+    if (!C.sobrio()) return;
+    (raiz || document).querySelectorAll('.h > i[class^="i-"]:first-child, .hoje .cd .t > i[class^="i-"]:first-child, .fx-t i[class^="i-"]:first-child').forEach(i => {
+      if (i.parentNode.classList.contains('ib')) return;
+      const s = document.createElement('span'); s.className = 'ib ib-' + tomIcone(String(i.className).replace(/^i-/, '').split(' ')[0]);
+      i.parentNode.insertBefore(s, i); s.appendChild(i);
+    });
+  };
+  if (typeof MutationObserver !== 'undefined') { let pend = false; const mo = new MutationObserver(() => { if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; C.realcarTitulos(); }); }); document.addEventListener('DOMContentLoaded', () => { C.realcarTitulos(); mo.observe(document.body, { childList: true, subtree: true }); }); }
   (function estilosCasca() {
     const css = ''
       + '.nav .so-desk{display:none}.btn.full{width:100%}'
@@ -294,7 +323,7 @@
       + '.hoje .ln{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:7px 0;border-top:1px solid var(--bord)}'
       + '.hoje .ln:first-of-type{border-top:none}.hoje .pl{background:var(--acc);color:#fff;border-radius:99px;font-size:11px;padding:1px 8px;font-weight:700}'
       // ---- COMPUTADOR: menu lateral fixo + conteúdo centralizado e em colunas ----
-      + '@media (min-width:900px){'
+      + '@media (min-width:' + DESK + 'px){'
       + 'body{padding-left:236px!important;padding-bottom:30px!important}'
       + '.nav{top:0;bottom:0;left:0;right:auto;width:224px;flex-direction:column;justify-content:flex-start;align-items:stretch;border-top:none;border-right:1px solid var(--bord);padding:16px 10px;gap:2px;overflow-y:auto;z-index:50}'
       + '.nav .so-desk{display:flex}.nav .so-mob{display:none!important}'

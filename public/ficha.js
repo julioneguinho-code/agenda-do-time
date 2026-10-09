@@ -5,17 +5,17 @@
   'use strict';
   const C = window.Chama = window.Chama || {};
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const NIV = { dono: ['#111318', 'Dono de loja'], socio: ['gradpc', 'Sócio de loja'], gestorLoja: ['#9CA3AF', 'Gestor de loja'], gestorEquipe: ['#A78BFA', 'Gestor de equipe'], supervisor: ['#FB923C', 'Supervisor'], consultor: ['#E23B3B', 'Consultor'], branco: ['#CBD0D6', 'Consultor em experiência'] };
+  const NIV = { dono: ['#111318', 'Dono de loja'], socio: ['gradpc', 'Sócio de loja'], gestorLoja: ['#9CA3AF', 'Gestor de loja'], gestorEquipe: ['#A78BFA', 'Gestor de equipe'], supervisor: ['#FB923C', 'Supervisor'], consultor: ['#E23B3B', 'Consultor'], branco: ['#CBD0D6', 'Consultor'] };
   const corN = n => { const c = (NIV[n] || NIV.consultor)[0]; return c === 'gradpc' ? '#4B5563' : c; };
   // v178: visual SÓBRIO (body.sobrio) — mesma paleta em tons claros, traços finos e ícones de linha no lugar dos emojis
   const SB = () => !!(document.body && document.body.classList.contains('sobrio'));
-  const E = (emoji, icone) => SB() ? '<i class=i-' + icone + '></i>' : emoji;
-  const TR = () => SB() ? { an: 7, ml: 9, pe: 600 } : { an: 10, ml: 15, pe: 800 }; // espessura do anel / meia-lua e peso do número
+  const E = (emoji, icone) => emoji; // v179: emoji colorido (padrão do Mural)
+  const TR = () => SB() ? { an: 8, ml: 11, pe: 650 } : { an: 10, ml: 15, pe: 800 }; // espessura do anel / meia-lua e peso do número
   const nomeN = n => (NIV[n] || NIV.consultor)[1];
   const curto = v => { v = +v || 0; const a = Math.abs(v); return a >= 1e6 ? 'R$ ' + (v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mi' : a >= 1e3 ? 'R$ ' + Math.round(v / 1e3) + ' mil' : 'R$ ' + Math.round(v); };
   const brl = v => (+v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const pct = (a, b) => b ? Math.round(100 * a / b) : 0;
-  const corP = p => SB() ? (p >= 70 ? '#5CBF94' : p >= 40 ? '#F0BE6A' : '#EF8A8F') : (p >= 70 ? '#1D9E75' : p >= 40 ? '#EF9F27' : '#E24B4A');
+  const corP = p => SB() ? (p >= 70 ? '#17915F' : p >= 40 ? '#E09A1A' : '#D93B48') : (p >= 70 ? '#1D9E75' : p >= 40 ? '#EF9F27' : '#E24B4A');
 
   (function css() {
     if (document.getElementById('ficha-css')) return;
@@ -32,9 +32,9 @@
       + '.fx-br2{animation:fxLarg .8s ease-out both}@keyframes fxLarg{from{width:0}}'
       + '@media (prefers-reduced-motion:reduce){.fx-an,.fx-br,.fx-br2{animation:none}}'
       // v178: sóbrio — canto menor, sem sombra, títulos com ícone cinza
-      + '.sobrio .fx-c{border-radius:12px}.sobrio .fx-t{font-size:12px;color:#4B5563;font-weight:600}.sobrio .fx-t>i,.sobrio .fx-t i[class^=i-]{color:#8A9099;margin-right:2px}.sobrio .fx-t span{color:#8A9099;font-weight:500}'
+      + '.sobrio .fx-c{border-radius:12px}.sobrio .fx-t{font-size:13.5px;color:#111318;font-weight:650;margin-bottom:8px}.sobrio .fx-t span{display:inline-flex;align-items:center;gap:7px}.sobrio .fx-t span{color:#8A9099;font-weight:500}'
       + '.sobrio .fx-chips button{border-radius:8px;display:inline-flex;align-items:center;gap:6px;border-color:#DDE1E6}.sobrio .fx-chips button i{color:#6B7280}'
-      + '.ui-st{background:#FAFBFC;border:1px solid #EEF0F3;border-radius:9px;padding:8px 9px;min-width:0}.ui-st .l{font-size:11.5px;color:#6B7280;display:flex;align-items:center;gap:5px;line-height:1.25}.ui-st .l b{width:7px;height:7px;border-radius:50%;flex:none}.ui-st .v{font-size:20px;font-weight:600;color:#111318;margin-top:3px;line-height:1.15}';
+      + '.ui-st{border:1px solid;border-radius:10px;padding:8px 9px;min-width:0}.ui-st .l{font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:5px;line-height:1.25}.ui-st .v{font-size:22px;font-weight:650;margin-top:3px;line-height:1.1}';
     document.head.appendChild(st);
   })();
 
@@ -139,8 +139,9 @@
     blocos: function (lista) {
       // v178 sóbrio: número em fundo neutro, só um pontinho de cor indica o tipo
       if (SB()) {
-        const P = { red: '#EF8A8F', amber: '#F0BE6A', green: '#6CC49B', blue: '#7FA7E8', gray: '#C4C8CE', violet: '#A39BEA' };
-        return `<div style="display:grid;grid-template-columns:repeat(${Math.min(lista.length, 4)},minmax(0,1fr));gap:6px">${lista.map(b => `<div class="ui-st"${b.acao ? ` onclick="event.stopPropagation();${b.acao}" style="cursor:pointer"` : ''}><div class="l"><b style="background:${P[b.tom] || P.gray}"></b>${esc(b.rot)}</div><div class="v">${esc(b.n)}</div></div>`).join('')}</div>`;
+        // v179: fundo colorido claro + número e ícone na cor do tipo (zero = cinza)
+        const P = { red: ['#FDECEE', '#F8D3D7', '#D93B48'], amber: ['#FDF3E1', '#F6E1B5', '#C47F0E'], green: ['#E7F6EF', '#CDEBDD', '#17915F'], blue: ['#EAF1FD', '#D3E2FB', '#2D6CDF'], gray: ['#F4F5F7', '#E8EAEE', '#8A9099'], violet: ['#F0EDFD', '#DCD5FA', '#6A55D8'] };
+        return `<div style="display:grid;grid-template-columns:repeat(${Math.min(lista.length, 4)},minmax(0,1fr));gap:6px">${lista.map(b => { const t = P[b.tom] || P.gray; return `<div class="ui-st" style="background:${t[0]};border-color:${t[1]};color:${t[2]}${b.acao ? ';cursor:pointer' : ''}"${b.acao ? ` onclick="event.stopPropagation();${b.acao}"` : ''}><div class="l">${b.em ? b.em + ' ' : (b.ic ? '<i class=i-' + b.ic + '></i>' : '')}${esc(b.rot)}</div><div class="v">${esc(b.n)}</div></div>`; }).join('')}</div>`;
       }
       const T = { red: ['#FCEBEB', '#A32D2D'], amber: ['#FAEEDA', '#854F0B'], green: ['#E1F5EE', '#0F6E56'], blue: ['#E6F1FB', '#185FA5'], gray: ['#F1EFE8', '#5F5E5A'], violet: ['#EEEDFE', '#534AB7'] };
       return `<div style="display:grid;grid-template-columns:repeat(${Math.min(lista.length, 4)},minmax(0,1fr));gap:8px">${lista.map(b => { const t = T[b.tom] || T.gray; return `<div${b.acao ? ` onclick="event.stopPropagation();${b.acao}" style="cursor:pointer;` : ' style="'}background:${t[0]};border-radius:14px;padding:10px 6px;text-align:center;min-width:0"><div style="font-size:20px;font-weight:800;color:${t[1]};line-height:1.15">${esc(b.n)}</div><div style="font-size:11px;color:${t[1]};line-height:1.25;margin-top:2px">${esc(b.rot)}</div></div>`; }).join('')}</div>`;
@@ -148,7 +149,7 @@
     // barra de progresso com a cor do resultado
     barra: function (pct, o) {
       o = o || {}; const v = Math.max(0, Math.min(100, +pct || 0));
-      return `<div style="height:${SB() ? Math.min(o.alt || 10, 6) : (o.alt || 10)}px;border-radius:99px;background:#EEF0F3;overflow:hidden;flex:1;min-width:30px"><div class="fx-br2" style="width:${v}%;height:100%;border-radius:99px;background:${o.cor || corP(+pct || 0)}"></div></div>`;
+      return `<div style="height:${SB() ? Math.min(o.alt || 10, 8) : (o.alt || 10)}px;border-radius:99px;background:#EEF0F3;overflow:hidden;flex:1;min-width:30px"><div class="fx-br2" style="width:${v}%;height:100%;border-radius:99px;background:${o.cor || (SB() ? (v >= 70 ? '#17915F' : 'linear-gradient(90deg,#F9A826,#E8432E)') : corP(+pct || 0))}"></div></div>`;
     },
   };
 
