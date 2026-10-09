@@ -47,6 +47,10 @@ textarea{width:100%;padding:12px;border:1px solid var(--bord);border-radius:12px
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#14161C;color:#fff;font-size:13px;padding:10px 18px;border-radius:99px;display:none;z-index:9}
 .dot,.dot-v{display:inline-block;width:8px;height:8px;border-radius:50%;vertical-align:1px;margin-right:3px;flex:none}.dot.v,.dot-v{background:#6CC49B}.dot.a{background:#F0BE6A}.dot.r{background:#EF8A8F}.dot.az{background:#7FA7E8}.dot.rx{background:#A78BFA}.dot.lj{background:#FB923C}.dot.cz{background:#9CA3AF}.dot.pr{background:#111318}.dot.br{background:#fff;border:1.5px solid #9AA0A8}.dot.pc{background:linear-gradient(100deg,#111318 50%,#9CA3AF 50%)}
+/* v180: cada consultor numa linha própria (contorno, fundo alternado e espaço) — separação clara */
+.exe-l{cursor:pointer;margin:0 0 6px!important;padding:9px 12px;border:1px solid #E6E9EE;border-radius:10px;background:#fff;transition:background .12s,border-color .12s}
+.exe-l:nth-child(even){background:#F7F8FA}.exe-l:last-child{margin-bottom:0!important}.exe-l:hover{border-color:#C9CED6;background:#F1F3F6}
+#execucao{padding:10px!important}
 .resp-ia{white-space:pre-wrap;font-size:13px;line-height:1.6;color:var(--ia)}
 /* v178: editor do check-in — lista numerada; em "Editar" arrasta pelo ⋮⋮ (dedo ou mouse) */
 .rot-i{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--bord);border-radius:10px;padding:7px 10px;margin-bottom:6px;transition:transform .15s ease}
@@ -149,7 +153,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- VENDAS DO TIME (CRM gestor) -->
 <div class="aba" id="aba-vendasg">
   <div class="sec">
-    <div class="row"><div class="h">💰 Vendas do time</div><button class="btn" style="padding:6px 12px" onclick="novaVendaG()">+ Nova venda</button></div>
+    <div class="row"><div class="h">💰 Vendas do time</div></div>
     <div id="vg-painel-wrap">
     <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px">
       <button class="btn sec2" style="padding:5px 12px" onclick="vgMes(-1)">◀</button>
@@ -703,7 +707,7 @@ async function carregar(){
   if(painel.foto){gav.textContent='';gav.style.cssText='width:38px;height:38px;border-radius:50%;background-image:url('+painel.foto+');background-size:cover;background-position:center;border:1px solid var(--bord)';}
   else{gav.textContent=(painel.nome||painel.time||'G').replace(/^Gestor\s+/i,'').trim().slice(0,2).toUpperCase();aplicarCorAvatar(gav,painel.cor);}
   if(painel.tarefas){document.getElementById('t-atr').textContent=painel.tarefas.atrasadas;document.getElementById('t-pen').textContent=painel.tarefas.pendentes;document.getElementById('t-fin').textContent=painel.tarefas.finalizadas;}
-  document.getElementById('execucao').innerHTML = painel.execucao.slice().sort((a,b)=>b.pct-a.pct||a.nome.localeCompare(b.nome)).map((e,iE)=>`<div class="exe" style="cursor:pointer;margin-bottom:10px" onclick="abrirPerfil('${e.email}')"><span class="n" style="width:auto;min-width:0;flex:0 0 42%;display:flex;align-items:center;gap:8px;overflow:hidden">${e.pct>0?medalhaHTML(iE+1,24):'<span style="width:24px;flex:none"></span>'}${avatarHTML(e.nome,e.cor,28,e.foto)}<span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.nome)}</span></span>${Chama.ui.barra(e.pct,{alt:10})}<span class="pct" style="font-weight:600;color:${corPct(e.pct)}">${e.pct}%</span></div>`).join('');
+  document.getElementById('execucao').innerHTML = painel.execucao.slice().sort((a,b)=>b.pct-a.pct||a.nome.localeCompare(b.nome)).map((e,iE)=>`<div class="exe exe-l" onclick="abrirPerfil('${e.email}')"><span class="n" style="width:auto;min-width:0;flex:0 0 42%;display:flex;align-items:center;gap:8px;overflow:hidden">${e.pct>0?medalhaHTML(iE+1,24):'<span style="width:24px;flex:none"></span>'}${avatarHTML(e.nome,e.cor,28,e.foto)}<span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.nome)}</span></span>${Chama.ui.barra(e.pct,{alt:10})}<span class="pct" style="font-weight:600;color:${corPct(e.pct)}">${e.pct}%</span></div>`).join('');
   if(document.getElementById('atrasadas'))document.getElementById('atrasadas').innerHTML = painel.atividadesAtrasadas.map(a=>`<div class="card row"><div style="display:flex;align-items:center;gap:10px">${avatarHTML(a.consultor,'',30,a.foto)}<div><div class="titulo" style="font-weight:500;color:var(--acc);cursor:pointer" onclick="abrirPerfil('${a.consultorEmail||''}')">${esc(a.consultor)}</div><div class="mut">${esc(a.titulo)} · venceu ${a.prazo.slice(8,10)}/${a.prazo.slice(5,7)}</div></div></div><button class="btn sec2 ok-s" style="padding:6px 10px;font-size:12px" onclick="concluirAtv('${a.id}')">Feito ✓</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhuma</div>';
   // Minhas tarefas (enviadas por outros gestores)
   const mt=(painel.minhasTarefas||[]).filter(t=>t.status!=='Feito');
@@ -1791,7 +1795,7 @@ const CAT_G=[
   {id:'mural',ic:'🏅',ico:'medal',nome:'Mural e premiação',curto:'Mural',aba:'mural ranking',abrir(){irAba('mural');carregarMural();}},
   {id:'simuladores',ic:'🧮',ico:'calculator',nome:'Simuladores',curto:'Simular',aba:'simuladores',abrir(){irAba('simuladores');}},
   {id:'config',ic:'⚙️',ico:'settings',nome:'Configurações',aba:'acessos',abrir(){irAba('acessos');carregarUsuarios();}},
-  {id:'novavenda',ic:'➕',ico:'circle-plus',nome:'Nova venda',abrir(){irAba('vendasg');carregarVendasG();novaVendaG();}},
+  {id:'novavenda',ic:'➕',ico:'circle-plus',nome:'Nova venda',curto:'Venda',abrir(){irAba('vendasg');carregarVendasG();novaVendaG();}},
 ];
 function badgeG(id){
   if(!painel)return '';
@@ -1800,7 +1804,7 @@ function badgeG(id){
   if(id==='config')return rs.cadastros?String(rs.cadastros):'';
   return '';
 }
-Chama.iniciarCasca({catalogo:CAT_G,padrao:['vendas','agenda','equipe','clientes','comissoes','mural'],inicio:{ic:'📊',ico:'layout-dashboard',nome:'Painel',aba:'painel',abrir(){irAba('painel');}},badge:badgeG});
+Chama.iniciarCasca({catalogo:CAT_G,destaque:'novavenda',padrao:['vendas','agenda','equipe','clientes','comissoes','mural'],inicio:{ic:'📊',ico:'layout-dashboard',nome:'Painel',aba:'painel',abrir(){irAba('painel');}},badge:badgeG});
 const MESES_G=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 // Painel: vendas da equipe no mês, o que precisa de você e o check-in de hoje
 async function renderHojeG(){

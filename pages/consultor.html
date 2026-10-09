@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#D62839"><link rel="icon" type="image/png" href="/public/favicon-64.png"><link rel="apple-touch-icon" href="/public/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Chama">
 <title>Gestão Chama</title>
+<link rel="stylesheet" href="/public/icones.css">
 <style>
 :root{--bg:#E8E9EC;--card:#FFFFFF;--card2:#F2F3F5;--txt:#23272F;--mut:#7B828C;--acc:#D62839;--acc2:#B71F2E;--accbg:rgba(214,40,57,.10);--ok:#3E8E6E;--okbg:rgba(62,142,110,.13);--warn:#A9772F;--warnbg:rgba(169,119,47,.14);--no:#C0484E;--nobg:rgba(192,72,78,.12);--bord:#E1E3E7;--r:14px;color-scheme:light}
 *{box-sizing:border-box;margin:0}
@@ -15,7 +16,7 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 .gbar .gl{font-size:11px;width:92px;color:var(--txt);white-space:nowrap;font-weight:600}
 .gtrack{flex:1;height:11px;background:rgba(0,0,0,.09);border-radius:99px;overflow:hidden}
 .gfill{height:100%;border-radius:99px;transition:width .6s ease}
-.gbar .gp{font-size:11px;width:42px;text-align:right;font-weight:700}
+.gbar .gp{font-size:11px;width:42px;text-align:right;font-weight:600}
 .top{padding:18px 18px 10px;display:flex;justify-content:space-between;align-items:center}
 .top .ola{font-size:12px;color:var(--mut)}.top .nome{font-size:18px;font-weight:600;color:#14161C}
 .avatar{width:38px;height:38px;border-radius:50%;background:var(--okbg);color:var(--ok);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
@@ -48,15 +49,15 @@ input[type=datetime-local],input[type=text],input[type=password],input[type=numb
 .tile{min-height:118px;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;padding:14px;background:linear-gradient(145deg,#3B404A,#2A2E36);border:1px solid rgba(255,255,255,.06);box-shadow:0 4px 12px rgba(20,22,28,.18);position:relative}
 .tile:active{transform:scale(.98)}
 .tile .emo{font-size:34px;line-height:1;margin-bottom:8px}
-.tile .lbl{font-weight:700;font-size:15px;letter-spacing:.2px;color:#E7E9EE}
-.tile .bad{position:absolute;top:9px;right:11px;background:rgba(255,255,255,.16);color:#fff;border-radius:99px;font-size:11px;font-weight:700;padding:1px 8px}
+.tile .lbl{font-weight:600;font-size:15px;letter-spacing:.2px;color:#E7E9EE}
+.tile .bad{position:absolute;top:9px;right:11px;background:rgba(255,255,255,.16);color:#fff;border-radius:99px;font-size:11px;font-weight:600;padding:1px 8px}
 input:focus,select:focus{outline:none;border-color:var(--acc)}
 .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#14161C;color:#fff;font-size:13px;padding:10px 18px;border-radius:99px;display:none;z-index:9}
 .chip{border:1px solid var(--bord);background:var(--card);color:var(--txt);border-radius:99px;padding:6px 14px;font-size:13px;cursor:pointer}
 .chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 </style>
 </head>
-<body>
+<body class="sobrio">
 <div class="toast" id="toast"></div>
 <div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)fecharPop()">
   <div style="background:var(--card);border-radius:18px;padding:20px;max-width:400px;width:100%;max-height:80vh;overflow-y:auto;overflow-x:hidden;box-sizing:border-box">
@@ -69,7 +70,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
     <div><div class="ola" id="saud">Olá,</div><div class="nome" id="nome">…</div></div>
   </div>
   <div style="display:flex;align-items:center;gap:8px">
-    <button onclick="abrirAvisos()" title="Avisos" style="position:relative;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔔<span id="badge-avisos" style="display:none;position:absolute;top:-5px;right:-5px;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:17px;height:17px;line-height:17px;text-align:center"></span></button>
+    <button onclick="abrirAvisos()" title="Avisos" style="position:relative;border:1px solid var(--bord);background:var(--card);border-radius:12px;padding:8px 11px;font-size:14px;cursor:pointer">🔔<span id="badge-avisos" style="display:none;position:absolute;top:-5px;right:-5px;background:#E24B4A;color:#fff;font-size:10px;font-weight:600;border-radius:99px;min-width:17px;height:17px;line-height:17px;text-align:center"></span></button>
     <div class="avatar" id="avatar" title="Meu perfil" style="cursor:pointer" onclick="abrirPerfilC()"></div>
     <input id="minha-foto-file" type="file" accept="image/*" style="display:none" onchange="trocarMinhaFoto(this)">
   </div>
@@ -79,8 +80,6 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <div class="aba on" id="aba-inicio">
   <div class="sec">
     <div class="hoje" id="hoje"><div class="mut" style="padding:10px">Carregando…</div></div>
-    <div class="row" style="margin-top:4px"><div class="h" style="margin:6px 0">⭐ Meus atalhos</div><button class="lnk" onclick="Chama.personalizar()">✏️ Personalizar</button></div>
-    <div id="atalhos-home"></div>
   </div>
   <!-- dados carregados pelo app (usados nas telas internas) -->
   <div id="home-data" style="display:none">
@@ -153,7 +152,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <!-- VENDAS (CRM) -->
 <div class="aba" id="aba-vendas">
   <div class="sec">
-    <div class="row"><div class="h">💼 Minhas vendas</div><button class="btn" style="padding:7px 12px" onclick="novaVenda()">+ Nova venda</button></div>
+    <div class="row"><div class="h">💼 Minhas vendas</div></div>
     <div class="card" id="vd-filtro-card" style="padding:10px 12px">
       <div style="display:flex;gap:6px;align-items:center">
         <input type="text" id="vd-busca" placeholder="🔎 Cliente ou CPF" oninput="renderVendas()" style="flex:1;min-width:0">
@@ -181,7 +180,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <button class="chip" id="cc-tab-sorteio" style="flex:1;text-align:center" onclick="setCcTab('sorteio')">🎯 Sorteio</button>
     </div>
     <div id="cc-cliente">
-      <div class="card" style="padding:12px;margin-bottom:10px;background:linear-gradient(135deg,#0f8a5f,#0b6e4c);color:#fff"><div style="font-size:12px;opacity:.9">💼 Carteira total <span style="opacity:.8">(sem canceladas)</span></div><div id="vd-carteira-total" style="font-size:22px;font-weight:800;margin-top:2px">—</div><div id="vd-carteira-sub" class="mut" style="color:rgba(255,255,255,.85);font-size:11px;margin-top:2px"></div></div>
+      <div class="card" style="padding:12px;margin-bottom:10px;background:linear-gradient(135deg,#0f8a5f,#0b6e4c);color:#fff"><div style="font-size:12px;opacity:.9">💼 Carteira total <span style="opacity:.8">(sem canceladas)</span></div><div id="vd-carteira-total" style="font-size:22px;font-weight:650;margin-top:2px">—</div><div id="vd-carteira-sub" class="mut" style="color:rgba(255,255,255,.85);font-size:11px;margin-top:2px"></div></div>
       <div style="display:flex;gap:6px;margin-bottom:10px"><button class="btn" style="flex:1;background:var(--ok)" onclick="novaClienteAntigo()">➕ Cadastro de cliente</button><button class="btn sec2" style="flex:none;padding:9px 14px" onclick="menuPlanilhaC()" title="Planilha: modelo, importar, exportar">⋯</button></div>
       <input type="file" id="cs-upload" accept=".xlsx" style="display:none" onchange="subirPlanilhaClientesC(this)">
       <input type="text" id="cc-busca" placeholder="🔎 Buscar cliente ou CPF" oninput="renderClientes()" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#F7F8FA;margin-bottom:8px">
@@ -207,8 +206,8 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
   <div class="sec">
     <div class="h">💸 Minhas comissões</div>
     <div class="kpis" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 10px">
-      <div class="card" style="padding:10px 12px;margin:0"><div class="mut" style="font-size:11px">A receber</div><div id="ex-pend" style="font-weight:800;font-size:18px;color:var(--acc)">—</div></div>
-      <div class="card" style="padding:10px 12px;margin:0"><div class="mut" style="font-size:11px">Já recebido</div><div id="ex-pago" style="font-weight:800;font-size:18px;color:var(--ok)">—</div></div>
+      <div class="card" style="padding:10px 12px;margin:0"><div class="mut" style="font-size:11px">A receber</div><div id="ex-pend" style="font-weight:650;font-size:18px;color:var(--acc)">—</div></div>
+      <div class="card" style="padding:10px 12px;margin:0"><div class="mut" style="font-size:11px">Já recebido</div><div id="ex-pago" style="font-weight:650;font-size:18px;color:var(--ok)">—</div></div>
     </div>
     <div id="ex-lista"><div class="mut" style="padding:10px">Carregando…</div></div>
   </div>
@@ -221,7 +220,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
     <div id="mc-recado"></div>
     <div id="mc-metas"></div>
     <div id="mc-podio"></div>
-    <div class="h" style="margin-top:30px">Ranking de consultores</div>
+    <div class="h" style="margin-top:30px">📊 Ranking de consultores</div>
     <div id="mc-ranking"></div>
     <div id="mc-times"></div>
     <div id="mc-chart" style="margin-top:12px"></div>
@@ -238,19 +237,19 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
     <div id="sim-hub" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
       <div class="card" onclick="abrirSimulador('cxf')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
         <div style="font-size:26px">⚖️</div>
-        <div><div style="font-weight:700;font-size:14px">Consórcio × Financiamento</div><div class="mut" style="font-size:12px">Compare parcela e custo total</div></div>
+        <div><div style="font-weight:600;font-size:14px">Consórcio × Financiamento</div><div class="mut" style="font-size:12px">Compare parcela e custo total</div></div>
       </div>
       <div class="card" onclick="abrirSimulador('parcela')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
         <div style="font-size:26px">🧾</div>
-        <div><div style="font-weight:700;font-size:14px">Crédito → Parcela</div><div class="mut" style="font-size:12px">Parcela mensal do consórcio</div></div>
+        <div><div style="font-weight:600;font-size:14px">Crédito → Parcela</div><div class="mut" style="font-size:12px">Parcela mensal do consórcio</div></div>
       </div>
       <div class="card" onclick="abrirSimulador('carta')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
         <div style="font-size:26px">💰</div>
-        <div><div style="font-weight:700;font-size:14px">Venda da Carta × CDI</div><div class="mut" style="font-size:12px">Lucro de vender a carta contemplada vs. CDI</div></div>
+        <div><div style="font-weight:600;font-size:14px">Venda da Carta × CDI</div><div class="mut" style="font-size:12px">Lucro de vender a carta contemplada vs. CDI</div></div>
       </div>
       <div class="card" onclick="abrirSimulador('custo')" style="cursor:pointer;padding:16px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--bord)">
         <div style="font-size:26px">📊</div>
-        <div><div style="font-weight:700;font-size:14px">Custo de Operação, Atualização de INCC e Assunção</div><div class="mut" style="font-size:12px">Custo modo HP, parcela com INCC e assunção</div></div>
+        <div><div style="font-weight:600;font-size:14px">Custo de Operação, Atualização de INCC e Assunção</div><div class="mut" style="font-size:12px">Custo modo HP, parcela com INCC e assunção</div></div>
       </div>
     </div>
     <div id="sim-carta" class="sim-panel" style="display:none"><button class="btn sec2" style="padding:6px 12px;margin-bottom:10px" onclick="voltarSimHub()">← Voltar aos simuladores</button><div class="sim-plan" data-sim="carta"></div></div>
@@ -275,7 +274,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
         <div id="cxf-mercado" style="font-size:12px;margin-bottom:10px;background:var(--card2);border-radius:8px;padding:8px 10px"></div>
         <label style="font-size:12px;color:var(--mut)">Valor do crédito / bem (R$)</label>
         <input type="text" inputmode="decimal" id="cxf-credito" placeholder="Ex.: 100.000" style="width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg);margin-bottom:10px">
-        <div style="font-weight:700;font-size:13px;margin-bottom:6px">🧩 Consórcio</div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:6px">🧩 Consórcio</div>
         <div style="display:flex;gap:8px">
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Prazo (meses)</label><input type="text" inputmode="numeric" id="cxf-prazoC" placeholder="120" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Taxa adm total (%)</label><input type="text" inputmode="decimal" id="cxf-adm" placeholder="17" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
@@ -286,7 +285,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
           <select id="cxf-indice" onchange="cxfIndiceChange()" style="flex:1;padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:var(--bg)"><option value="incc">INCC (imóvel)</option><option value="ipca">IPCA (veículo)</option></select>
           <input type="text" inputmode="decimal" id="cxf-indicepct" placeholder="% a.a." style="flex:1;padding:9px;border:1px solid var(--bord);border-radius:10px;font-size:13px;background:var(--bg)">
         </div>
-        <div style="font-weight:700;font-size:13px;margin:12px 0 6px">🏦 Financiamento</div>
+        <div style="font-weight:600;font-size:13px;margin:12px 0 6px">🏦 Financiamento</div>
         <div style="display:flex;gap:8px">
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Entrada (R$)</label><input type="text" inputmode="decimal" id="cxf-entrada" placeholder="0" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
           <div style="flex:1"><label style="font-size:11px;color:var(--mut)">Juros ao mês (%)</label><input type="text" inputmode="decimal" id="cxf-juros" placeholder="1,5" style="width:100%;padding:10px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:var(--bg)"></div>
@@ -311,7 +310,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 </div>
 
 <!-- CHAT FLUTUANTE (canto inferior direito) -->
-<button id="chat-fab" onclick="toggleChat()" style="position:fixed;bottom:84px;right:16px;width:56px;height:56px;border-radius:50%;background:var(--acc);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:9996">💬<span id="badge-chat" style="display:none;position:absolute;top:-2px;right:-2px;background:#E24B4A;color:#fff;font-size:10px;font-weight:700;border-radius:99px;min-width:18px;height:18px;line-height:18px;text-align:center">0</span></button>
+<button id="chat-fab" onclick="toggleChat()" style="position:fixed;bottom:84px;right:16px;width:56px;height:56px;border-radius:50%;background:var(--acc);color:#fff;border:none;font-size:24px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:9996">💬<span id="badge-chat" style="display:none;position:absolute;top:-2px;right:-2px;background:#E24B4A;color:#fff;font-size:10px;font-weight:600;border-radius:99px;min-width:18px;height:18px;line-height:18px;text-align:center">0</span></button>
 <div id="chat-box" style="display:none;position:fixed;bottom:84px;right:16px;width:min(340px,92vw);height:min(460px,70vh);background:var(--card);border:1px solid var(--bord);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.25);z-index:9997;flex-direction:column;overflow:hidden">
   <div style="background:var(--acc);color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:14px">💬 Conversa com seu gestor</span><button onclick="toggleChat()" style="border:none;background:transparent;color:#fff;font-size:18px;cursor:pointer">✕</button></div>
   <div id="chat-msgs" style="flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--bg)"></div>
@@ -377,26 +376,26 @@ function calcCxF(){
   box.innerHTML=`
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
     <div class="card" style="padding:12px;border:1.5px solid var(--acc)">
-      <div style="font-weight:700;margin-bottom:2px">🧩 Consórcio</div>
-      <div style="font-size:19px;font-weight:800;color:var(--acc)">${simBRL(parcConsIni)}</div><div class="mut" style="font-size:11px">1ª parcela · ${prazoC}x${reaj?' · reajuste '+(g*100).toFixed(1).replace('.',',')+'%/ano':''}</div>
+      <div style="font-weight:600;margin-bottom:2px">🧩 Consórcio</div>
+      <div style="font-size:19px;font-weight:650;color:var(--acc)">${simBRL(parcConsIni)}</div><div class="mut" style="font-size:11px">1ª parcela · ${prazoC}x${reaj?' · reajuste '+(g*100).toFixed(1).replace('.',',')+'%/ano':''}</div>
       ${linha('Total pago',simBRL(totalCons))}
       ${linha('Custo (taxas'+(reaj?'+reajuste':'')+')',simBRL(custoCons)+' · '+pct(custoCons).toFixed(1)+'%','var(--no)')}
     </div>
     <div class="card" style="padding:12px">
-      <div style="font-weight:700;margin-bottom:2px">🏦 Financiamento</div>
-      <div style="font-size:19px;font-weight:800">${simBRL(parcFinIni)}</div><div class="mut" style="font-size:11px">1ª parcela · ${prazoF}x · ${tabela.toUpperCase()}${entrada>0?' + entrada':''}</div>
+      <div style="font-weight:600;margin-bottom:2px">🏦 Financiamento</div>
+      <div style="font-size:19px;font-weight:650">${simBRL(parcFinIni)}</div><div class="mut" style="font-size:11px">1ª parcela · ${prazoF}x · ${tabela.toUpperCase()}${entrada>0?' + entrada':''}</div>
       ${linha('Total pago',simBRL(totalFin))}
       ${linha('Custo (juros)',simBRL(custoFin)+' · '+pct(custoFin).toFixed(1)+'%','var(--no)')}
     </div>
   </div>
   <div class="card" style="padding:12px;margin-top:10px">
-    <div style="font-weight:700;font-size:13px;margin-bottom:2px">📈 Evolução da parcela</div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:2px">📈 Evolução da parcela</div>
     <div class="mut" style="font-size:10px;margin-bottom:6px">Toque no ano para abrir os meses.</div>
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);font-weight:700"><span style="width:70px">Período</span><span style="flex:1;text-align:center">Consórcio</span><span style="flex:1;text-align:right">Financiam.</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--mut);font-weight:600"><span style="width:70px">Período</span><span style="flex:1;text-align:center">Consórcio</span><span style="flex:1;text-align:right">Financiam.</span></div>
     ${evo}
   </div>
   <div class="card" style="padding:12px;margin-top:10px;border:1.5px solid var(--ok);background:var(--okbg)">
-    <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:700">${economia>=0?'💚 Consórcio economiza':'⚠️ Financiamento sai mais barato'}</div><div style="font-weight:800;font-size:18px;color:${economia>=0?'var(--ok)':'var(--no)'}">${simBRL(Math.abs(economia))}</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600">${economia>=0?'💚 Consórcio economiza':'⚠️ Financiamento sai mais barato'}</div><div style="font-weight:650;font-size:18px;color:${economia>=0?'var(--ok)':'var(--no)'}">${simBRL(Math.abs(economia))}</div></div>
     <div class="mut" style="font-size:11px;margin-top:4px">${economia>=0?'A favor do consórcio no total pago':'Financiamento custa menos no total'} · ${pct(Math.abs(economia)).toFixed(1)}% do crédito.</div>
   </div>
   <div class="mut" style="font-size:10px;margin-top:8px">Estimativa simplificada, sem IOF/seguro. Consórcio: adm + fundo${reaj?' + reajuste anual pelo índice':' (sem juros)'}. Financiamento pela tabela ${tabela.toUpperCase()}.</div>`;
@@ -450,14 +449,17 @@ function fmtData(iso){const d=new Date(iso);const dias=['Dom','Seg','Ter','Qua',
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function money(v){return 'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 // ---------- MURAL (consultor, somente leitura) ----------
-function mcAvatar(nome,foto,size){size=size||34;if(foto)return `<div style="width:${size}px;height:${size}px;border-radius:50%;background-image:url('${foto}');background-size:cover;background-position:center;flex:none;border:1px solid var(--bord)"></div>`;return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#C9CDD4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.36)}px;font-weight:700;flex:none">${esc((nome||'?').slice(0,2).toUpperCase())}</div>`;}
+function mcAvatar(nome,foto,size){size=size||34;if(foto)return `<div style="width:${size}px;height:${size}px;border-radius:50%;background-image:url('${foto}');background-size:cover;background-position:center;flex:none;border:1px solid var(--bord)"></div>`;return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#C9CDD4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.36)}px;font-weight:600;flex:none">${esc((nome||'?').slice(0,2).toUpperCase())}</div>`;}
 function mcMedCor(pos){return pos===1?'#E6B800':pos===2?'#9AA0A6':pos===3?'#B87333':'var(--mut)';}
 const MILHAO=1000000;
 // v157: demais posições do ranking — só um fogo pequeno ao lado da foto de quem passou de R$ 1 milhão no mês
 function avFogoC(inner,on){return on?inner+'<span class="fogo-lado" title="Acima de R$ 1 milhão no mês">🔥</span>':inner;}
 // v157: pódio (1º, 2º e 3º) — foto dentro da chama animada (desenho em public/comum.js)
+// v180: medalha de posição (ouro/prata/bronze com brilho) e barra cor de chama — iguais às do gestor
+function medalhaHTML(pos,tam){tam=tam||26;const g=['linear-gradient(160deg,#F0DA8E,#C99A2E)','linear-gradient(160deg,#E8EBEF,#9DA3AA)','linear-gradient(160deg,#E2A672,#A8622E)'][pos-1];return `<div style="width:${tam}px;height:${tam}px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:${Math.round(tam*.48)}px;font-weight:650;${g?`background:${g};color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.25)`:'background:#F1F3F6;color:#5B616B'}">${pos}</div>`;}
+const BARRA_FOGO='linear-gradient(90deg,#F9A826,#E8432E)';
 function avAnelC(inner,tam){return Chama.chamaHTML(inner,tam);}
-function mcSelo(s){if(!s)return '';const c=s==='LENDÁRIO'?'#B23B3B':s==='CAMPEÃO'?'#2E7D50':'#7A6A1F';const bg=s==='LENDÁRIO'?'#F5E4E4':s==='CAMPEÃO'?'#E5F1EA':'#F3EFDD';return `<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:5px;background:${bg};color:${c}">${s}</span>`;}
+function mcSelo(s){if(!s)return '';const c=s==='LENDÁRIO'?'#B23B3B':s==='CAMPEÃO'?'#2E7D50':'#7A6A1F';const bg=s==='LENDÁRIO'?'#F5E4E4':s==='CAMPEÃO'?'#E5F1EA':'#F3EFDD';return `<span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:5px;background:${bg};color:${c}">${s}</span>`;}
 function mcChart(meses,cfg){const W=720,H=150,pl=50,pr=12,pt=10,pb=20,iw=W-pl-pr,ih=H-pt-pb;const vals=meses.map(x=>x.valor);const maxY=Math.max(1,...vals,cfg.desafio||0,cfg.expectativa||0,cfg.piso||0)*1.12;const x=i=>pl+(iw*i/(meses.length-1));const y=v=>pt+ih-(ih*v/maxY);const pts=meses.map((m,i)=>`${x(i)},${y(m.valor)}`).join(' ');const area=`${pl},${pt+ih} ${pts} ${x(meses.length-1)},${pt+ih}`;const linha=(v,cor,label)=>{if(!v)return '';const yy=y(v);return `<line x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}" stroke="${cor}" stroke-width="1.4" stroke-dasharray="5 4"/><text x="${W-pr}" y="${yy-3}" text-anchor="end" font-size="9" fill="${cor}">${label}</text>`;};const gy=[0,.25,.5,.75,1].map(f=>{const yy=pt+ih-ih*f;const val=maxY*f;return `<line x1="${pl}" y1="${yy}" x2="${W-pr}" y2="${yy}" stroke="#EAECEF"/><text x="${pl-6}" y="${yy+3}" text-anchor="end" font-size="9" fill="var(--mut)">${val>=1000000?(val/1000000).toFixed(1)+'M':Math.round(val/1000)+'k'}</text>`;}).join('');const xl=meses.map((m,i)=>`<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="8.5" fill="var(--mut)">${m.label}</text>`).join('');const dots=meses.map((m,i)=>`<circle cx="${x(i)}" cy="${y(m.valor)}" r="2.6" fill="#4F8CC7"/>`).join('');return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">${gy}<polygon points="${area}" fill="rgba(127,178,229,.28)"/><polyline points="${pts}" fill="none" stroke="#4F8CC7" stroke-width="2"/>${dots}${linha(cfg.desafio,'#4E9A6B','Desafio')}${linha(cfg.expectativa,'#4F79A8','Expectativa')}${linha(cfg.piso,'#8A8F98','Piso')}${xl}</svg>`;}
 async function carregarMuralC(){
   let meu='';try{meu=(await (await fetch('/api/me')).json()).email||'';}catch(e){}
@@ -465,16 +467,17 @@ async function carregarMuralC(){
   const M=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   document.getElementById('mc-mes').textContent='Ranking de '+M[+m.mes.slice(5)-1]+'/'+m.mes.slice(0,4);
   document.getElementById('mc-recado').innerHTML=m.config.recado?`<div style="background:linear-gradient(90deg,#FFF6DC,#FDEFC9);border:1px solid #E9D8A0;color:#7A5B12;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-weight:600;text-align:center">📣 ${esc(m.config.recado)}</div>`:'';
-  const cardMeta=(icon,label,val,cor)=>`<div class="card" style="padding:10px 8px;text-align:center"><div style="font-size:18px">${icon}</div><div class="mut" style="font-size:11px;margin-top:2px">${label}</div><div style="font-weight:800;font-size:14px;color:${cor||'var(--txt)'};margin-top:2px">${money(val)}</div></div>`;
+  const vMes=m.totalVendidoMes||0;
+  const cardMeta=(icon,label,val,cor)=>{const pc=val?Math.min(100,Math.round(100*vMes/val)):0,ok=val&&vMes>=val;return `<div class="card" style="padding:12px 8px 10px;text-align:center${ok?';border-color:#CDEBDD!important;background:#F3FBF7':''}"><div style="font-size:26px;line-height:1.1">${icon}</div><div style="font-size:12px;margin-top:3px;color:#111318;font-weight:600">${label}</div><div style="font-weight:650;font-size:14px;color:${cor||'var(--txt)'};margin-top:1px">${money(val)}</div>${val?`<div style="height:6px;border-radius:99px;background:#EEF0F3;overflow:hidden;margin:7px 6px 3px"><div style="height:100%;width:${pc}%;border-radius:99px;background:${ok?'#17915F':BARRA_FOGO}"></div></div><div style="font-size:11px;font-weight:600;color:${ok?'#17915F':'#C2410C'}">${ok?'batida ✓':pc+'% atingido'}</div>`:''}</div>`;};
   document.getElementById('mc-metas').innerHTML=`<div class="mut" style="font-size:12px;margin:2px 2px 6px">Desafio de ${M[+m.mes.slice(5)-1]}/${m.mes.slice(0,4)} · vendido no mês: <b style="color:var(--ok)">${money(m.totalVendidoMes)}</b></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px">${cardMeta('🏆','Desafio',m.config.desafio,'#3E8E6E')}${cardMeta('🎯','Expectativa',m.config.expectativa,'#4F79A8')}${cardMeta('⭐','Piso',m.config.piso,'#8A8F98')}</div>`;
-  document.getElementById('mc-chart').innerHTML=`<div class="card" style="padding:10px 8px;text-align:center;margin-bottom:8px"><div style="font-size:18px">💰</div><div class="mut" style="font-size:11px;margin-top:2px">Vendido no ano ${m.ano}</div><div style="font-weight:800;font-size:16px;color:var(--ok);margin-top:2px">${money(m.totalVendidoAno)}</div></div><div class="card" style="padding:8px 10px"><div class="mut" style="font-size:11px;margin:0 0 2px">📈 Evolução mensal de ${m.ano}</div>${mcChart(m.meses,m.config)}</div>`;
+  document.getElementById('mc-chart').innerHTML=`<div class="card" style="padding:10px 8px;text-align:center;margin-bottom:8px"><div style="font-size:26px;line-height:1.1">💰</div><div class="mut" style="font-size:11px;margin-top:2px">Vendido no ano ${m.ano}</div><div style="font-weight:650;font-size:16px;color:var(--ok);margin-top:2px">${money(m.totalVendidoAno)}</div></div><div class="card" style="padding:8px 10px"><div class="mut" style="font-size:11px;margin:0 0 2px">📈 Evolução mensal de ${m.ano}</div>${mcChart(m.meses,m.config)}</div>`;
   const p=m.top3;
   const PODIO={1:{grad:'linear-gradient(160deg,#FBEFB8 0%,#E7C65C 30%,#B8892A 55%,#F0DA8E 72%,#CBA23C 100%)',bd:'#B8912E',ac:'#6E4E00',mh:310},2:{grad:'linear-gradient(160deg,#F5F7F9 0%,#CBD0D6 30%,#9DA3AA 55%,#E8EBEF 72%,#B4BAC1 100%)',bd:'#9DA3AB',ac:'#3E444A',mh:258},3:{grad:'linear-gradient(160deg,#EDC69C 0%,#C98A57 30%,#96602F 55%,#DFA871 72%,#B07A48 100%)',bd:'#A5713F',ac:'#5E3818',mh:200}};
   const sh='text-shadow:0 1px 0 rgba(255,255,255,.4)';
-  const col=(r,ordem,alt)=>{if(!r)return '<div style="flex:1;min-width:0"></div>';const p2=PODIO[ordem];return `<div style="flex:1;min-width:0;min-height:${p2.mh}px;display:flex;flex-direction:column;align-items:center;background:${p2.grad};border:1.5px solid ${p2.bd};border-radius:14px;padding:12px 6px 10px;box-shadow:0 3px 9px rgba(0,0,0,.15)"><div style="background:${p2.ac};color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;margin-bottom:7px;box-shadow:0 1px 2px rgba(0,0,0,.25)">${ordem}</div>${avAnelC(mcAvatar(r.primeiro,r.foto,alt?76:58),alt?76:58)}<div style="font-weight:800;font-size:${alt?'15px':'14px'};margin-top:8px;text-align:center;color:${p2.ac};${sh};line-height:1.15">${esc(r.primeiro)}${r.papel==='gestor'?' <span style="font-size:9px;font-weight:600">(gestor)</span>':''}</div><div style="font-size:11px;color:${p2.ac};${sh}">${esc(r.time)}</div><div style="font-weight:800;color:${p2.ac};${sh};font-size:${alt?'clamp(12px,3.6vw,19px)':'clamp(11px,3.3vw,15px)'};white-space:nowrap;margin-top:5px">${money(r.vendido)}</div><div style="font-size:11px;color:${p2.ac};${sh}">${r.pct}% · ${r.qtd} venda(s)</div><div style="margin-top:5px">${mcSelo(r.selo)}</div><div style="margin-top:auto;padding-top:8px;font-size:11px;font-weight:800;letter-spacing:.5px;color:${p2.ac};${sh}">${ordem}º LUGAR</div></div>`;};
-  document.getElementById('mc-podio').innerHTML=p.length?`<div class="h" style="text-align:center;margin-top:14px">🥇 Top 3 consultores</div><div style="display:flex;gap:10px;align-items:flex-end;margin-top:6px">${col(p[1],2,false)}${col(p[0],1,true)}${col(p[2],3,false)}</div>`:'';
-  document.getElementById('mc-times').innerHTML=m.times.length?`<div class="h" style="margin-top:16px">Por time</div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${m.times.map(t=>`<div class="card" style="padding:10px 12px"><div style="font-weight:700">${esc(t.time)}</div><div style="font-weight:800;color:var(--ok);margin:2px 0">${money(t.vendido)}</div><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>${t.meta?('meta '+money(t.meta)):'sem meta'}</span><span style="font-weight:700">${t.pct}%</span></div><div class="prog" style="margin-top:4px"><div style="width:${Math.min(100,t.pct)}%;height:100%;background:var(--acc)"></div></div></div>`).join('')}</div>`:'';
-  document.getElementById('mc-ranking').innerHTML=m.ranking.map(r=>{const eu=meu&&r.email===meu;return `<div class="card" style="padding:9px 11px;margin-bottom:7px${eu?';border:1.5px solid var(--acc);background:var(--accbg,#fff)':''}"><div class="row" style="align-items:center"><div style="display:flex;align-items:center;gap:9px;min-width:0"><div style="width:22px;text-align:center;font-weight:800;color:${mcMedCor(r.pos)}">${r.pos}</div>${avFogoC(mcAvatar(r.primeiro,r.foto,34),r.vendido>=MILHAO)}<div style="min-width:0"><div class="titulo" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.nome)}${r.papel==='gestor'?' <span class="mut" style="font-size:9px">(gestor)</span>':''}${eu?' <span class="mut" style="font-size:10px">(você)</span>':''} ${mcSelo(r.selo)}</div><div class="mut" style="font-size:11px">${esc(r.time)} · ${r.qtd} venda(s)</div></div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:var(--ok)">${money(r.vendido)}</div><div class="mut" style="font-size:11px;font-weight:700;color:${r.pct>=100?'#3E8E6E':'var(--mut)'}">${r.pct}%</div></div></div>${r.meta?`<div class="prog" style="margin-top:5px"><div style="width:${Math.min(100,r.pct)}%;height:100%;background:${r.pct>=100?'#3E8E6E':'var(--acc)'}"></div></div>`:''}</div>`;}).join('')||'<div class="mut" style="padding:10px">Sem consultores</div>';
+  const col=(r,ordem,alt)=>{if(!r)return '<div style="flex:1;min-width:0"></div>';const p2=PODIO[ordem];return `<div style="flex:1;min-width:0;min-height:${p2.mh}px;display:flex;flex-direction:column;align-items:center;background:${p2.grad};border:1.5px solid ${p2.bd};border-radius:14px;padding:12px 6px 10px;box-shadow:0 3px 9px rgba(0,0,0,.15)"><div style="background:${p2.ac};color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:650;margin-bottom:7px;box-shadow:0 1px 2px rgba(0,0,0,.25)">${ordem}</div>${avAnelC(mcAvatar(r.primeiro,r.foto,alt?76:58),alt?76:58)}<div style="font-weight:650;font-size:${alt?'15px':'14px'};margin-top:8px;text-align:center;color:${p2.ac};${sh};line-height:1.15">${esc(r.primeiro)}${r.papel==='gestor'?' <span style="font-size:9px;font-weight:600">(gestor)</span>':''}</div><div style="font-size:11px;color:${p2.ac};${sh}">${esc(r.time)}</div><div style="font-weight:650;color:${p2.ac};${sh};font-size:${alt?'clamp(12px,3.6vw,19px)':'clamp(11px,3.3vw,15px)'};white-space:nowrap;margin-top:5px">${money(r.vendido)}</div><div style="font-size:11px;color:${p2.ac};${sh}">${r.pct}% · ${r.qtd} venda(s)</div><div style="margin-top:5px">${mcSelo(r.selo)}</div><div style="margin-top:auto;padding-top:8px;font-size:11px;font-weight:650;letter-spacing:.5px;color:${p2.ac};${sh}">${ordem}º LUGAR</div></div>`;};
+  document.getElementById('mc-podio').innerHTML=p.length?`<div class="h" style="justify-content:center;margin-top:14px">🥇 Top 3 consultores</div><div style="display:flex;gap:10px;align-items:flex-end;margin-top:6px">${col(p[1],2,false)}${col(p[0],1,true)}${col(p[2],3,false)}</div>`:'';
+  document.getElementById('mc-times').innerHTML=m.times.length?`<div class="h" style="margin-top:16px">👥 Por time</div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">${m.times.map(t=>`<div class="card" style="padding:10px 12px"><div style="font-weight:600">${esc(t.time)}</div><div style="font-weight:650;color:var(--ok);margin:2px 0">${money(t.vendido)}</div><div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>${t.meta?('meta '+money(t.meta)):'sem meta'}</span><span style="font-weight:600">${t.pct}%</span></div><div class="prog" style="margin-top:4px;height:7px"><div style="width:${Math.min(100,t.pct)}%;height:100%;background:${t.pct>=100?'#17915F':BARRA_FOGO}"></div></div></div>`).join('')}</div>`:'';
+  document.getElementById('mc-ranking').innerHTML=m.ranking.map(r=>{const eu=meu&&r.email===meu;return `<div class="card" style="padding:9px 11px;margin-bottom:7px${eu?';border:1.5px solid var(--acc);background:var(--accbg,#fff)':''}"><div class="row" style="align-items:center"><div style="display:flex;align-items:center;gap:9px;min-width:0">${medalhaHTML(r.pos,26)}${avFogoC(mcAvatar(r.primeiro,r.foto,34),r.vendido>=MILHAO)}<div style="min-width:0"><div class="titulo" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.nome)}${r.papel==='gestor'?' <span class="mut" style="font-size:9px">(gestor)</span>':''}${eu?' <span class="mut" style="font-size:10px">(você)</span>':''} ${mcSelo(r.selo)}</div><div class="mut" style="font-size:11px">${esc(r.time)} · ${r.qtd} venda(s)</div></div></div><div style="text-align:right;flex:none"><div style="font-weight:650;color:var(--ok)">${money(r.vendido)}</div><div class="mut" style="font-size:11px;font-weight:600;color:${r.pct>=100?'#3E8E6E':'var(--mut)'}">${r.pct}%</div></div></div>${r.meta?`<div class="prog" style="margin-top:6px;height:7px"><div style="width:${Math.min(100,r.pct)}%;height:100%;background:${r.pct>=100?'#17915F':BARRA_FOGO}"></div></div>`:''}</div>`;}).join('')||'<div class="mut" style="padding:10px">Sem consultores</div>';
 }
 function fmtBR(n){return (+n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function parseBR(s){s=String(s).replace(/[^\d.,-]/g,'');if(s.includes(',')){s=s.replace(/\./g,'').replace(',','.');}return parseFloat(s)||0;}
@@ -518,13 +521,13 @@ function grupoKanban(list){
 }
 function cardGrupo(g){const fechada=g.status==='fechada';const n=g.vendas.length;const nome=(g.cliente&&g.cliente.nome)||'—';const dt=g.vendas[0]?g.vendas[0].data:'';return `<div class="card" style="cursor:pointer;padding:10px 11px;margin-bottom:8px${fechada?';opacity:.9':''}" onclick="abrirGrupoV(${g._i})">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">
-    <div style="min-width:0"><div style="font-size:16px;font-weight:700;color:var(--ok)">${money(g.total)}</div><div class="titulo" style="margin-top:2px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nome)}${n>1?` <span class="mut" style="font-weight:600;font-size:11px">· ${n} cotas</span>`:''}</div></div>
+    <div style="min-width:0"><div style="font-size:16px;font-weight:600;color:var(--ok)">${money(g.total)}</div><div class="titulo" style="margin-top:2px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(nome)}${n>1?` <span class="mut" style="font-weight:600;font-size:11px">· ${n} cotas</span>`:''}</div></div>
     <input type="checkbox" ${fechada?'checked':''} title="Marcar como fechada" onclick="event.stopPropagation();toggleGrupoFechada(${g._i},this.checked)" style="width:22px;height:22px;accent-color:var(--ok);flex:none">
   </div>
   <div class="mut" style="margin-top:4px;font-size:11px">${fmtDataBR(dt)}${n===1&&g.vendas[0].grupo?` · Gr ${esc(g.vendas[0].grupo)}`:''}</div>
   ${g.tipo?`<div style="margin-top:5px">${tipoPill(g.tipo)}</div>`:''}
 </div>`;}
-function abrirGrupoV(i){const g=(window._gruposV||[])[i];if(!g)return;if(g.vendas.length===1)return abrirVenda(g.vendas[0].id);const c=g.cliente||{};const linhas=g.vendas.map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="fecharPop();abrirVenda('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:700;color:var(--ok)">${money(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${fmtDataBR(v.data)}</div></div><div style="display:flex;gap:6px;align-items:center;flex:none"><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅':'🤝'}</span><button class="btn sec2" title="Excluir esta cota" style="padding:4px 8px;font-size:13px;color:var(--no)" onclick="event.stopPropagation();excluirCotaGrupoC('${v.id}')">🗑</button></div></div></div>`).join('');abrirPop((c.nome||'Cliente')+(g.tipo?' · '+(tipoInfo(g.tipo)?tipoInfo(g.tipo).label:''):''),`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${g.vendas.length} cota(s) · total ${money(g.total)}</div>${linhas}<button class="btn full" style="background:var(--ok);margin-top:8px" onclick="novaVendaCliente('${encodeURIComponent(c.nome||'')}','${(c.cpf||'')}')">+ Nova cota para este cliente</button><button class="btn sec2 full" style="color:var(--no);margin-top:8px" onclick="excluirGrupoC(${i})">🗑 Excluir as ${g.vendas.length} cotas deste cliente</button>`);}
+function abrirGrupoV(i){const g=(window._gruposV||[])[i];if(!g)return;if(g.vendas.length===1)return abrirVenda(g.vendas[0].id);const c=g.cliente||{};const linhas=g.vendas.map(v=>`<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="fecharPop();abrirVenda('${v.id}')"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div><div style="font-weight:600;color:var(--ok)">${money(v.valor)}</div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${fmtDataBR(v.data)}</div></div><div style="display:flex;gap:6px;align-items:center;flex:none"><span class="badge ${v.status==='fechada'?'b-ok':'b-warn'}">${v.status==='fechada'?'✅':'🤝'}</span><button class="btn sec2" title="Excluir esta cota" style="padding:4px 8px;font-size:13px;color:var(--no)" onclick="event.stopPropagation();excluirCotaGrupoC('${v.id}')">🗑</button></div></div></div>`).join('');abrirPop((c.nome||'Cliente')+(g.tipo?' · '+(tipoInfo(g.tipo)?tipoInfo(g.tipo).label:''):''),`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${g.vendas.length} cota(s) · total ${money(g.total)}</div>${linhas}<button class="btn full" style="background:var(--ok);margin-top:8px" onclick="novaVendaCliente('${encodeURIComponent(c.nome||'')}','${(c.cpf||'')}')">+ Nova cota para este cliente</button><button class="btn sec2 full" style="color:var(--no);margin-top:8px" onclick="excluirGrupoC(${i})">🗑 Excluir as ${g.vendas.length} cotas deste cliente</button>`);}
 // Excluir uma cota direto da janela do grupo, ou o grupo inteiro (todas as cotas do cliente). v162
 async function excluirCotaGrupoC(id){if(!confirm('Excluir esta cota?'))return;const j=await(await fetch('/api/vendas/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})})).json();if(j.ok){fecharPop();toast('Cota excluída ✓');carregarVendas();}else toast(j.erro||'Erro');}
 async function excluirGrupoC(i){const g=(window._gruposV||[])[i];if(!g)return;const n=g.vendas.length;const nome=(g.cliente&&g.cliente.nome)||'este cliente';if(!confirm('Excluir as '+n+' cotas de '+nome+'?\n\nIsso não pode ser desfeito.'))return;const j=await(await fetch('/api/vendas/excluir-lote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:g.vendas.map(v=>v.id)})})).json();if(j.ok){fecharPop();toast(j.qtd+' cota(s) excluída(s) ✓');carregarVendas();}else toast(j.erro||'Erro');}
@@ -533,7 +536,7 @@ async function toggleGrupoFechada(i,checked){const g=(window._gruposV||[])[i];if
 async function carregarClientesTab(){setCcTab('cliente');try{if(!(_vendas||[]).length){const d=await(await fetch('/api/vendas')).json();_vendas=d.vendas||[];}}catch(e){}renderClientes();}
 function setCcTab(t){document.getElementById('cc-tab-cliente').classList.toggle('on',t==='cliente');document.getElementById('cc-tab-sorteio').classList.toggle('on',t==='sorteio');document.getElementById('cc-cliente').style.display=t==='cliente'?'block':'none';document.getElementById('cc-sorteio').style.display=t==='sorteio'?'block':'none';if(t==='cliente'){renderClientes();}else{renderPremiosC();Chama.carregarLoteria('cs-premio','cs-lot-info');carregarGruposSorteioC();}}
 function renderPremiosC(){const el=document.getElementById('cs-premios');if(!el||el.dataset.done)return;const ord=['1º','2º','3º','4º','5º'];el.innerHTML=ord.map(o=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="mut" style="width:26px;font-size:13px;font-weight:600">${o}</span><input type="text" class="cs-premio" inputmode="numeric" maxlength="5" placeholder="00000" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,5)" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:15px;letter-spacing:2px;background:var(--bg)"></div>`).join('');el.dataset.done='1';}
-async function carregarGruposSorteioC(){const el=document.getElementById('cs-grupos-list');if(!el)return;try{const j=await(await fetch('/api/sorteio-grupos')).json();const gs=j.grupos||[];el.innerHTML=gs.length?gs.map(g=>{const bar=`<div class="prog" style="margin-top:5px;height:6px"><div style="width:${g.pct}%;height:100%;background:${g.lotado?'#3E8E6E':'var(--acc)'}"></div></div>`;const badge=g.lotado?'<span class="badge b-ok" style="font-size:10px">LOTADO</span>':`<span class="mut" style="font-size:10px">${g.pct}%</span>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="calcularSorteioC('${esc(g.grupo)}',${g.tamanho})"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:700;font-size:13px">Grupo ${esc(g.grupo)} <span class="mut" style="font-weight:400">· ${g.tamanho} part.</span></div><div style="text-align:right;flex:none">${badge}<div class="mut" style="font-size:10px">${g.qtd}/${g.tamanho} suas</div></div></div>${bar}</div>`;}).join(''):'<div class="mut" style="font-size:12px;padding:8px">Você ainda não tem cota fechada com tamanho de grupo.</div>';}catch(e){el.innerHTML='<div class="mut" style="font-size:12px;padding:8px">Erro ao carregar grupos</div>';}}
+async function carregarGruposSorteioC(){const el=document.getElementById('cs-grupos-list');if(!el)return;try{const j=await(await fetch('/api/sorteio-grupos')).json();const gs=j.grupos||[];el.innerHTML=gs.length?gs.map(g=>{const bar=`<div class="prog" style="margin-top:5px;height:6px"><div style="width:${g.pct}%;height:100%;background:${g.lotado?'#3E8E6E':'var(--acc)'}"></div></div>`;const badge=g.lotado?'<span class="badge b-ok" style="font-size:10px">LOTADO</span>':`<span class="mut" style="font-size:10px">${g.pct}%</span>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="calcularSorteioC('${esc(g.grupo)}',${g.tamanho})"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:600;font-size:13px">Grupo ${esc(g.grupo)} <span class="mut" style="font-weight:400">· ${g.tamanho} part.</span></div><div style="text-align:right;flex:none">${badge}<div class="mut" style="font-size:10px">${g.qtd}/${g.tamanho} suas</div></div></div>${bar}</div>`;}).join(''):'<div class="mut" style="font-size:12px;padding:8px">Você ainda não tem cota fechada com tamanho de grupo.</div>';}catch(e){el.innerHTML='<div class="mut" style="font-size:12px;padding:8px">Erro ao carregar grupos</div>';}}
 async function calcularSorteioC(grupo,tamanho){
   const premios=[...document.querySelectorAll('.cs-premio')].map(i=>i.value.trim());
   if(!premios.some(p=>p.length)){toast('Digite ao menos um número da Federal');return;}
@@ -542,9 +545,9 @@ async function calcularSorteioC(grupo,tamanho){
   const j=await(await fetch('/api/sorteio',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({premios,grupo,tamanho})})).json();
   if(j.erro){res.innerHTML=`<div class="card" style="padding:12px;color:var(--no)">${esc(j.erro)}</div>`;return;}
   const chips=(j.sorteados||[]).map(s=>`<span class="badge b-blue" style="font-size:11px">${s.premio}º → nº <b>${s.numero}</b></span>`).join(' ');
-  let html=`<div class="card" style="padding:12px;margin-bottom:10px"><div style="font-weight:700;margin-bottom:4px">Grupo ${esc(j.grupo)} · ${j.tamanho} participantes</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">${chips}</div><div class="mut" style="font-size:11px">Suas cotas, da mais próxima para a mais distante. O número são as "casas" de distância.</div></div>`;
+  let html=`<div class="card" style="padding:12px;margin-bottom:10px"><div style="font-weight:600;margin-bottom:4px">Grupo ${esc(j.grupo)} · ${j.tamanho} participantes</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">${chips}</div><div class="mut" style="font-size:11px">Suas cotas, da mais próxima para a mais distante. O número são as "casas" de distância.</div></div>`;
   if(!(j.itens||[]).length){html+='<div class="mut" style="padding:10px">Nenhuma cota sua nesse grupo.</div>';}
-  else{html+=(j.itens).map((it,i)=>{const top=i===0;return `<div class="card" style="padding:10px 12px;margin-bottom:7px;${top?'border:1.5px solid var(--acc)':''}"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div style="min-width:0"><div style="font-weight:700;font-size:14px">${i+1}º ${top?'🎯 ':''}${esc(it.cliente)}</div><div class="mut" style="font-size:12px;margin-top:2px">Grupo ${esc(it.grupo)} · Cota <b>${it.cota}</b></div><div class="mut" style="font-size:11px;margin-top:2px">${it.tipo?esc(it.tipo)+' · ':''}${money(it.valor)}</div></div><div style="text-align:right;flex:none"><div class="badge b-blue" style="font-size:11px">${it.premio}º prêmio</div><div style="font-weight:800;font-size:15px;margin-top:3px">${it.casa} <span class="mut" style="font-size:10px;font-weight:600">casas</span></div><div class="mut" style="font-size:10px">sorteado ${it.sorteado}</div></div></div></div>`;}).join('');}
+  else{html+=(j.itens).map((it,i)=>{const top=i===0;return `<div class="card" style="padding:10px 12px;margin-bottom:7px;${top?'border:1.5px solid var(--acc)':''}"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div style="min-width:0"><div style="font-weight:600;font-size:14px">${i+1}º ${top?'🎯 ':''}${esc(it.cliente)}</div><div class="mut" style="font-size:12px;margin-top:2px">Grupo ${esc(it.grupo)} · Cota <b>${it.cota}</b></div><div class="mut" style="font-size:11px;margin-top:2px">${it.tipo?esc(it.tipo)+' · ':''}${money(it.valor)}</div></div><div style="text-align:right;flex:none"><div class="badge b-blue" style="font-size:11px">${it.premio}º prêmio</div><div style="font-weight:650;font-size:15px;margin-top:3px">${it.casa} <span class="mut" style="font-size:10px;font-weight:600">casas</span></div><div class="mut" style="font-size:10px">sorteado ${it.sorteado}</div></div></div></div>`;}).join('');}
   res.innerHTML=html;
 }
 function clienteKey(v){const cpf=((v.cliente&&v.cliente.cpf)||'').replace(/\D/g,'');return cpf?('cpf:'+cpf):('nome:'+(((v.cliente&&v.cliente.nome)||'').trim().toLowerCase()));}
@@ -575,8 +578,8 @@ function renderClientes(){
   const ct=document.getElementById('cc-total'); if(ct)ct.innerHTML=`<b>${clientes.length}</b> cliente(s) · <b>${totCotas}</b> cota(s)`;
   document.getElementById('vd-clientes').innerHTML=clientes.map((c,i)=>{const cot=(c.vendas||[]).filter(matchSit);const tot=cot.reduce((s,v)=>s+(+v.valor||0),0);return `<div class="card" style="cursor:pointer;padding:11px 12px;margin-bottom:8px" onclick="abrirCliente(${i})">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-      <div style="min-width:0"><div class="titulo" style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:11px;margin-top:2px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${cot.length} cota(s)</div></div>
-      <div style="text-align:right;flex:none"><div style="font-weight:700;color:var(--ok)">${money(tot)}</div></div>
+      <div style="min-width:0"><div class="titulo" style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.nome)}</div><div class="mut" style="font-size:11px;margin-top:2px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${cot.length} cota(s)</div></div>
+      <div style="text-align:right;flex:none"><div style="font-weight:600;color:var(--ok)">${money(tot)}</div></div>
     </div></div>`;}).join('')||'<div class="mut" style="padding:10px 2px;font-size:13px">Nenhum cliente ainda. Cadastre uma venda para começar.</div>';
 }
 function abrirCliente(i){
@@ -585,7 +588,7 @@ function abrirCliente(i){
   if(!list.length)return;
   window._cCliAtual=i;
   const c={nome:grp.nome||'—',cpf:grp.cpf||''};
-  const linhas=list.map(v=>{const s=sitDeC(v);const btn=(k,lbl)=>`<button class="btn sec2 sm" style="padding:4px 8px;font-size:11px;${s===k?'border-color:var(--acc);font-weight:700':''}" onclick="setSituacaoC('${v.id}','${k}')">${lbl}</button>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div style="cursor:pointer" onclick="fecharPop();abrirVenda('${v.id}')"><div style="font-weight:700;color:var(--ok)">${money(v.valor)} <span style="font-weight:400">✏️</span></div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${fmtDataBR(v.data)}</div>${v.tipo?`<div style="margin-top:4px">${tipoPill(v.tipo)}</div>`:''}</div><div style="flex:none">${sitBadgeC(s)}</div></div><div style="display:flex;gap:5px;margin-top:7px">${btn('ativo','🟢 Ativa')}${btn('contemplado','🏆 Contemplada')}${btn('cancelado','❌ Cancelada')}</div></div>`;}).join('');
+  const linhas=list.map(v=>{const s=sitDeC(v);const btn=(k,lbl)=>`<button class="btn sec2 sm" style="padding:4px 8px;font-size:11px;${s===k?'border-color:var(--acc);font-weight:600':''}" onclick="setSituacaoC('${v.id}','${k}')">${lbl}</button>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><div style="cursor:pointer" onclick="fecharPop();abrirVenda('${v.id}')"><div style="font-weight:600;color:var(--ok)">${money(v.valor)} <span style="font-weight:400">✏️</span></div><div class="mut" style="font-size:11px;margin-top:2px">${v.grupo?('Gr '+esc(v.grupo)):''}${v.cota?(' · Cota '+esc(v.cota)):''} · ${fmtDataBR(v.data)}</div>${v.tipo?`<div style="margin-top:4px">${tipoPill(v.tipo)}</div>`:''}</div><div style="flex:none">${sitBadgeC(s)}</div></div><div style="display:flex;gap:5px;margin-top:7px">${btn('ativo','🟢 Ativa')}${btn('contemplado','🏆 Contemplada')}${btn('cancelado','❌ Cancelada')}</div></div>`;}).join('');
   abrirPop('👤 '+c.nome,`<div class="mut" style="font-size:12px;margin-bottom:10px">${c.cpf?fmtCpf(c.cpf):'sem CPF'} · ${list.length} cota(s)</div>${Chama.fichaHTML()}${linhas}<button class="btn full" style="background:var(--ok);margin-top:8px" onclick="novaVendaCliente('${encodeURIComponent(c.nome)}','${c.cpf}')">+ Nova cota para este cliente</button>`);
   Chama.carregarFicha(c.cpf,grp.nome||'');
 }
@@ -625,7 +628,7 @@ function confetesCair(){
 }
 function festaVenda(valor){
   const ov=document.createElement('div');ov.className='cel-ov';ov.style.cssText='position:fixed;inset:0;z-index:10002;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.28);padding:20px';
-  ov.innerHTML=`<div style="background:#fff;border-radius:20px;padding:30px 24px;max-width:340px;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.3)"><div style="font-size:50px">🎉</div><div style="font-size:22px;font-weight:800;color:var(--ok);margin-top:4px">Parabéns!</div><div style="font-size:15px;margin-top:8px;line-height:1.5">Você realizou o sonho de mais um cliente!${valor?('<br><b style="font-size:18px;color:var(--ok)">'+money(valor)+'</b>'):''}</div><div class="mut" style="font-size:12px;margin-top:6px">Seu gestor já foi notificado! 🔔</div><button class="btn full" style="background:var(--ok);margin-top:16px" onclick="this.closest('.cel-ov').remove()">Obrigado! 🙌</button></div>`;
+  ov.innerHTML=`<div style="background:#fff;border-radius:20px;padding:30px 24px;max-width:340px;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.3)"><div style="font-size:50px">🎉</div><div style="font-size:22px;font-weight:650;color:var(--ok);margin-top:4px">Parabéns!</div><div style="font-size:15px;margin-top:8px;line-height:1.5">Você realizou o sonho de mais um cliente!${valor?('<br><b style="font-size:18px;color:var(--ok)">'+money(valor)+'</b>'):''}</div><div class="mut" style="font-size:12px;margin-top:6px">Seu gestor já foi notificado! 🔔</div><button class="btn full" style="background:var(--ok);margin-top:16px" onclick="this.closest('.cel-ov').remove()">Obrigado! 🙌</button></div>`;
   document.body.appendChild(ov);confetesCair();setTimeout(()=>{try{ov.remove()}catch(e){}},10000);
 }
 const TAMS_GRUPO_C=[500,1000,2000,3333,5000,9999];
@@ -743,8 +746,8 @@ async function carregar(){
   document.getElementById('prox-reunioes').innerHTML = window._reunioes.length ? window._reunioes.map((r,i)=>`<div class="card" style="padding:10px 12px;cursor:pointer" onclick="verReuniao(${i})"><div style="font-size:13px;font-weight:600">${esc(r.assunto||'Reunião')}</div><div class="mut" style="font-size:11px;margin-top:3px">${fmtData(r.inicio)}</div><span class="badge b-ok" style="margin-top:6px;display:inline-block">Aprovada</span></div>`).join('') : '<div class="mut" style="grid-column:1/-1">Nenhuma reunião marcada</div>';
   document.getElementById('lista-solicitacoes').innerHTML = (dados.solicitacoes||[]).map(s=>{
     let acao='';
-    if(s.status==='Pendente')acao=`<button class="btn sec2" style="padding:6px 11px;font-size:12px;color:var(--warn)" onclick="cancelar('${s.id}')">Cancelar</button>`;
-    else if(s.status==='Aprovada')acao=`<button class="btn sec2" style="padding:6px 11px;font-size:12px;color:var(--no)" onclick="cancelar('${s.id}')">Cancelar</button>`;
+    if(s.status==='Pendente')acao=`<button class="btn sec2 no-s" style="padding:6px 11px;font-size:12px;color:var(--warn)" onclick="cancelar('${s.id}')">Cancelar</button>`;
+    else if(s.status==='Aprovada')acao=`<button class="btn sec2 no-s" style="padding:6px 11px;font-size:12px;color:var(--no)" onclick="cancelar('${s.id}')">Cancelar</button>`;
     else if(s.status==='Recusada'||s.status==='Cancelada')acao=`<button class="btn sec2" style="padding:6px 11px;font-size:12px;color:var(--no)" onclick="excluirSolic('${s.id}')">🗑 Excluir</button>`;
     return `<div class="card row"><div><div class="titulo">${esc(s.assunto||'Reunião')}</div><div class="mut">${fmtData(s.inicio)} · ${esc(s.local||'')} · ${s.duracao} min${s.resposta?' · '+esc(s.resposta):''}</div></div><div style="display:flex;gap:6px;align-items:center"><span class="badge ${badge(s.status)}">${s.status}</span>${acao}</div></div>`;
   }).join('')||'<div class="mut" style="padding:0 4px">Nenhuma ainda</div>';
@@ -859,7 +862,7 @@ async function carregarAvisos(){
   notificarNovos(_avisos);
   const b=document.getElementById('badge-avisos');
   if(j.naoLidas>0){b.textContent=j.naoLidas;b.style.display='block'}else b.style.display='none';
-  document.getElementById('lista-avisos').innerHTML=(_avisos.length?`<div style="text-align:right;margin-bottom:8px"><button class="btn sec2" style="padding:6px 10px;font-size:12px" onclick="apagarAvisos(true)">Limpar todas</button></div>`:'')+
+  document.getElementById('lista-avisos').innerHTML=(_avisos.length?`<div style="text-align:right;margin-bottom:8px"><button class="btn sec2 no-s" style="padding:6px 10px;font-size:12px" onclick="apagarAvisos(true)">Limpar todas</button></div>`:'')+
     (_avisos.map((a,i)=>`<div class="card row" style="${a.lida?'opacity:.65':''}"><div style="cursor:pointer;flex:1" onclick="abrirAviso(${i})"><div class="titulo">${a.lida?'':'🔵 '}${esc(a.titulo)}</div><div class="mut" style="font-size:12px;margin-top:2px">${new Date(a.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div><button onclick="apagarAviso('${a.id}')" title="Apagar" style="border:none;background:transparent;font-size:16px;cursor:pointer;color:var(--mut)">🗑</button></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum aviso</div>');
 }
 function abrirAvisos(){const p=document.getElementById('notif-panel');if(p.style.display==='none'||!p.style.display){p.style.display='block';carregarAvisos()}else p.style.display='none'}
@@ -873,7 +876,7 @@ async function abrirChat(){
   const box=document.getElementById('chat-msgs');
   box.innerHTML=(j.mensagens||[]).map(m=>{
     const meu=m.de==='consultor';
-    return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px">${m.equipe?'<div style="font-size:10.5px;font-weight:700;color:var(--acc);margin-bottom:3px">📢 Para toda a equipe</div>':''}<div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`;
+    return `<div style="align-self:${meu?'flex-end':'flex-start'};max-width:78%;background:${meu?'var(--acc)':'var(--card)'};color:${meu?'#fff':'var(--txt)'};border:1px solid var(--bord);border-radius:14px;padding:8px 12px">${m.equipe?'<div style="font-size:10.5px;font-weight:600;color:var(--acc);margin-bottom:3px">📢 Para toda a equipe</div>':''}<div style="font-size:14px">${esc(m.texto)}</div><div style="font-size:10px;opacity:.7;text-align:right;margin-top:2px">${new Date(m.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`;
   }).join('')||'<div class="mut" style="text-align:center;padding:20px">Inicie a conversa com seu gestor</div>';
   box.scrollTop=box.scrollHeight;
   document.getElementById('badge-chat').style.display='none';
@@ -916,27 +919,24 @@ function renderExtrato(){
   const el=document.getElementById('ex-lista');
     el.innerHTML=_extrato.length?_extrato.map((x,i)=>{const c=String(x.competencia||'').split('-');const cl=c.length===2?c[1]+'/'+c[0]:x.competencia;const ab=_exAberto[i];
       const cotas=(x.cotas||[]).map(q=>`<div style="display:flex;justify-content:space-between;border-top:1px solid var(--bord);padding:6px 0;font-size:12px"><span>Gr ${esc(q.grupo)} · Cota ${esc(q.cota)}${q.cliente?' · '+esc(q.cliente):''}</span><b>${money(q.valor)}</b></div>`).join('');
-      return `<div class="card" style="padding:10px 12px;margin-bottom:8px;${x.pago?'':'border-left:3px solid var(--acc)'}"><div style="display:flex;justify-content:space-between;gap:8px;cursor:pointer" onclick="_exAberto[${i}]=!_exAberto[${i}];renderExtrato()"><div><div style="font-weight:700">${cl} <span class="mut" style="font-weight:400;font-size:11px">· ${esc(x.tipo)}</span></div><div class="mut" style="font-size:11px">${x.qtdCotas} cota(s) · cheio ${money(x.cheio)} · imp ${money(x.imposto)} · de ${esc(x.deNome||'')}</div></div><div style="text-align:right;flex:none"><div style="font-weight:800;color:${x.pago?'var(--ok)':'var(--acc)'}">${money(x.liquido)}</div><div style="font-size:10px;font-weight:700;color:${x.pago?'var(--ok)':'var(--warn,#B8791F)'}">${x.pago?'✓ PAGO'+(x.pagoEm?' '+new Date(x.pagoEm).toLocaleDateString('pt-BR'):''):'⏳ PENDENTE'}</div></div></div><div style="display:${ab?'block':'none'};margin-top:6px">${cotas}</div></div>`;}).join(''):'<div class="card mut" style="padding:14px;text-align:center">Nenhuma comissão lançada para você ainda.</div>';
+      return `<div class="card" style="padding:10px 12px;margin-bottom:8px;${x.pago?'':'border-left:3px solid var(--acc)'}"><div style="display:flex;justify-content:space-between;gap:8px;cursor:pointer" onclick="_exAberto[${i}]=!_exAberto[${i}];renderExtrato()"><div><div style="font-weight:600">${cl} <span class="mut" style="font-weight:400;font-size:11px">· ${esc(x.tipo)}</span></div><div class="mut" style="font-size:11px">${x.qtdCotas} cota(s) · cheio ${money(x.cheio)} · imp ${money(x.imposto)} · de ${esc(x.deNome||'')}</div></div><div style="text-align:right;flex:none"><div style="font-weight:650;color:${x.pago?'var(--ok)':'var(--acc)'}">${money(x.liquido)}</div><div style="font-size:10px;font-weight:600;color:${x.pago?'var(--ok)':'var(--warn,#B8791F)'}">${x.pago?'✓ PAGO'+(x.pagoEm?' '+new Date(x.pagoEm).toLocaleDateString('pt-BR'):''):'⏳ PENDENTE'}</div></div></div><div style="display:${ab?'block':'none'};margin-top:6px">${cotas}</div></div>`;}).join(''):'<div class="card mut" style="padding:14px;text-align:center">Nenhuma comissão lançada para você ainda.</div>';
 }
 async function cancelar(id){if(!confirm('Cancelar este compromisso? Ele sai da sua agenda e da agenda do gestor.'))return;const res=await fetch('/api/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Cancelado ✓':(j.erro||'Erro'));carregar()}
 async function excluirSolic(id){if(!confirm('Excluir esta solicitação da lista?'))return;const res=await fetch('/api/solicitacao/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});const j=await res.json();toast(j.ok?'Excluída ✓':(j.erro||'Erro'));carregar()}
 async function cancelarAtv(id){const justificativa=prompt('Por que você está cancelando esta atividade? (obrigatório — o gestor será avisado)');if(justificativa===null)return;if(!justificativa.trim()){toast('Justificativa obrigatória');return}const res=await fetch('/api/atividade/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,justificativa})});const j=await res.json();toast(j.ok?'Atividade cancelada ✓':(j.erro||'Erro'));carregar()}
 // ================= v158: MENU PERSONALIZÁVEL + INÍCIO COM O DIA DO CONSULTOR =================
 const CAT_C=[
-  {id:'vendas',ic:'💼',nome:'Vendas',aba:'vendas',abrir(){irAba('vendas');carregarVendas();}},
-  {id:'clientes',ic:'👥',nome:'Clientes',aba:'clientes',abrir(){irAba('clientes');carregarClientesTab();}},
-  {id:'agenda',ic:'📅',nome:'Agenda',aba:'agenda',abrir(){irAba('agenda');}},
-  {id:'checkin',ic:'✅',nome:'Check-in',aba:'checkin',abrir(){irAba('checkin');}},
-  {id:'atividades',ic:'📋',nome:'Atividades',aba:'atividades',abrir(){irAba('atividades');}},
-  {id:'simuladores',ic:'🧮',nome:'Simuladores',curto:'Simular',aba:'simuladores',abrir(){irAba('simuladores');}},
-  {id:'mural',ic:'🏅',nome:'Mural',aba:'mural',abrir(){irAba('mural');carregarMuralC();}},
-  {id:'minhaficha',ic:'📊',nome:'Minha ficha',curto:'Ficha',abrir(){abrirMinhaFicha();}},
-  {id:'comissoes',ic:'💸',nome:'Minhas comissões',curto:'Comissões',aba:'comissoes',abrir(){irAba('comissoes');carregarExtrato();}},
-  {id:'sorteio',ic:'🎯',nome:'Sorteio',abrir(){irAba('clientes');carregarClientesTab().then(()=>setCcTab('sorteio'));}},
-  {id:'arquivos',ic:'📎',nome:'Arquivos do gestor',curto:'Arquivos',abrir(){abrirArquivosPop();}},
-  {id:'novavenda',ic:'➕',nome:'Nova venda',abrir(){irAba('vendas');carregarVendas();novaVenda();}},
-  {id:'novocliente',ic:'🆕',nome:'Novo cliente',abrir(){irAba('clientes');carregarClientesTab();novaClienteAntigo();}},
-  {id:'novatarefa',ic:'📝',nome:'Nova tarefa',abrir(){irAba('atividades');novaTarefaPropria();}},
+  {id:'vendas',ic:'💼',ico:'coin',nome:'Vendas',aba:'vendas',abrir(){irAba('vendas');carregarVendas();}},
+  {id:'clientes',ic:'👥',ico:'address-book',nome:'Clientes',aba:'clientes',abrir(){irAba('clientes');carregarClientesTab();}},
+  {id:'agenda',ic:'📅',ico:'calendar',nome:'Agenda',aba:'agenda',abrir(){irAba('agenda');}},
+  {id:'checkin',ic:'✅',ico:'circle-check',nome:'Check-in',aba:'checkin',abrir(){irAba('checkin');}},
+  {id:'atividades',ic:'📋',ico:'checklist',nome:'Atividades',aba:'atividades',abrir(){irAba('atividades');}},
+  {id:'simuladores',ic:'🧮',ico:'calculator',nome:'Simuladores',curto:'Simular',aba:'simuladores',abrir(){irAba('simuladores');}},
+  {id:'mural',ic:'🏅',ico:'medal',nome:'Mural',aba:'mural',abrir(){irAba('mural');carregarMuralC();}},
+  {id:'minhaficha',ic:'📊',ico:'id-badge',nome:'Minha ficha',curto:'Ficha',abrir(){abrirMinhaFicha();}},
+  {id:'comissoes',ic:'💸',ico:'cash',nome:'Minhas comissões',curto:'Comissões',aba:'comissoes',abrir(){irAba('comissoes');carregarExtrato();}},
+  {id:'arquivos',ic:'📎',ico:'paperclip',nome:'Arquivos do gestor',curto:'Arquivos',abrir(){abrirArquivosPop();}},
+  {id:'novavenda',ic:'➕',ico:'circle-plus',nome:'Nova venda',curto:'Venda',abrir(){irAba('vendas');carregarVendas();novaVenda();}},
 ];
 // número no canto do atalho (o que está pendente)
 function badgeC(id){
@@ -945,7 +945,8 @@ function badgeC(id){
   if(id==='atividades'){const hj=Chama.hojeBR();const n=(window._todasAtv||[]).filter(a=>a.status!=='Feito'&&a.status!=='Cancelada'&&a.prazo<=hj).length;return n?String(n):'';}
   return '';
 }
-Chama.iniciarCasca({catalogo:CAT_C,padrao:['vendas','clientes','agenda','checkin','novavenda','simuladores'],inicio:{ic:'🏠',nome:'Início',aba:'inicio',abrir(){irAba('inicio');}},badge:badgeC});
+// v180: Novo cliente, Nova tarefa e Sorteio saíram do menu (já estão dentro de Clientes e Atividades); Nova venda virou o botão fixo
+Chama.iniciarCasca({catalogo:CAT_C,destaque:'novavenda',padrao:['vendas','clientes','agenda','checkin','atividades','mural'],inicio:{ic:'🏠',ico:'home',nome:'Início',aba:'inicio',abrir(){irAba('inicio');}},badge:badgeC});
 // cards do Início: vendas do mês, check-in, próxima reunião e atividades — tudo que antes exigia abrir várias telas
 function renderHoje(){
   const el=document.getElementById('hoje');if(!el||!dados)return;
@@ -959,15 +960,15 @@ function renderHoje(){
   const U=Chama.ui;
   let h='<div class="cd larga" onclick="Chama.abrir(\'vendas\')"><div class="t">💰 Vendas do mês</div><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">';
   if(mv.alvo>0)h+=`<div style="width:clamp(120px,36vw,170px);flex:none">${U.meiaLua(mv.pct,{sub:'da meta'})}</div>`;
-  h+=`<div style="min-width:150px;flex:1"><div style="font-size:clamp(19px,5.6vw,26px);font-weight:800;letter-spacing:-.4px;white-space:nowrap">${money(mv.feito)}</div>`
+  h+=`<div style="min-width:150px;flex:1"><div style="font-size:clamp(19px,5.6vw,26px);font-weight:650;letter-spacing:-.4px;white-space:nowrap">${money(mv.feito)}</div>`
     +(mv.alvo>0?`<div class="mut" style="font-size:12.5px">${mv.feito>=mv.alvo?'🏆 Meta batida!':'faltam '+money(mv.alvo-mv.feito)+' para a meta'}</div>`:'<div class="mut" style="font-size:12.5px">meta do mês ainda não definida pelo gestor</div>')
     +(rk.posicao&&rk.posicao!=='-'?`<div style="margin-top:8px"><span class="badge b-warn">🏆 ${rk.posicao}º no ranking</span></div>`:'')+'</div></div></div>';
   const pctCk=ck.total?Math.round(100*ck.feitas/ck.total):0;
-  h+=`<div class="cd" onclick="Chama.abrir('checkin')"><div class="t">✅ Check-in de hoje</div><div style="display:flex;align-items:center;gap:14px">${U.anel(ck.feitas+'/'+ck.total,pctCk,{tam:80})}<div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:700">${ck.feitas} de ${ck.total} rotinas</div><div style="margin-top:8px">${ck.finalizado?'<span class="mut" style="font-size:12px">🔒 dia finalizado</span>':'<span class="btn" style="padding:7px 14px;font-size:13px;display:inline-flex;align-items:center">Continuar</span>'}</div></div></div></div>`;
-  h+=`<div class="cd" onclick="${r?'verReuniao(0)':"Chama.abrir('agenda')"}"><div class="t">📅 Próxima reunião</div>`+(r?`<div style="display:flex;gap:10px;align-items:center"><span class="qd" style="width:42px;height:42px;background:#E6F1FB;color:#185FA5;font-size:20px">📅</span><div style="min-width:0"><div style="font-size:15px;font-weight:700">${fmtData(r.inicio)}</div><div class="mut" style="font-size:13px;margin-top:2px">${esc(r.assunto||'Reunião')}${r.local?' · '+esc(r.local):''}</div></div></div>`:'<div class="mut" style="font-size:13px">Nenhuma marcada · <span style="color:var(--acc);font-weight:600">pedir reunião</span></div>')+'</div>';
+  h+=`<div class="cd" onclick="Chama.abrir('checkin')"><div class="t">✅ Check-in de hoje</div><div style="display:flex;align-items:center;gap:14px">${U.anel(ck.feitas+'/'+ck.total,pctCk,{tam:80})}<div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:600">${ck.feitas} de ${ck.total} rotinas</div><div style="margin-top:8px">${ck.finalizado?'<span class="mut" style="font-size:12px">🔒 dia finalizado</span>':'<span class="btn" style="padding:7px 14px;font-size:13px;display:inline-flex;align-items:center">Continuar</span>'}</div></div></div></div>`;
+  h+=`<div class="cd" onclick="${r?'verReuniao(0)':"Chama.abrir('agenda')"}"><div class="t">📅 Próxima reunião</div>`+(r?`<div style="display:flex;gap:10px;align-items:center"><span class="qd" style="width:42px;height:42px;background:#E6F1FB;color:#185FA5;font-size:20px">📅</span><div style="min-width:0"><div style="font-size:15px;font-weight:600">${fmtData(r.inicio)}</div><div class="mut" style="font-size:13px;margin-top:2px">${esc(r.assunto||'Reunião')}${r.local?' · '+esc(r.local):''}</div></div></div>`:'<div class="mut" style="font-size:13px">Nenhuma marcada · <span style="color:var(--acc);font-weight:600">pedir reunião</span></div>')+'</div>';
   const lista=[...atr.map(a=>({a,atr:true})),...doDia.map(a=>({a,atr:false}))];
   h+=`<div class="cd" onclick="irFiltroAtv('${atr.length?'atrasadas':'pendentes'}')"><div class="t">📋 Atividades</div>`;
-  h+=lista.length?lista.slice(0,3).map(x=>`<div class="ln"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:50%;flex:none;background:${x.atr?'#E24B4A':'#378ADD'}"></span>${esc(x.a.titulo)}</span><span style="font-size:11px;font-weight:700;color:${x.atr?'var(--no)':'var(--mut)'};flex:none;margin-left:8px">${x.atr?'atrasada':'hoje'}</span></div>`).join('')+(lista.length>3?`<div class="mut" style="font-size:12px;margin-top:4px">+ ${lista.length-3} outra(s)</div>`:''):`<div class="mut" style="font-size:13px">${abertas.length?abertas.length+' pendente(s), nenhuma para hoje':'Tudo em dia 🎉'}</div>`;
+  h+=lista.length?lista.slice(0,3).map(x=>`<div class="ln"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:50%;flex:none;background:${x.atr?'#E24B4A':'#378ADD'}"></span>${esc(x.a.titulo)}</span><span style="font-size:11px;font-weight:600;color:${x.atr?'var(--no)':'var(--mut)'};flex:none;margin-left:8px">${x.atr?'atrasada':'hoje'}</span></div>`).join('')+(lista.length>3?`<div class="mut" style="font-size:12px;margin-top:4px">+ ${lista.length-3} outra(s)</div>`:''):`<div class="mut" style="font-size:13px">${abertas.length?abertas.length+' pendente(s), nenhuma para hoje':'Tudo em dia 🎉'}</div>`;
   h+='</div>';
   el.innerHTML=h;
 }
