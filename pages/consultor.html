@@ -93,7 +93,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <!-- MAIS (v158): todos os recursos -->
 <div class="aba" id="aba-mais">
   <div class="sec">
-    <div class="row"><div class="h">☰ Todos os recursos</div><button class="lnk" onclick="Chama.personalizar()">✏️ Personalizar atalhos</button></div>
+    <div class="h" style="font-size:18px!important">☰ Mais</div>
     <div id="mais-grid"></div>
   </div>
 </div>
@@ -841,7 +841,17 @@ function iniciarNotif(){Chama.iniciarPWA();}
 function notificarNovos(avisos){
   const naoLidos=avisos.filter(a=>!a.lida);
   if(_notifVistos===null){_notifVistos=new Set(avisos.map(a=>a.id));return;} // 1a carga: não notifica retroativo
-  naoLidos.forEach(a=>{if(!_notifVistos.has(a.id)){_notifVistos.add(a.id);if(!Chama.pushLigado()&&'Notification'in window&&Notification.permission==='granted'){try{new Notification(a.titulo,{body:a.texto,icon:'/public/icon-192.png',tag:a.id})}catch(e){}}}});
+  const novasAtv=[];
+  naoLidos.forEach(a=>{if(!_notifVistos.has(a.id)){_notifVistos.add(a.id);if(!Chama.pushLigado()&&'Notification'in window&&Notification.permission==='granted'){try{new Notification(a.titulo,{body:a.texto,icon:'/public/icon-192.png',tag:a.id})}catch(e){}}
+    if(/^nova atividade/i.test(a.titulo||''))novasAtv.push(a);
+  }});
+  // v178: atividade nova do gestor → aviso grande no meio da tela + som (não fica só no sininho)
+  if(novasAtv.length){const a=novasAtv[0],t=String(a.texto||'');const m=t.match(/^(.*?) enviou: (.*) \(([^()]*)\)(.*)$/);
+    Chama.som();
+    Chama.alertaTela({icone:'📝',de:m?'Nova atividade de '+m[1]:'Nova atividade',titulo:m?m[2].replace(/^["“]|["”]$/g,''):(a.titulo||'Nova atividade'),
+      texto:(m?(m[3]+m[4].replace(/^[\s—-]+/,' · ').replace(/\.\s*$/,'')):t)+(novasAtv.length>1?' (+'+(novasAtv.length-1)+' outra'+(novasAtv.length>2?'s':'')+')':''),
+      botao:'Ver minhas atividades',acao(){Chama.abrir('atividades');}});
+    novasAtv.forEach(x=>fetch('/api/avisos/ler',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:x.id})}).catch(()=>{}));}
   avisos.forEach(a=>_notifVistos.add(a.id));
 }
 async function carregarAvisos(){
@@ -874,13 +884,22 @@ async function enviarMsg(){
   t.value='';abrirChat();
 }
 function mostrarBadgeChat(nm){const b=document.getElementById('badge-chat');const aberto=document.getElementById('chat-box').style.display==='flex';if(nm>0&&!aberto){b.textContent=nm;b.style.display='block'}else b.style.display='none';}
+// v178: chegou mensagem nova do gestor → toca o som e o chat ABRE na tela (não fica só o numerinho)
+let _chatQtd=null;
+function chegouChat(n){
+  const antes=_chatQtd;_chatQtd=n;
+  if(antes===null||!(n>antes)){mostrarBadgeChat(n);return;} // 1ª batida (tela abrindo): só o numerinho
+  Chama.som();
+  const box=document.getElementById('chat-box');
+  if(box.style.display==='flex')abrirChat();else toggleChat();
+}
 iniciarNotif();
 carregarAvisos();
 // v155: em vez de recarregar tudo a cada 10 s, a tela pergunta "mudou algo?" (/api/pulso) e só recarrega quando mudou
 Chama.iniciarPulso({
   mudou(){carregar();if(document.getElementById('chat-box').style.display==='flex')abrirChat();if(document.getElementById('aba-comissoes').classList.contains('on'))carregarExtrato();},
   avisos(){carregarAvisos();},
-  chat(n){mostrarBadgeChat(n);}
+  chat(n){chegouChat(n);}
 });
 // ===== MINHAS COMISSÕES (extrato) =====
 let _extrato=[],_exAberto={};
@@ -936,16 +955,19 @@ function renderHoje(){
   const atr=abertas.filter(a=>a.prazo<hj),doDia=abertas.filter(a=>a.prazo===hj);
   const r=(window._reunioes||[])[0];
   const pos=rk.posicao&&rk.posicao!=='-'?' · '+rk.posicao+'º no ranking':'';
-  let h='<div class="cd esc larga" onclick="Chama.abrir(\'vendas\')"><div class="t">💰 Vendas do mês</div>';
-  if(mv.alvo>0)h+=`<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><span class="v">${money(mv.feito)}</span><span style="font-size:12px;color:#B8BCC6">meta ${money(mv.alvo)} · ${mv.pct}%</span></div><div class="br"><div style="width:${Math.min(100,mv.pct)}%;background:#57B36A"></div></div><div style="font-size:12px;color:#B8BCC6;margin-top:6px">${mv.feito>=mv.alvo?'🏆 Meta batida!':'Faltam '+money(mv.alvo-mv.feito)}${pos}</div>`;
-  else h+=`<div class="v">${money(mv.feito)}</div><div style="font-size:12px;color:#B8BCC6;margin-top:4px">Meta do mês ainda não definida pelo gestor${pos}</div>`;
-  h+='</div>';
+  // v177: início no padrão da ficha — medidor da meta, anel do check-in e linha do tempo
+  const U=Chama.ui;
+  let h='<div class="cd larga" onclick="Chama.abrir(\'vendas\')"><div class="t">💰 Vendas do mês</div><div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">';
+  if(mv.alvo>0)h+=`<div style="width:clamp(120px,36vw,170px);flex:none">${U.meiaLua(mv.pct,{sub:'da meta'})}</div>`;
+  h+=`<div style="min-width:150px;flex:1"><div style="font-size:clamp(19px,5.6vw,26px);font-weight:800;letter-spacing:-.4px;white-space:nowrap">${money(mv.feito)}</div>`
+    +(mv.alvo>0?`<div class="mut" style="font-size:12.5px">${mv.feito>=mv.alvo?'🏆 Meta batida!':'faltam '+money(mv.alvo-mv.feito)+' para a meta'}</div>`:'<div class="mut" style="font-size:12.5px">meta do mês ainda não definida pelo gestor</div>')
+    +(rk.posicao&&rk.posicao!=='-'?`<div style="margin-top:8px"><span class="badge b-warn">🏆 ${rk.posicao}º no ranking</span></div>`:'')+'</div></div></div>';
   const pctCk=ck.total?Math.round(100*ck.feitas/ck.total):0;
-  h+=`<div class="cd" onclick="Chama.abrir('checkin')"><div class="t">✅ Check-in de hoje</div><div style="display:flex;justify-content:space-between;align-items:center"><span class="v">${ck.feitas} de ${ck.total}</span>${ck.finalizado?'<span class="mut" style="font-size:12px">🔒 dia finalizado</span>':'<span class="btn" style="padding:6px 12px;font-size:12px">Continuar</span>'}</div><div class="br"><div style="width:${pctCk}%;background:#5175A0"></div></div><div class="mut" style="font-size:12px;margin-top:6px">Semana: ${sem.atual} de ${sem.alvo} rotinas</div></div>`;
-  h+=`<div class="cd" onclick="${r?'verReuniao(0)':"Chama.abrir('agenda')"}"><div class="t">📅 Próxima reunião</div>`+(r?`<div style="font-size:15px;font-weight:700">${fmtData(r.inicio)}</div><div class="mut" style="font-size:13px;margin-top:2px">${esc(r.assunto||'Reunião')}${r.local?' · '+esc(r.local):''}</div>`:'<div class="mut" style="font-size:13px">Nenhuma marcada · <span style="color:var(--acc);font-weight:600">pedir reunião</span></div>')+'</div>';
+  h+=`<div class="cd" onclick="Chama.abrir('checkin')"><div class="t">✅ Check-in de hoje</div><div style="display:flex;align-items:center;gap:14px">${U.anel(ck.feitas+'/'+ck.total,pctCk,{tam:80})}<div style="min-width:0;flex:1"><div style="font-size:15px;font-weight:700">${ck.feitas} de ${ck.total} rotinas</div><div style="margin-top:8px">${ck.finalizado?'<span class="mut" style="font-size:12px">🔒 dia finalizado</span>':'<span class="btn" style="padding:7px 14px;font-size:13px;display:inline-flex;align-items:center">Continuar</span>'}</div></div></div></div>`;
+  h+=`<div class="cd" onclick="${r?'verReuniao(0)':"Chama.abrir('agenda')"}"><div class="t">📅 Próxima reunião</div>`+(r?`<div style="display:flex;gap:10px;align-items:center"><span class="qd" style="width:42px;height:42px;background:#E6F1FB;color:#185FA5;font-size:20px">📅</span><div style="min-width:0"><div style="font-size:15px;font-weight:700">${fmtData(r.inicio)}</div><div class="mut" style="font-size:13px;margin-top:2px">${esc(r.assunto||'Reunião')}${r.local?' · '+esc(r.local):''}</div></div></div>`:'<div class="mut" style="font-size:13px">Nenhuma marcada · <span style="color:var(--acc);font-weight:600">pedir reunião</span></div>')+'</div>';
   const lista=[...atr.map(a=>({a,atr:true})),...doDia.map(a=>({a,atr:false}))];
   h+=`<div class="cd" onclick="irFiltroAtv('${atr.length?'atrasadas':'pendentes'}')"><div class="t">📋 Atividades</div>`;
-  h+=lista.length?lista.slice(0,3).map(x=>`<div class="ln"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.a.titulo)}</span><span style="font-size:11px;font-weight:700;color:${x.atr?'var(--no)':'var(--mut)'};flex:none;margin-left:8px">${x.atr?'atrasada':'hoje'}</span></div>`).join('')+(lista.length>3?`<div class="mut" style="font-size:12px;margin-top:4px">+ ${lista.length-3} outra(s)</div>`:''):`<div class="mut" style="font-size:13px">${abertas.length?abertas.length+' pendente(s), nenhuma para hoje':'Tudo em dia 🎉'}</div>`;
+  h+=lista.length?lista.slice(0,3).map(x=>`<div class="ln"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:50%;flex:none;background:${x.atr?'#E24B4A':'#378ADD'}"></span>${esc(x.a.titulo)}</span><span style="font-size:11px;font-weight:700;color:${x.atr?'var(--no)':'var(--mut)'};flex:none;margin-left:8px">${x.atr?'atrasada':'hoje'}</span></div>`).join('')+(lista.length>3?`<div class="mut" style="font-size:12px;margin-top:4px">+ ${lista.length-3} outra(s)</div>`:''):`<div class="mut" style="font-size:13px">${abertas.length?abertas.length+' pendente(s), nenhuma para hoje':'Tudo em dia 🎉'}</div>`;
   h+='</div>';
   el.innerHTML=h;
 }

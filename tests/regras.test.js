@@ -240,3 +240,63 @@ test('estrutura (v175): gestor desativado passa o time para o chefe direto; time
   auth.atualizarUsuario('roxoD', { equipes: ['Extra9'] });
   assert.strictEqual(auth.usuarioPorEmail('vE').superior, 'roxod'); assert.ok(auth.usuarioPorEmail('vE').superiorPeloTime);
 });
+
+test('estrutura (v178): branco fica abaixo do vermelho que indicou e guarda a origem ao virar vermelho', async () => {
+  auth.criarUsuario('larB', 'x1234', 'Lar B', 'gestor', { time: 'TB', cor: '#FB923C' });
+  auth.criarUsuario('vB', 'x1234', 'Verm B', 'consultor', { time: 'TB' });
+  auth.criarUsuario('bB', 'x1234', 'Branco B', 'consultor', { time: 'TB' });
+  assert.ok(auth.atualizarUsuario('larB', { nivel: 'supervisor' }).ok);
+  // vermelho indica o branco: acesso continua de consultor, balão branco
+  assert.ok(auth.atualizarUsuario('bB', { nivel: 'branco', superior: 'vb' }).ok);
+  let b = auth.usuarioPorEmail('bB');
+  assert.strictEqual(b.nivel, 'branco'); assert.strictEqual(b.papel, 'consultor'); assert.strictEqual(b.superior, 'vb'); assert.strictEqual(b.indicadoPor, 'vb');
+  assert.strictEqual(b.cor, '#FFFFFF');
+  // o gestor do vermelho enxerga o branco na estrutura; o vermelho não vira gestor
+  assert.ok(auth.abaixoDe('larb').map(u => String(u.email).toLowerCase()).includes('bb'));
+  assert.strictEqual(auth.usuarioPorEmail('vB').papel, 'consultor');
+  // ninguém fica abaixo de um branco; branco não pode ter papel de gestor
+  assert.ok(auth.atualizarUsuario('vB', { nivel: 'consultor', superior: 'bb' }).erro);
+  // virou vermelho: sai de baixo de quem indicou (volta ao automático pelo time), mas a origem fica guardada
+  assert.ok(auth.atualizarUsuario('bB', { nivel: 'consultor' }).ok);
+  b = auth.usuarioPorEmail('bB');
+  assert.strictEqual(b.nivel, 'consultor'); assert.strictEqual(b.superior, 'larb'); assert.ok(b.superiorPeloTime);
+  assert.strictEqual(b.indicadoPor, 'vb'); assert.strictEqual(b.cor, '#E23B3B');
+});
+
+test('estrutura (v178): rebaixar escolhendo como chefe quem estava abaixo não deixa ninguém respondendo a si mesmo', async () => {
+  auth.criarUsuario('roxoC', 'x1234', 'Roxo C', 'gestor', { time: 'TC', cor: '#A78BFA' });
+  auth.criarUsuario('larC', 'x1234', 'Lar C', 'gestor', { time: 'LC', cor: '#FB923C' });
+  auth.criarUsuario('larC2', 'x1234', 'Lar C2', 'gestor', { time: 'LC2', cor: '#FB923C' });
+  auth.criarUsuario('vC1', 'x1234', 'Verm C1', 'consultor', { time: 'LC' });
+  auth.criarUsuario('vC2', 'x1234', 'Verm C2', 'consultor', { time: 'TC' });
+  assert.ok(auth.atualizarUsuario('larC', { nivel: 'supervisor', superior: 'roxoc' }).ok);
+  assert.ok(auth.atualizarUsuario('larC2', { nivel: 'supervisor', superior: 'roxoc' }).ok);
+  // o roxo vira consultor e passa a responder ao laranja que estava ABAIXO dele
+  assert.ok(auth.atualizarUsuario('roxoC', { nivel: 'consultor', superior: 'larc' }).ok);
+  const sup = l => auth.usuarioPorEmail(l).superior;
+  assert.strictEqual(sup('larC'), '');          // subiu para o lugar do roxo (antes: respondia a si mesmo)
+  assert.strictEqual(sup('roxoC'), 'larc');
+  assert.strictEqual(sup('larC2'), '');         // mesmo nível do novo chefe → vai para o chefe antigo (topo)
+  assert.strictEqual(sup('vC2'), 'larc');       // consultor do time do roxo → novo chefe
+  assert.strictEqual(sup('vC1'), 'larc');
+  assert.strictEqual(auth.quebrarCirculos(auth.listarUsuarios()).length, 0);
+});
+
+test('estrutura (v178): dado antigo em círculo é consertado (leitura e cadastro) e ligação em círculo é recusada', async () => {
+  auth.criarUsuario('larD9', 'x1234', 'Lar D9', 'gestor', { time: 'D9', cor: '#FB923C' });
+  auth.criarUsuario('roxoD9', 'x1234', 'Roxo D9', 'gestor', { time: 'R9', cor: '#A78BFA' });
+  assert.ok(auth.atualizarUsuario('larD9', { nivel: 'supervisor', superior: 'roxod9' }).ok);
+  // simula o dado quebrado da regra antiga: o laranja respondendo a si mesmo
+  const f = path.join(TMP, 'usuarios.json'); const us = JSON.parse(fs.readFileSync(f, 'utf8'));
+  us.find(u => u.email === 'lard9').superior = 'lard9'; us.find(u => u.email === 'roxod9').superior = 'lard9';
+  fs.writeFileSync(f, JSON.stringify(us));
+  const lido = auth.usuarioPorEmail('larD9');
+  assert.strictEqual(lido.superior, ''); assert.ok(lido.estruturaCorrigida);   // na leitura já não some da árvore
+  const corr = auth.repararEstrutura();
+  assert.ok(corr.some(c => c.login === 'lard9'));
+  assert.strictEqual(JSON.parse(fs.readFileSync(f, 'utf8')).find(u => u.email === 'lard9').superior, '');
+  assert.strictEqual(auth.usuarioPorEmail('roxoD9').superior, 'lard9');      // continua como estava; o Julio reorganiza
+  // pela tela: tirar o roxo de baixo do laranja volta a funcionar
+  assert.ok(auth.atualizarUsuario('roxoD9', { nivel: 'gestorEquipe', superior: '' }).ok);
+  assert.ok(auth.atualizarUsuario('larD9', { nivel: 'supervisor', superior: 'roxod9' }).ok);
+});

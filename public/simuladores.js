@@ -5,6 +5,8 @@
  * mês a mês com os valores salvos nas planilhas originais). */
 (function (raiz) {
   'use strict';
+  // v178: no visual sóbrio (gestor) os emojis viram ícones de linha
+  const E = (emoji, icone) => (typeof window !== 'undefined' && window.Chama && window.Chama.E) ? window.Chama.E(emoji, icone) : emoji;
 
   // ---------------- CÁLCULO: VENDA DA CARTA COM LUCRO ----------------
   // p = { credito, prazo, taxaAdm, reducao, lanceParcelas, incc, recompra, cdi }  (taxas em fração: 0,242 = 24,2%)
@@ -163,7 +165,7 @@
       <div class="spl-leg">${series.map(s => `<span><i style="background:${s.cor}"></i>${s.nome}</span>`).join('')}</div></div>`;
   }
   // seletor de mês: − [barra] + e atalhos
-  const seletorMes = (pfx, n, ini, fn, rot) => `<div class="spl-sec">📅 ${rot}</div>
+  const seletorMes = (pfx, n, ini, fn, rot) => `<div class="spl-sec">${E('📅', 'calendar')} ${rot}</div>
     <div class="spl-mes"><button type="button" aria-label="Mês anterior" onclick="SimPlan.${fn}(+document.getElementById('${pfx}-mes').value-1)">−</button>
       <input id="${pfx}-mes" type="range" min="1" max="${n}" value="${ini}" oninput="SimPlan.${fn}(this.value)">
       <button type="button" aria-label="Próximo mês" onclick="SimPlan.${fn}(+document.getElementById('${pfx}-mes').value+1)">+</button>
@@ -183,18 +185,18 @@
       i.addEventListener('keydown', e => { if (e.key === 'Enter') { clearTimeout(t); fn(); i.blur(); } });
     });
   }
-  const erroCard = msg => `<div class="card" style="padding:14px;color:var(--no);font-size:13px">⚠️ ${msg}</div>`;
+  const erroCard = msg => `<div class="card" style="padding:14px;color:var(--no);font-size:13px">${E('⚠️', 'alert-triangle')} ${msg}</div>`;
 
   // ---------- MODO COMERCIAL × DETALHES TÉCNICOS (v166) ----------
   // Por padrão o simulador mostra só o que o time comercial usa com o cliente. O botão "Detalhes técnicos"
   // revela taxas, ROI, TIR, gráfico, tabela e fórmulas. A escolha fica lembrada neste aparelho.
   const TEC_KEY = 'chama-sim-tecnico';
   let _tec = false; try { _tec = localStorage.getItem(TEC_KEY) === '1'; } catch (e) { /* sem storage: começa no modo comercial */ }
-  const botaoTec = () => `<button type="button" class="spl-btntec" onclick="SimPlan.alternarTec()">${_tec ? '🙈 Ocultar detalhes técnicos' : '🔍 Ver detalhes técnicos'}</button>`;
+  const botaoTec = () => `<button type="button" class="spl-btntec" onclick="SimPlan.alternarTec()">${_tec ? E('🙈', 'eye-off') + ' Ocultar detalhes técnicos' : E('🔍', 'search') + ' Ver detalhes técnicos'}</button>`;
   api.alternarTec = function () {
     _tec = !_tec; try { localStorage.setItem(TEC_KEY, _tec ? '1' : '0'); } catch (e) { /* ok */ }
     document.querySelectorAll('.spl-root').forEach(r => r.classList.toggle('tec-on', _tec));
-    document.querySelectorAll('.spl-btntec').forEach(b => { b.textContent = _tec ? '🙈 Ocultar detalhes técnicos' : '🔍 Ver detalhes técnicos'; });
+    document.querySelectorAll('.spl-btntec').forEach(b => { b.innerHTML = _tec ? E('🙈', 'eye-off') + ' Ocultar detalhes técnicos' : E('🔍', 'search') + ' Ver detalhes técnicos'; });
     // o gráfico precisa da largura real, que só existe com o bloco visível
     if (_tec) { if (_carta && document.getElementById('spc-mes')) api.mesCarta(document.getElementById('spc-mes').value);  }
   };
@@ -217,8 +219,8 @@
   let _argTxt = {};
   api.copiarArg = id => copiar(_argTxt[id] || '');
   api.whatsArg = id => { window.open('https://wa.me/?text=' + encodeURIComponent(_argTxt[id] || ''), '_blank', 'noopener'); };
-  const caixaArg = (id, html, txt) => { _argTxt[id] = txt; return `<div class="spl-arg"><div style="font-size:11px;font-weight:700;color:var(--acc);margin-bottom:4px">💬 PARA FALAR COM O CLIENTE</div>${html}
-    <div class="acoes"><button type="button" style="background:var(--card);color:var(--txt);border:1.5px solid var(--bord)" onclick="SimPlan.copiarArg('${id}')">📋 Copiar</button><button type="button" style="background:#25D366;color:#fff" onclick="SimPlan.whatsArg('${id}')">WhatsApp</button></div></div>`; };
+  const caixaArg = (id, html, txt) => { _argTxt[id] = txt; return `<div class="spl-arg"><div style="font-size:11px;font-weight:700;color:var(--acc);margin-bottom:4px">${E('💬', 'message')} PARA FALAR COM O CLIENTE</div>${html}
+    <div class="acoes"><button type="button" style="background:var(--card);color:var(--txt);border:1.5px solid var(--bord)" onclick="SimPlan.copiarArg('${id}')">${E('📋', 'clipboard-list')} Copiar</button><button type="button" style="background:#25D366;color:#fff" onclick="SimPlan.whatsArg('${id}')">WhatsApp</button></div></div>`; };
 
   // ---------------- TELA: VENDA DA CARTA × CDI ----------------
   const MARCOS_C = [1, 3, 6, 12, 18, 24, 36, 48, 60, 72, 84, 96, 120, 144, 168, 180, 200, 220, 240];
@@ -226,13 +228,13 @@
   function montarCarta(el) {
     el.classList.add('spl-root'); el.classList.toggle('tec-on', _tec);
     el.innerHTML = `<div class="card" style="padding:14px;margin-bottom:10px">
-      <div class="spl-top"><div class="spl-ic">💰</div><div><b>Venda da Carta × CDI</b><span>Mostre ao cliente quanto ele pode lucrar comprando a cota com parcela reduzida e vendendo a carta quando for contemplado — comparado a deixar o dinheiro no banco (CDI).</span></div></div>
+      <div class="spl-top"><div class="spl-ic">${E('💰', 'coin')}</div><div><b>Venda da Carta × CDI</b><span>Mostre ao cliente quanto ele pode lucrar comprando a cota com parcela reduzida e vendendo a carta quando for contemplado — comparado a deixar o dinheiro no banco (CDI).</span></div></div>
       <div class="spl-g">
         ${campo('spc-credito', 'Valor do crédito', '100.000', { pre: 'R$' })}
         ${campo('spc-prazo', 'Prazo', '220', { suf: 'meses' })}
         ${campo('spc-rec', 'Venda da carta', '50', { suf: '%', dica: 'quanto do crédito o comprador paga' })}
       </div>
-      <details class="spl-aj spl-tec"><summary><span>⚙️ Taxas e índices</span><small id="spc-ajres"></small></summary>
+      <details class="spl-aj spl-tec"><summary><span>${E('⚙️', 'settings')} Taxas e índices</span><small id="spc-ajres"></small></summary>
         <div class="spl-g">
           ${campo('spc-adm', 'Taxa adm total', '24,2', { suf: '%' })}
           ${campo('spc-red', 'Parcela reduzida', '50', { suf: '%', dica: 'redução do crédito na parcela' })}
@@ -261,22 +263,22 @@
     const virada = (_carta.linhas.find(l => l.lucroCdi >= l.lucroS) || {}).mes;
     out.innerHTML = `<div id="spc-hero"></div>
       <div class="card" style="padding:14px;margin-bottom:10px">${seletorMes('spc', n, mesIni, 'mesCarta', 'Se o cliente for contemplado no')}
-        <div class="spl-seg"><button type="button" data-m="S" onclick="SimPlan.modoCarta('S')">🎲 Por sorteio</button><button type="button" data-m="L" onclick="SimPlan.modoCarta('L')">🎯 Com lance</button></div>
+        <div class="spl-seg"><button type="button" data-m="S" onclick="SimPlan.modoCarta('S')">${E('🎲', 'dice')} Por sorteio</button><button type="button" data-m="L" onclick="SimPlan.modoCarta('L')">${E('🎯', 'target')} Com lance</button></div>
         <div id="spc-mesres"></div>
-        <div class="spl-tecbox spl-tec"><div class="lbl">🔍 Detalhes técnicos do mês</div><div id="spc-mestec"></div></div></div>
+        <div class="spl-tecbox spl-tec"><div class="lbl">${E('🔍', 'search')} Detalhes técnicos do mês</div><div id="spc-mestec"></div></div></div>
       <div class="card" style="padding:14px;margin-bottom:10px" id="spc-arg"></div>
       <div class="card" style="padding:14px;margin-bottom:10px">
         <div class="spl-sec">⏳ Até quando vale a pena?</div>
         <div style="font-size:14px;line-height:1.45">${virada ? `Se for contemplado <b>até o ${virada - 1}º mês</b>, vender a carta rende mais do que deixar o mesmo dinheiro no CDI. Depois disso, o CDI passa à frente.` : 'Em <b>todo o plano</b>, vender a carta rende mais do que deixar o dinheiro no CDI.'}</div>
         <div class="spl-tec" style="margin-top:12px"><div id="spc-graf"></div></div></div>
-      <div class="card spl-tec" style="padding:14px;margin-bottom:10px"><div class="spl-sec">🔍 Dados do plano</div><div class="spl-k">
+      <div class="card spl-tec" style="padding:14px;margin-bottom:10px"><div class="spl-sec">${E('🔍', 'search')} Dados do plano</div><div class="spl-k">
         ${kpi('Parcela original (cheia)', brl(_carta.parcelaOriginal))}${kpi('Parcela reduzida', brl(_carta.parcelaLiberada), { cor: 'var(--ok)' })}
         ${kpi('Crédito reduzido + taxa adm', brl(_carta.creditoReduzidoTx))}
         ${kpi('Lucro na venda até', _carta.ateQuandoSorteio ? _carta.ateQuandoSorteio + 'º mês' : 'nenhum mês', { sub: 'sorteio · lance: ' + (_carta.ateQuandoLance ? _carta.ateQuandoLance + 'º mês' : 'nenhum') })}</div>
         <div class="mut" style="font-size:11.5px;margin-top:10px;line-height:1.5"><b>Como é calculado:</b> parcela reduzida = [crédito × (1 − redução) + crédito × taxa adm] ÷ prazo. Crédito e parcela sobem pelo INCC a cada 12 meses.
           Venda da carta = crédito × % de venda. Lance fixo: crédito − (parcela cheia × nº de parcelas do lance). Lucro = venda − total investido; ROI = lucro ÷ investido.
           CDI: cada parcela é aplicada no mês em que seria paga, rendendo a taxa mensal equivalente (1 + CDI a.a.)^(1/12) − 1.</div></div>
-      <details class="card spl-tab spl-tec" style="padding:14px;margin-bottom:10px"><summary>📋 Tabela mês a mês</summary>
+      <details class="card spl-tab spl-tec" style="padding:14px;margin-bottom:10px"><summary>${E('📋', 'clipboard-list')} Tabela mês a mês</summary>
         <button class="btn sec2" style="padding:5px 10px;font-size:12px;margin-top:10px" onclick="SimPlan.todosCarta()" id="spc-todos">Ver todos os meses</button>
         <div id="spc-tab"></div></details>`;
     _cartaTodos = false; api.mesCarta(mesIni);
@@ -293,8 +295,8 @@
       <div class="v">${brl0(lucro)}</div>
       <div class="s">${lucro >= 0 ? `Paga ${brl0(l.investido)} em parcelas e recebe ${brl0(venda)} pela carta.` : `A venda (${brl0(venda)}) não cobre o que ele pagou (${brl0(l.investido)}).`}${vezes ? `<br>É <b>${vezesTxt}</b> o que o mesmo dinheiro renderia no CDI.` : ''}</div>
       <div class="spl-bars">
-        <div class="spl-bar"><div><span>💰 Vendendo a carta</span><b>${brl0(lucro)}</b></div><em><u style="width:${Math.max(2, Math.abs(lucro) / top * 100)}%"></u></em></div>
-        <div class="spl-bar"><div><span>🏦 Deixando no CDI</span><b>${brl0(l.lucroCdi)}</b></div><em><u style="width:${Math.max(2, Math.abs(l.lucroCdi) / top * 100)}%;opacity:.6"></u></em></div>
+        <div class="spl-bar"><div><span>${E('💰', 'coin')} Vendendo a carta</span><b>${brl0(lucro)}</b></div><em><u style="width:${Math.max(2, Math.abs(lucro) / top * 100)}%"></u></em></div>
+        <div class="spl-bar"><div><span>${E('🏦', 'building-bank')} Deixando no CDI</span><b>${brl0(l.lucroCdi)}</b></div><em><u style="width:${Math.max(2, Math.abs(l.lucroCdi) / top * 100)}%;opacity:.6"></u></em></div>
       </div></div>`;
     document.getElementById('spc-mesres').innerHTML = `<div class="spl-k">
       ${kpi('Parcela por mês', brl(l.parcela), { sub: m > 12 ? 'já com reajuste anual' : 'parcela reduzida' })}${kpi('Total pago até lá', brl0(l.investido))}
@@ -333,7 +335,7 @@
   const avisoParcela = (p, pfx) => {
     const pJ = p.saldo / p.prazo;
     if (!(Math.abs(p.parcela - pJ) / pJ > 0.1)) return '';
-    return `<div class="spl-dica">⚠️ Confira a parcela: ${brl(p.parcela)} ${p.parcela < pJ ? 'não paga' : 'paga mais rápido'} o saldo de ${brl0(p.saldo)} em ${p.prazo} meses. O esperado seria cerca de <b>${brl(pJ)}</b> (saldo ÷ prazo). No próximo reajuste a parcela é recalculada.
+    return `<div class="spl-dica">${E('⚠️', 'alert-triangle')} Confira a parcela: ${brl(p.parcela)} ${p.parcela < pJ ? 'não paga' : 'paga mais rápido'} o saldo de ${brl0(p.saldo)} em ${p.prazo} meses. O esperado seria cerca de <b>${brl(pJ)}</b> (saldo ÷ prazo). No próximo reajuste a parcela é recalculada.
       <br><button class="btn sec2" style="padding:5px 10px;font-size:12px;margin-top:6px" onclick="document.getElementById('${pfx}-parcela').value='${pJ.toFixed(2).replace('.', ',')}';SimPlan.calcularCusto()">Usar ${brl(pJ)}</button></div>`;
   };
   const camposCota = (pfx, comCredito) => `
@@ -347,16 +349,16 @@
   let _aba = 'custo';
   function montarCusto(el) {
     el.innerHTML = `<div class="card" style="padding:14px;margin-bottom:10px">
-      <div class="spl-top"><div class="spl-ic">📊</div><div><b>Custo de Operação, Atualização de INCC e Assunção</b><span>Dados da cota uma vez só — veja o custo da operação (modo HP), a atualização da parcela e do saldo pelo INCC e o valor de assunção.</span></div></div>
+      <div class="spl-top"><div class="spl-ic">${E('📊', 'chart-bar')}</div><div><b>Custo de Operação, Atualização de INCC e Assunção</b><span>Dados da cota uma vez só — veja o custo da operação (modo HP), a atualização da parcela e do saldo pelo INCC e o valor de assunção.</span></div></div>
       <div class="spl-g">${camposCota('spo', true)}</div>
-      <div class="spl-abas" id="spx-abas"><button type="button" data-a="custo" onclick="SimPlan.abaCusto('custo')">💸 Custo de operação</button><button type="button" data-a="incc" onclick="SimPlan.abaCusto('incc')">📈 Atualização INCC</button><button type="button" data-a="ass" onclick="SimPlan.abaCusto('ass')">🤝 Assunção</button></div>
+      <div class="spl-abas" id="spx-abas"><button type="button" data-a="custo" onclick="SimPlan.abaCusto('custo')">${E('💸', 'cash')} Custo de operação</button><button type="button" data-a="incc" onclick="SimPlan.abaCusto('incc')">${E('📈', 'trending-up')} Atualização INCC</button><button type="button" data-a="ass" onclick="SimPlan.abaCusto('ass')">${E('🤝', 'arrows-exchange')} Assunção</button></div>
     </div><div id="spo-res"></div>
     <div id="spx-custo" class="spx-pane"></div>
     <div id="spx-incc" class="spx-pane"></div>
     <div id="spx-ass" class="spx-pane"><div class="card" style="padding:14px;margin-bottom:10px">
-      <div class="spl-sec">🤝 Desconto de assunção por parcelas restantes</div>
+      <div class="spl-sec">${E('🤝', 'arrows-exchange')} Desconto de assunção por parcelas restantes</div>
       <div class="mut" style="font-size:12px;margin-bottom:6px">O cliente transfere a dívida para outra pessoa e ganha desconto pela quitação antecipada.</div>
-      <details class="spl-aj" style="margin-top:4px;border-top:0;padding-top:0"><summary><span>⚙️ Faixas de desconto</span><small>5 faixas</small></summary>
+      <details class="spl-aj" style="margin-top:4px;border-top:0;padding-top:0"><summary><span>${E('⚙️', 'settings')} Faixas de desconto</span><small>5 faixas</small></summary>
         <div class="spl-faixas"><div class="mut" style="font-size:11px">Parcelas restantes a partir de</div><div class="mut" style="font-size:11px">Desconto</div>
         ${FAIXAS_PADRAO.map((f, i) => `<span class="spl-in"><input id="spa-fmin${i}" type="text" inputmode="numeric" value="${f.min}"><i>parc.</i></span><span class="spl-in"><input id="spa-fdesc${i}" type="text" inputmode="decimal" value="${f.desc}"><i>%</i></span>`).join('')}</div>
         <div class="mut" style="font-size:11px;margin-top:6px">Ex.: 165 parcelas restantes → 50% de desconto. Abaixo de 60 → sem desconto (paga o saldo integral).</div>
@@ -388,7 +390,7 @@
     }
     out.innerHTML = avisoParcela(p, 'spo');
     document.getElementById('spx-custo').innerHTML = `
-      <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">💸 Custo da operação</div>
+      <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">${E('💸', 'cash')} Custo da operação</div>
         <div class="spl-k" style="grid-template-columns:repeat(2,minmax(0,1fr))">
           <div class="spl-kp" style="background:var(--accbg,#fde8ea)"><span><b style="display:inline;font-size:11px;color:var(--acc)">CUSTO DA OPERAÇÃO</b> (HP)</span><b style="color:var(--acc)">${pct(sem.custoAM, 4)} <small style="display:inline">a.m.</small></b><small>${pct(sem.custoAA)} ao ano</small></div>
           <div class="spl-kp"><span>Com INCC ${pct(p.incc, 1)} projetado</span><b>${pct(com.custoAM, 3)} <small style="display:inline">a.m.</small></b><small>${pct(com.custoAA)} ao ano</small></div>
@@ -397,7 +399,7 @@
           ${kpi('Saldo devedor (sem INCC)', brl0(p.saldo))}${kpi('Total pago com INCC', brl0(com.totalPago), { sub: com.pagoSobreCredito.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '× o crédito' })}
           ${kpi('Última parcela com INCC', brl(com.parcelaFinal))}</div>
         <div style="margin-top:12px;background:var(--card2,#F2F3F5);border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.7">
-          <div style="font-size:11px;font-weight:700;color:var(--acc);margin-bottom:4px">🧮 NA HP 12C, NA FRENTE DO CLIENTE</div>
+          <div style="font-size:11px;font-weight:700;color:var(--acc);margin-bottom:4px">${E('🧮', 'calculator')} NA HP 12C, NA FRENTE DO CLIENTE</div>
           <code>f CLX</code><br>
           <code>${fmtNum(p.credito)}</code> <code>CHS</code> <code>PV</code> <span class="mut">— crédito pego</span><br>
           <code>${fmtNum(p.saldo)}</code> <code>FV</code> <span class="mut">— saldo devedor</span><br>
@@ -405,7 +407,7 @@
           <code>i</code> → <b style="color:var(--acc)">${pct(sem.custoAM, 4)} ao mês</b>
           <div class="mut" style="font-size:12px;margin-top:6px;line-height:1.45">Com o INCC projetado, troque o FV pelo total pago com INCC (${brl(com.totalPago)}) → ${pct(com.custoAM, 4)} ao mês. Ao ano: (1 + taxa)^12 − 1.</div></div></div>`;
     document.getElementById('spx-incc').innerHTML = `
-      <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">📈 Atualização da parcela e do saldo pelo INCC</div>
+      <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">${E('📈', 'trending-up')} Atualização da parcela e do saldo pelo INCC</div>
         <div class="spl-k" style="margin-bottom:10px">${kpi('Parcela hoje', brl(p.parcela))}${kpi('Última parcela (com INCC)', brl(com.parcelaFinal))}${kpi('Total pago com INCC', brl0(com.totalPago), { sub: 'sem INCC: ' + brl0(sem.totalPago) })}</div>
         <div class="spl-abas" id="spx-incmodo" style="margin:0 0 10px"><button type="button" data-m="per" onclick="SimPlan.modoIncc('per')">Por período</button><button type="button" data-m="mes" onclick="SimPlan.modoIncc('mes')">Mês a mês</button></div>
         <div id="spx-inctab"></div>
@@ -441,9 +443,9 @@
     const n = _incc.linhas.length, mesIni = Math.min(mesAnt, n);
     out.innerHTML = `<div class="card" style="padding:14px;margin-bottom:10px">${seletorMes('spa', n, mesIni, 'mesAssuncao', 'Assunção no')}<div id="spa-mesres"></div></div>
       <div class="card" style="padding:14px;margin-bottom:10px" id="spa-arg"></div>
-      <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">📋 Marcos do plano — valor de assunção em cada momento</div><div id="spa-tab"></div>
+      <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">${E('📋', 'clipboard-list')} Marcos do plano — valor de assunção em cada momento</div><div id="spa-tab"></div>
         <div class="mut" style="font-size:11px;margin-top:6px">Valor de assunção = saldo devedor do mês × (1 − desconto da faixa). Economia = saldo − valor de assunção. Custo da assunção = [(já pago + valor de assunção) ÷ crédito]^(1/prazo) − 1, como na planilha.</div></div>
-      <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">📉 Saldo devedor × valor de assunção</div><div id="spa-graf"></div></div>`;
+      <div class="card" style="padding:14px;margin-bottom:10px"><div class="spl-sec">${E('📉', 'trending-down')} Saldo devedor × valor de assunção</div><div id="spa-graf"></div></div>`;
     api.mesAssuncao(mesIni);
   };
   api.mesAssuncao = function (m) {

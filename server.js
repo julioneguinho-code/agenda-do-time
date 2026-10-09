@@ -523,4 +523,9 @@ const server = http.createServer(async (req, res) => {
 
 server.keepAliveTimeout = 65000; // acima do timeout do proxy do Render — reaproveita conexões, evita 502 esporádico
 server.headersTimeout = 66000;
+// v178: ao ligar, conserta quem ficou respondendo a si mesmo / em círculo (regra antiga de rebaixar) — fica na Auditoria
+try {
+  const corr = auth.repararEstrutura();
+  if (corr.length) { console.warn('estrutura corrigida:', corr.map(c => c.login + ' (respondia a ' + c.antes + ')').join(', ')); notion.auditar(null, 'corrigiu a estrutura automaticamente', corr.map(c => c.nome + (c.antes === c.login ? ' respondia a si mesmo(a)' : ' respondia a ' + ((auth.usuarioPorEmail(c.antes) || {}).nome || c.antes) + ' em círculo') + ' → foi para o topo').join('; '), corr[0].login); }
+} catch (e) { console.error('reparo da estrutura:', e.message); }
 server.listen(PORT, () => console.log(`Gestão Chama v${VERSAO} rodando em http://localhost:${PORT}`));
