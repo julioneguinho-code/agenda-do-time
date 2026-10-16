@@ -185,7 +185,7 @@ test('estrutura de gestão (v172): níveis, quem responde a quem, equipes visív
 test('estrutura no site todo (v173): superior vê vendas/consultores de toda a estrutura; modo equipe restringe', async () => {
   const sess = (l, t) => ({ papel: 'gestor', email: l, nome: auth.usuarioPorEmail(l).nome, time: t });
   const ver1 = { papel: 'consultor', email: 'ver1', nome: 'Vermelho Um', time: 'L2' };
-  assert.ok((await N.criarVenda(ver1, { nome: 'Cliente Estrutura', valor: 1000, status: 'negociacao', data: '2026-10-05' })).ok);
+  assert.ok((await N.criarVenda(ver1, { nome: 'Cliente Estrutura', valor: 1000, status: 'negociacao', data: '2026-10-05', telefone: '11 99999-0000', semLead: true })).ok);
   const dono = sess('dono1', 'D'), lar = sess('lar2', 'L2'), cinza = sess('cinza1', 'C');
   const temVenda = async s => ((await N.listarVendas(s, {})).vendas || []).some(v => v.cliente && v.cliente.nome === 'Cliente Estrutura');
   assert.ok(await temVenda(dono));                     // dono vê a venda do vermelho lá embaixo
@@ -316,4 +316,60 @@ test('estrutura (v179): branco é consultor e só fica abaixo de um vermelho do 
   assert.ok(auth.atualizarUsuario('vE1', { time: 'OUTRO' }).ok);                                    // o vermelho mudou de time
   assert.strictEqual(auth.usuarioPorEmail('bE').superior, 'lare');                                  // o branco volta ao automático
   assert.strictEqual(auth.ROTULO_NIVEL.branco, 'consultor (branco)');
+});
+
+test('funil de leads (v182): cadastro, duplicado, colunas, vínculo com a venda e ficha', async () => {
+  auth.criarUsuario('gL', 'x1234', 'Gestor Leads', 'gestor', { time: 'TL', cor: '#A78BFA' });
+  auth.criarUsuario('cL', 'x1234', 'Cons Leads', 'consultor', { time: 'TL' });
+  auth.criarUsuario('cX', 'x1234', 'Cons Fora', 'consultor', { time: 'OUTRO-TL' });
+  const cons = { papel: 'consultor', email: 'cl', nome: 'Cons Leads', time: 'TL' };
+  const fora = { papel: 'consultor', email: 'cx', nome: 'Cons Fora', time: 'OUTRO-TL' };
+  const gest = { papel: 'gestor', email: 'gl', nome: 'Gestor Leads', time: 'TL' };
+  assert.ok((await N.criarLead(cons, { nome: 'Sem contato' })).erro);                       // precisa telefone ou @
+  const a = await N.criarLead(cons, { nome: 'Danilo', telefone: '(11) 98888-7777', obs: 'veio do Insta' });
+  assert.ok(a.ok); assert.strictEqual(a.lead.status, 'lead');
+  const dup = await N.criarLead(cons, { nome: 'Danilo 2', telefone: '11988887777' });       // mesmo telefone → avisa
+  assert.ok(dup.duplicado); assert.strictEqual(dup.duplicado.nome, 'Danilo');
+  assert.ok((await N.criarLead(cons, { nome: 'Danilo 2', telefone: '11988887777', forcar: true })).ok);
+  const b = await N.criarLead(cons, { nome: 'Julia Insta', insta: 'julia.c' });
+  assert.strictEqual(b.lead.insta, '@julia.c');
+  // colunas
+  assert.ok((await N.moverLead(cons, { id: a.lead.id, status: 'andamento' })).ok);
+  assert.ok((await N.moverLead(cons, { id: a.lead.id, status: 'venda' })).erro);           // "virou venda" só pela venda
+  assert.ok((await N.moverLead(fora, { id: a.lead.id, status: 'lead' })).erro);            // outro consultor não mexe
+  assert.ok((await N.moverLead(gest, { id: b.lead.id, status: 'excluido' })).ok);          // gestor do time mexe
+  // quem vê o quê
+  assert.strictEqual((await N.listarLeads(cons, {})).leads.length, 3);
+  assert.ok((await N.listarLeads(fora, { de: 'cl' })).erro);
+  const vg = await N.listarLeads(gest, { de: 'cl' });
+  assert.strictEqual(vg.leads.length, 3); assert.ok(vg.pessoas.some(p => p.login === 'cl'));
+  // busca do vínculo: não traz Excluídos
+  const bus = await N.buscarLeads(cons, { q: 'dan' });
+  assert.deepStrictEqual(bus.leads.map(l => l.nome).sort(), ['Danilo', 'Danilo 2']);
+  assert.strictEqual((await N.buscarLeads(cons, { q: 'julia' })).leads.length, 0);
+  // venda nova: telefone e vínculo obrigatórios
+  const base = { nome: 'Danilo Silva', valor: 50000, status: 'negociacao', data: '2026-10-16' };
+  assert.ok((await N.criarVenda(cons, { ...base, semLead: true })).erro);                  // sem telefone
+  assert.ok((await N.criarVenda(cons, { ...base, telefone: '11988887777' })).erro);        // sem lead e sem "Sem lead"
+  assert.ok((await N.criarVenda(cons, { ...base, telefone: '11988887777', leadId: b.lead.id })).erro); // lead em Excluídos
+  const v1 = await N.criarVenda(cons, { ...base, telefone: '11988887777', leadId: a.lead.id, grupo: '9001', cota: '11' });
+  assert.ok(v1.ok); assert.strictEqual(v1.venda.leadId, a.lead.id); assert.strictEqual(v1.venda.cliente.telefone, '11988887777');
+  const v2 = await N.criarVenda(cons, { ...base, valor: 30000, telefone: '11988887777', leadId: a.lead.id, grupo: '9001', cota: '12' }); // 2ª cota, mesmo lead
+  assert.ok(v2.ok);
+  assert.strictEqual((await N.listarLeads(cons, {})).leads.some(l => l.id === a.lead.id), false); // saiu do quadro
+  let rf = N.resumoLeads('cl');
+  assert.strictEqual(rf.venda, 1); assert.strictEqual(rf.total, 3); assert.strictEqual(rf.pct, 33);
+  // telefone foi para a ficha do cliente
+  assert.strictEqual((await N.fichaCliente(cons, { nome: 'Danilo Silva' })).telefone, '11988887777');
+  // cliente antigo (carteira) não exige lead nem telefone
+  assert.ok((await N.criarVenda(cons, { nome: 'Antigo', valor: 1000, status: 'fechada', carteira: true, _import: true })).ok);
+  // venda excluída: enquanto houver outra venda, o lead continua como venda; sem nenhuma, volta para Em andamento
+  assert.ok((await N.excluirVenda(cons, { id: v1.venda.id })).ok);
+  assert.strictEqual(N.resumoLeads('cl').venda, 1);
+  assert.ok((await N.excluirVendas(cons, { ids: [v2.venda.id] })).ok);
+  rf = N.resumoLeads('cl'); assert.strictEqual(rf.venda, 0); assert.strictEqual(rf.andamento, 1);
+  // gestor lançando venda em nome do consultor: o lead tem que ser do consultor dono da venda
+  const g1 = await N.criarLead(gest, { nome: 'Lead do Gestor', telefone: '21977776666' });
+  assert.ok((await N.criarVenda(gest, { ...base, consultorEmail: 'cl', telefone: '21977776666', leadId: g1.lead.id })).erro);
+  assert.ok((await N.criarVenda(gest, { ...base, telefone: '21977776666', leadId: g1.lead.id })).ok);
 });

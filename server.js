@@ -288,6 +288,12 @@ const server = http.createServer(async (req, res) => {
         if (r.ok) notion.auditar(session, 'editou o Mural', '', '');
         return send(res, 200, r);
       }
+      // v182: funil de leads
+      if (p === '/api/leads' && req.method === 'GET') return send(res, 200, await notion.listarLeads(session, { de: url.searchParams.get('de') }));
+      if (p === '/api/leads/busca' && req.method === 'GET') return send(res, 200, await notion.buscarLeads(session, { dono: url.searchParams.get('dono'), q: url.searchParams.get('q') }));
+      if (p === '/api/leads' && req.method === 'POST') return send(res, 200, await notion.criarLead(session, await readBody(req)));
+      if (p === '/api/leads/mover' && req.method === 'POST') return send(res, 200, await notion.moverLead(session, await readBody(req)));
+      if (p === '/api/leads/editar' && req.method === 'POST') return send(res, 200, await notion.editarLead(session, await readBody(req)));
       if (p === '/api/vendas' && req.method === 'GET') {
         return send(res, 200, await notion.listarVendas(session, { de: url.searchParams.get('de'), ate: url.searchParams.get('ate'), q: url.searchParams.get('q'), consultor: url.searchParams.get('consultor') }));
       }

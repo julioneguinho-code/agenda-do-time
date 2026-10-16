@@ -169,6 +169,7 @@
         ${lk(o.acoes && o.acoes.checkinVer, checkin(p))}
         ${lk(o.acoes && o.acoes.vendas, funil(p))}
         ${lk(o.acoes && o.acoes.clientes, carteira(p))}
+        ${C.funil && C.funil.cardFicha ? C.funil.cardFicha(f.leads, o.acoes && o.acoes.leads) : ''}
         ${lk(o.acoes && o.acoes.atividades, agenda(p))}
         ${eu ? '' : ranking(p, false)}
         ${eu ? '' : comissoes(p)}

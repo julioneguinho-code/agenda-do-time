@@ -202,7 +202,7 @@
   // Cada página informa o CATÁLOGO dos seus recursos; o usuário escolhe os favoritos (⭐) e a ordem (▲▼).
   // Favoritos ficam salvos no servidor por pessoa (valem em qualquer aparelho).
   const escH = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  let CAT = [], MAPA = {}, PADRAO = [], INICIO = null, BADGE = () => '', FAV = null, DESTAQUE = '';
+  let CAT = [], MAPA = {}, PADRAO = [], INICIO = null, BADGE = () => '', FAV = null, DESTAQUE = '', DESTAQUE2 = '';
   const MAX_FAV = 8, NA_BARRA = 3;
   // v177: cada recurso tem um quadradinho de cor suave (fácil de achar pela cor) e um grupo no "Mais"
   // v179: a partir de que largura vira "computador" (menu lateral). Gestor (visual sóbrio): 768 px — janelas menores e tablets
@@ -276,6 +276,10 @@
     + '.nav a.nv-dest,.sobrio .nav a.nv-dest{background:#17915F!important;color:#fff!important;font-weight:650!important;font-size:15px!important;padding:13px 14px!important;border-radius:12px!important;margin:2px 0 12px;box-shadow:0 4px 12px rgba(23,145,95,.28);align-items:center;gap:10px}'
     + '.nav a.nv-dest:hover,.sobrio .nav a.nv-dest:hover{background:#127A50!important;color:#fff!important}.nav a.nv-dest:before{display:none!important}.nv-dest-mais{font-size:20px;font-weight:700;line-height:1;width:24px;text-align:center}'
     + '.nav a.nv-dest-mob,.sobrio .nav a.nv-dest-mob{flex:0 0 66px!important;display:flex;flex-direction:column;align-items:center;color:#17915F!important;font-weight:650!important;overflow:visible!important}'
+    + '.nav a.nv-dest2,.sobrio .nav a.nv-dest2{background:#E7F6EF!important;color:#17915F!important;font-weight:600!important;font-size:13.5px!important;padding:8px 12px!important;border-radius:10px!important;margin:-6px 0 12px;border:1px solid #CDEBDD;align-items:center;gap:8px}'
+    + '.nav a.nv-dest2:hover,.sobrio .nav a.nv-dest2:hover{background:#D5EFE3!important;color:#127A50!important}.nav a.nv-dest2:before{display:none!important}.nav a.nv-dest2 .nv-dest-mais{font-size:16px}'
+    + '.nav a.nv-dest-mob2,.sobrio .nav a.nv-dest-mob2{flex:0 0 52px!important}'
+    + '.nv-dest-bola.nv-dest-bola2{width:40px;height:40px;font-size:22px;margin-top:-12px;background:#E7F6EF;color:#17915F;border:3px solid #fff;box-shadow:0 4px 10px rgba(23,145,95,.25),inset 0 0 0 1.5px #9ED8BE}'
     + '.nv-dest-bola{width:54px;height:54px;border-radius:50%;background:#17915F;color:#fff;display:grid;place-items:center;font-size:30px;font-weight:600;line-height:1;margin-top:-24px;margin-bottom:2px;border:4px solid #fff;box-shadow:0 6px 16px rgba(23,145,95,.35)}'
     // v179: COR DOS BOTÕES PELO SIGNIFICADO — verde = coisa boa (aprovar, criar, salvar, nova venda/atividade);
     // amarelo = atenção (reagendar); vermelho = coisa ruim / sem volta (recusar, excluir, cancelar, remover)
@@ -347,15 +351,17 @@
       + '}';
     const st = document.createElement('style'); st.id = 'casca-css'; st.textContent = css + TEMA + TEMA_SOBRIO; document.head.appendChild(st);
   })();
+  const ehDestaque = id => id === DESTAQUE || id === DESTAQUE2;
   function favoritos() {
-    const f = (FAV || PADRAO).filter(id => MAPA[id] && id !== DESTAQUE);
-    return f.length ? f : PADRAO.filter(id => MAPA[id] && id !== DESTAQUE);
+    const f = (FAV || PADRAO).filter(id => MAPA[id] && !ehDestaque(id));
+    return f.length ? f : PADRAO.filter(id => MAPA[id] && !ehDestaque(id));
   }
   // cfg: { catalogo:[{id,ic,nome,curto?,aba?,abrir()}], padrao:[ids], inicio:{ic,nome,aba,abrir}, badge:(id)=>'' }
   C.iniciarCasca = function (cfg) {
     CAT = cfg.catalogo; MAPA = {}; CAT.forEach(r => { MAPA[r.id] = r; });
     PADRAO = cfg.padrao; INICIO = cfg.inicio; BADGE = cfg.badge || (() => '');
     DESTAQUE = cfg.destaque && MAPA[cfg.destaque] ? cfg.destaque : ''; // v180: botão fixo em destaque (ex.: Nova venda)
+    DESTAQUE2 = cfg.destaque2 && MAPA[cfg.destaque2] ? cfg.destaque2 : ''; // v182: 2º botão fixo, MENOR (＋ Lead) — a venda continua sendo o principal
     // cópia local só para abrir rápido; quem manda é o servidor (atalhos de QUEM está logado)
     try { const c = JSON.parse(localStorage.getItem(CHAVE_LOCAL()) || 'null'); if (Array.isArray(c)) FAV = c; } catch (e) {}
     C.renderNav();
@@ -391,15 +397,18 @@
     // v180: botão fixo e grande ANTES do Painel (computador) e redondo no meio da barra (celular) — lançar venda a um toque
     const dest = DESTAQUE ? MAPA[DESTAQUE] : null, acD = dest ? "Chama.abrir('" + DESTAQUE + "');return false" : '';
     if (dest) h += '<a href="#" class="so-desk nv-dest" onclick="' + acD + '" title="' + escH(dest.nome) + '"><span class="nv-dest-mais">＋</span>' + escH(dest.nome) + '</a>';
+    const dest2 = DESTAQUE2 ? MAPA[DESTAQUE2] : null, acD2 = dest2 ? "Chama.abrir('" + DESTAQUE2 + "');return false" : '';
+    if (dest2) h += '<a href="#" class="so-desk nv-dest2" onclick="' + acD2 + '" title="' + escH(dest2.nome) + '"><span class="nv-dest-mais">＋</span>' + escH(dest2.nome) + '</a>';
+    const bola2 = dest2 ? '<a href="#" class="so-mob nv-dest-mob nv-dest-mob2" onclick="' + acD2 + '" title="' + escH(dest2.nome) + '"><span class="nv-dest-bola nv-dest-bola2">＋</span><span class="tx">' + escH(dest2.curto || 'Lead') + '</span></a>' : '';
     h += itemNav(INICIO, '', "Chama.abrirInicio()");
     const nBarra = Math.min(NA_BARRA, fav.length), meio = Math.floor(nBarra / 2 + 0.5);
     fav.forEach((id, i) => {
-      if (dest && i === meio) h += '<a href="#" class="so-mob nv-dest-mob" onclick="' + acD + '" title="' + escH(dest.nome) + '"><span class="nv-dest-bola">＋</span><span class="tx">' + escH(dest.curto || 'Venda') + '</span></a>';
+      if (dest && i === meio) h += '<a href="#" class="so-mob nv-dest-mob" onclick="' + acD + '" title="' + escH(dest.nome) + '"><span class="nv-dest-bola">＋</span><span class="tx">' + escH(dest.curto || 'Venda') + '</span></a>' + bola2;
       h += itemNav(MAPA[id], i < NA_BARRA ? '' : 'so-desk', "Chama.abrir('" + id + "')");
     });
-    if (dest && meio >= fav.length) h += '<a href="#" class="so-mob nv-dest-mob" onclick="' + acD + '"><span class="nv-dest-bola">＋</span><span class="tx">' + escH(dest.curto || 'Venda') + '</span></a>';
+    if (dest && meio >= fav.length) h += '<a href="#" class="so-mob nv-dest-mob" onclick="' + acD + '"><span class="nv-dest-bola">＋</span><span class="tx">' + escH(dest.curto || 'Venda') + '</span></a>' + bola2;
     h += itemNav({ ic: '☰', ico: 'menu-2', nome: 'Mais', aba: 'mais' }, 'so-mob', "Chama.abrirMais()");
-    const resto = CAT.filter(r => !fav.includes(r.id) && r.id !== DESTAQUE);
+    const resto = CAT.filter(r => !fav.includes(r.id) && !ehDestaque(r.id));
     if (resto.length) h += '<div class="so-desk nv-tit">' + (C.sobrio() ? 'Outros' : 'OUTROS') + '</div>' + resto.map(r => itemNav(r, 'so-desk', "Chama.abrir('" + r.id + "')")).join('');
     h += '<div class="so-desk nv-tit">&nbsp;</div>' + itemNav({ ic: '✏️', ico: 'adjustments-horizontal', nome: 'Personalizar menu', aba: '' }, 'so-desk', 'Chama.personalizar()');
     nav.innerHTML = h;
@@ -417,7 +426,7 @@
   // v177: "Mais" = busca + MEUS ATALHOS na ordem escolhida (a mesma do menu e da barra) + o resto por grupos
   C.renderMais = function (elId) {
     const el = document.getElementById(elId); if (!el) return;
-    const fav = favoritos(), resto = CAT.filter(r => !fav.includes(r.id) && r.id !== DESTAQUE), usados = new Set();
+    const fav = favoritos(), resto = CAT.filter(r => !fav.includes(r.id) && !ehDestaque(r.id)), usados = new Set();
     let h = '<div class="mais-busca"><span>' + C.E('🔎', 'search') + '</span><input type="search" placeholder="Buscar recurso…" oninput="Chama._filtrarMais(this.value)"></div>';
     h += '<div class="mais-sec"><span>' + C.E('⭐', 'star') + ' Meus atalhos</span><button class="lnk" onclick="Chama.personalizar()">Organizar</button></div><div class="atl">' + fav.map(id => tileItem(MAPA[id])).join('') + '</div>';
     GRUPOS.forEach(([nome, ids]) => { const it = resto.filter(r => ids.includes(r.id)); it.forEach(r => usados.add(r.id)); if (it.length) h += '<div class="mais-sec"><span>' + escH(nome) + '</span></div><div class="atl">' + it.map(tileItem).join('') + '</div>'; });
@@ -431,7 +440,7 @@
   let TMP = [];
   C.personalizar = function () { TMP = favoritos().slice(); desenharPers(); };
   function desenharPers() {
-    const outros = CAT.filter(r => !TMP.includes(r.id) && r.id !== DESTAQUE);
+    const outros = CAT.filter(r => !TMP.includes(r.id) && !ehDestaque(r.id));
     const temInicio = !!document.getElementById('atalhos-home');
     let h = '<div class="mut" style="font-size:12px;margin-bottom:8px">Marque ' + (C.sobrio() ? '★' : '⭐') + ' o que você mais usa (até ' + MAX_FAV + ') e ajuste a ordem com ▲▼. A ordem é do seu acesso: vale igual no celular e no computador. Os <b>3 primeiros</b> vão para a barra de baixo do celular; no computador, todos ficam no topo do menu lateral' + (temInicio ? ' e nos atalhos do Início' : '') + '.</div>';
     h += '<div style="font-weight:700;font-size:13px;margin:6px 0 2px">' + C.E('⭐', 'star') + ' Meus atalhos</div>';

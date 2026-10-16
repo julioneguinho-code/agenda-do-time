@@ -171,6 +171,9 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 </div>
 
 <!-- VENDAS (CRM) -->
+<div class="aba" id="aba-funil">
+  <div class="sec"><div id="funil-box"></div></div>
+</div>
 <div class="aba" id="aba-vendas">
   <div class="sec">
     <div class="row"><div class="h">💼 Minhas vendas</div></div>
@@ -344,6 +347,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <script src="/public/comum.js"></script>
 <script src="/public/simuladores.js"></script>
 <script src="/public/ficha.js"></script>
+<script src="/public/funil.js"></script>
 <script>
 let dados = null;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
@@ -617,7 +621,10 @@ async function setSituacaoC(id,sit){const r=await fetch('/api/vendas/editar',{me
 function novaVendaCliente(nomeEnc,cpf){
   const nome=decodeURIComponent(nomeEnc);
   abrirPop('Novas cotas · '+nome,formVendaMulti({cliente:{nome,cpf},lock:true})+`<button class="btn full" style="background:var(--ok);margin-top:10px" onclick="salvarVendaMulti()">Salvar</button>`);addCotaRow();
+  Chama.funil.telDaFicha('vf',cpf,nome);
 }
+// v182: "Lançar venda deste lead" (no funil) já abre a venda com o lead vinculado e o telefone preenchido
+function novaVendaComLead(l){irAba('vendas');carregarVendas();novaVenda();Chama.funil.preVincular('vf',l);}
 function renderVendas(){
   const q=(document.getElementById('vd-busca').value||'').toLowerCase();
   let list=(_vendas||[]).filter(v=>!v.carteira); // carteira não aparece no kanban de vendas
@@ -655,7 +662,9 @@ function festaVenda(valor){
 const TAMS_GRUPO_C=[500,1000,2000,3333,5000,9999];
 function selTamGrupoC(sel){const ops=TAMS_GRUPO_C.map(n=>`<option value="${n}" ${(+sel===n)?'selected':''}>${n} participantes</option>`).join('');return `<label>Tamanho do grupo <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><select id="vf-tamanho" class="inp2"><option value="">— selecione —</option>${ops}</select>`;}
 function formVenda(v){v=v||{};const c=v.cliente||{};return `
+  ${v.leadNome?`<div class="mut" style="font-size:12.5px;margin-bottom:4px">🎯 Veio do lead <b style="color:var(--txt)">${esc(v.leadNome)}</b></div>`:v.semLead?'<div class="mut" style="font-size:12.5px;margin-bottom:4px">🎯 Sem lead</div>':''}
   <label>Cliente</label><input type="text" id="vf-nome" class="inp2" value="${esc(c.nome)}" placeholder="Nome do cliente">
+  <label>📞 Telefone do cliente</label><input type="text" id="vf-tel" class="inp2" inputmode="tel" value="${esc(c.telefone?Chama.funil.fmtTel(c.telefone):'')}" placeholder="(11) 99999-9999" oninput="this.value=Chama.funil.fmtTel(this.value)">
   <label>CPF / CNPJ <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf))}" placeholder="CPF ou CNPJ" oninput="this.value=fmtCpf(this.value);checaCpf(this,'vf-cpf-msg')"><div id="vf-cpf-msg" style="font-size:11px;margin-top:2px"></div>
   <label>Valor da venda</label><div style="display:flex;align-items:center;gap:6px"><span class="mut" style="font-size:13px">R$</span><input type="text" inputmode="decimal" id="vf-valor" class="inp2" value="${v.valor?fmtBR(v.valor):''}" placeholder="0,00" onblur="this.value=this.value?fmtBR(parseBR(this.value)):''"></div>
   <div style="display:flex;gap:8px"><div style="flex:1"><label>Grupo</label><input type="text" id="vf-grupo" class="inp2" value="${esc(v.grupo)}"></div><div style="flex:1"><label>Cota</label><input type="text" id="vf-cota" class="inp2" value="${esc(v.cota)}"></div></div>
@@ -664,8 +673,10 @@ function formVenda(v){v=v||{};const c=v.cliente||{};return `
   <label style="margin-top:8px;display:block">Data do fechamento</label><input type="date" id="vf-data" class="inp2" value="${v.data||new Date().toISOString().slice(0,10)}">
   <label style="display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;font-size:14px;color:var(--txt)"><input type="checkbox" id="vf-fechada" ${v.status==='fechada'?'checked':''} style="width:20px;height:20px;accent-color:var(--ok)"> ✅ Venda fechada</label>`;}
 function checaCpf(inp,msgId){const el=document.getElementById(msgId);if(!el)return;const d=(inp.value||'').replace(/\D/g,'');if(!d){el.textContent='';return}if(d.length<11){el.textContent='';return}if(cpfValido(d)){el.textContent='✓ CPF válido';el.style.color='var(--ok)';}else{el.textContent='✗ CPF inválido';el.style.color='var(--no)';}}
-function formVendaMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre.lock;return `
+function formVendaMulti(pre){pre=pre||{};const c=pre.cliente||{};const lock=pre.lock;const vinc=Chama.funil.vinculoHTML('vf',{carteira:pre.carteira});const iTel=vinc.lastIndexOf('<label class="fn-lb">📞');return `
+  ${vinc.slice(0,iTel)}
   <label>Cliente</label><input type="text" id="vf-nome" class="inp2" value="${esc(c.nome||'')}" placeholder="Nome do cliente" ${lock?'readonly style="background:#eef0f3"':''}>
+  ${vinc.slice(iTel)}
   <label>CPF / CNPJ <span class="mut" style="font-weight:400">(obrigatório para efetivar)</span></label><input type="text" id="vf-cpf" class="inp2" inputmode="numeric" value="${esc(fmtCpf(c.cpf||''))}" placeholder="CPF ou CNPJ" oninput="this.value=fmtCpf(this.value);checaCpf(this,'vf-cpf-msg')" ${lock&&c.cpf?'readonly style="background:#eef0f3"':''}><div id="vf-cpf-msg" style="font-size:11px;margin-top:2px"></div>
   <label>Data do fechamento ${pre.dataPadrao?'<span class="mut" style="font-weight:400">(cliente antigo — ajuste o mês)</span>':''}</label><input type="date" id="vf-data" class="inp2" value="${pre.dataPadrao||new Date().toISOString().slice(0,10)}">
   ${selTamGrupoC(pre.tamanhoGrupo||'')}
@@ -696,8 +707,9 @@ async function salvarVendaMulti(){
   const rows=[...document.querySelectorAll('#vf-cotas .cota-row')].map(r=>({grupo:r.querySelector('.c-grupo').value.trim(),cota:r.querySelector('.c-cota').value.trim(),valor:parseBR(r.querySelector('.c-valor').value)})).filter(r=>r.valor>0);
   if(!rows.length){toast('Adicione ao menos uma cota com valor');return}
   if(!cadCli&&status==='fechada'){ if(!tamanho){toast('Para efetivar, selecione o tamanho do grupo');return} if(rows.some(r=>!r.grupo||!r.cota)){toast('Para efetivar, preencha grupo e cota de todas as cotas');return} }
+  const vinc=Chama.funil.vinculo('vf',cadCli); if(vinc.erro){toast(vinc.erro);return}
   let ok=0,erro='',festa=false,somaFesta=0;
-  for(const r of rows){const body={nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,tamanhoGrupo:tamanho,tipo,data,status};if(cadCli){body.carteira=true;body._import=true;}const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await res.json();if(j.ok||j.venda){ok++;if(j.festa){festa=true;somaFesta+=(+j.valor||0);}}else erro=j.erro||'Erro';}
+  for(const r of rows){const body=Object.assign({nome,cpf,valor:r.valor,grupo:r.grupo,cota:r.cota,tamanhoGrupo:tamanho,tipo,data,status},vinc.valores);if(cadCli){body.carteira=true;body._import=true;}const res=await fetch('/api/vendas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await res.json();if(j.ok||j.venda){ok++;if(j.festa){festa=true;somaFesta+=(+j.valor||0);}}else erro=j.erro||'Erro';}
   _cCadCliente=false;
   if(ok){fecharPop();toast(ok+' cadastrado(s) ✓'+(erro?' · '+erro:''));carregarVendas();if(festa)festaVenda(somaFesta);}
   else toast(erro||'Erro ao salvar');
@@ -707,7 +719,7 @@ function abrirVenda(id){const v=_vendas.find(x=>x.id===id);if(!v)return;const c=
   abrirPop('Venda · '+money(v.valor),formVenda(v)+`<div style="display:flex;gap:6px;margin-top:6px"><button class="btn sec2" style="flex:1;color:var(--no)" onclick="excluirVendaF('${v.id}')">🗑 Excluir</button><button class="btn" style="flex:2;background:var(--ok)" onclick="salvarVenda('${v.id}')">Salvar alterações</button></div>${btnCota}`);}
 async function salvarVenda(id){
   const tamanho=(document.getElementById('vf-tamanho')||{}).value||'';
-  const b={nome:document.getElementById('vf-nome').value.trim(),cpf:document.getElementById('vf-cpf').value,valor:parseBR(document.getElementById('vf-valor').value),grupo:document.getElementById('vf-grupo').value,cota:document.getElementById('vf-cota').value,tamanhoGrupo:tamanho,tipo:(document.getElementById('vf-tipo')||{}).value||'',data:document.getElementById('vf-data').value,status:(document.getElementById('vf-fechada')&&document.getElementById('vf-fechada').checked)?'fechada':'negociacao'};
+  const b={nome:document.getElementById('vf-nome').value.trim(),telefone:(document.getElementById('vf-tel')||{value:''}).value.trim(),cpf:document.getElementById('vf-cpf').value,valor:parseBR(document.getElementById('vf-valor').value),grupo:document.getElementById('vf-grupo').value,cota:document.getElementById('vf-cota').value,tamanhoGrupo:tamanho,tipo:(document.getElementById('vf-tipo')||{}).value||'',data:document.getElementById('vf-data').value,status:(document.getElementById('vf-fechada')&&document.getElementById('vf-fechada').checked)?'fechada':'negociacao'};
   if(!b.nome||!b.valor){toast('Informe o cliente e o valor');return}
   const cpfDig=(b.cpf||'').replace(/\D/g,'');
   if(cpfDig&&!cpfValido(cpfDig)){toast('CPF inválido — confira os números');return}
@@ -961,6 +973,9 @@ const CAT_C=[
   ...(COMISSOES_CONSULTOR?[{id:'comissoes',ic:'💸',ico:'cash',nome:'Minhas comissões',curto:'Comissões',aba:'comissoes',abrir(){irAba('comissoes');carregarExtrato();}}]:[]),
   {id:'arquivos',ic:'📎',ico:'paperclip',nome:'Arquivos do gestor',curto:'Arquivos',abrir(){abrirArquivosPop();}},
   {id:'novavenda',ic:'➕',ico:'circle-plus',nome:'Nova venda',curto:'Venda',abrir(){irAba('vendas');carregarVendas();novaVenda();}},
+  // v182: funil de leads + botão fixo (menor) para cadastrar lead
+  {id:'funil',ic:'🎯',ico:'filter',nome:'Funil de leads',curto:'Funil',aba:'funil',abrir(){Chama.funil.abrir('');}},
+  {id:'novolead',ic:'🌱',ico:'user-plus',nome:'Novo lead',curto:'Lead',abrir(){Chama.funil.novo();}},
 ];
 // número no canto do atalho (o que está pendente)
 function badgeC(id){
@@ -970,7 +985,7 @@ function badgeC(id){
   return '';
 }
 // v180: Novo cliente, Nova tarefa e Sorteio saíram do menu (já estão dentro de Clientes e Atividades); Nova venda virou o botão fixo
-Chama.iniciarCasca({catalogo:CAT_C,destaque:'novavenda',padrao:['vendas','clientes','agenda','checkin','atividades','mural'],inicio:{ic:'🏠',ico:'home',nome:'Início',aba:'inicio',abrir(){irAba('inicio');}},badge:badgeC});
+Chama.iniciarCasca({catalogo:CAT_C,destaque:'novavenda',destaque2:'novolead',padrao:['vendas','clientes','agenda','funil','checkin','atividades','mural'],inicio:{ic:'🏠',ico:'home',nome:'Início',aba:'inicio',abrir(){irAba('inicio');}},badge:badgeC});
 // cards do Início: vendas do mês, check-in, próxima reunião e atividades — tudo que antes exigia abrir várias telas
 function renderHoje(){
   const el=document.getElementById('hoje');if(!el||!dados)return;
