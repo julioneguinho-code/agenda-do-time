@@ -270,10 +270,10 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/solicitar' && req.method === 'POST' && session.papel === 'consultor') {
         return send(res, 200, await notion.criarSolicitacao(session, await readBody(req)));
       }
-      if (p === '/api/checkin' && req.method === 'POST' && session.papel === 'consultor') {
+      if (p === '/api/checkin' && req.method === 'POST' && (session.papel === 'consultor' || session.papel === 'gestor')) { // v183: gestor também
         return send(res, 200, await notion.registrarCheckin(session, await readBody(req)));
       }
-      if (p === '/api/checkin/finalizar' && req.method === 'POST' && session.papel === 'consultor') {
+      if (p === '/api/checkin/finalizar' && req.method === 'POST' && (session.papel === 'consultor' || session.papel === 'gestor')) {
         return send(res, 200, await notion.finalizarCheckin(session));
       }
       if (p === '/api/atividade' && req.method === 'POST') {
@@ -288,6 +288,9 @@ const server = http.createServer(async (req, res) => {
         if (r.ok) notion.auditar(session, 'editou o Mural', '', '');
         return send(res, 200, r);
       }
+      // v183: check-in próprio do gestor
+      if (p === '/api/gestor/meu-checkin' && req.method === 'GET') return send(res, 200, await notion.meuCheckinGestor(session));
+      if (p === '/api/gestor/meu-checkin/rotinas' && req.method === 'POST') return send(res, 200, await notion.salvarRotinasGestor(session, await readBody(req)));
       // v182: funil de leads
       if (p === '/api/leads' && req.method === 'GET') return send(res, 200, await notion.listarLeads(session, { de: url.searchParams.get('de') }));
       if (p === '/api/leads/busca' && req.method === 'GET') return send(res, 200, await notion.buscarLeads(session, { dono: url.searchParams.get('dono'), q: url.searchParams.get('q') }));
@@ -333,6 +336,7 @@ const server = http.createServer(async (req, res) => {
       // sorteio por proximidade — disponível para gestor E consultor (cada um vê as suas cotas)
       if (p === '/api/sorteio-grupos' && req.method === 'GET') return send(res, 200, await notion.gruposParaSorteio(session));
       if (p === '/api/sorteio' && req.method === 'POST') return send(res, 200, await notion.sortearProximidade(session, await readBody(req)));
+      if (p === '/api/sorteio-clientes' && req.method === 'POST') return send(res, 200, await notion.sorteioClientes(session, await readBody(req))); // v184: por cliente
       // cadastro de clientes por planilha — gestor E consultor
       if (p === '/api/clientes/modelo' && req.method === 'GET') {
         const r = notion.modeloClientesXlsx();

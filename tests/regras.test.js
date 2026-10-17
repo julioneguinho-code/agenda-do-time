@@ -373,3 +373,56 @@ test('funil de leads (v182): cadastro, duplicado, colunas, vínculo com a venda 
   assert.ok((await N.criarVenda(gest, { ...base, consultorEmail: 'cl', telefone: '21977776666', leadId: g1.lead.id })).erro);
   assert.ok((await N.criarVenda(gest, { ...base, telefone: '21977776666', leadId: g1.lead.id })).ok);
 });
+
+test('check-in do gestor (v183): lista própria, marcar, finalizar e sem pontos para o gestor', async () => {
+  auth.criarUsuario('gCk', 'x1234', 'Gestor Check', 'gestor', { time: 'TCK', cor: '#A78BFA' });
+  auth.criarUsuario('cCk', 'x1234', 'Cons Check', 'consultor', { time: 'TCK' });
+  const g = { papel: 'gestor', email: 'gck', nome: 'Gestor Check', time: 'TCK' };
+  const c = { papel: 'consultor', email: 'cck', nome: 'Cons Check', time: 'TCK' };
+  let m = await N.meuCheckinGestor(g);
+  assert.ok(m.ok); assert.ok(m.padrao); assert.ok(m.total > 0);                         // começa com a lista sugerida
+  assert.ok((await N.meuCheckinGestor(c)).erro);                                          // consultor não usa esta rota
+  assert.ok((await N.salvarRotinasGestor(g, { rotinas: [' ', ''] })).erro);              // lista vazia não
+  assert.ok((await N.salvarRotinasGestor(g, { rotinas: ['Ligar para 5 clientes', 'Revisar funil', 'Ligar para 5 clientes'] })).ok);
+  m = await N.meuCheckinGestor(g);
+  assert.deepStrictEqual(m.rotinas.map(r => r.nome), ['Ligar para 5 clientes', 'Revisar funil']); assert.strictEqual(m.padrao, false);
+  const rotC = N.rotinasDe('cck');
+  assert.ok(!rotC.includes('Revisar funil'));                                             // a lista do gestor não vai para o consultor
+  const r1 = await N.registrarCheckin(g, { rotina: 'Revisar funil', valor: true });
+  assert.ok(r1.ok); assert.strictEqual(r1.feitas, 1);
+  assert.ok((await N.registrarCheckin(g, { rotina: 'Item que não existe', valor: true })).erro);
+  assert.ok((await N.finalizarCheckin(g)).ok);
+  assert.ok((await N.registrarCheckin(g, { rotina: 'Ligar para 5 clientes', valor: true })).erro); // finalizado trava
+  m = await N.meuCheckinGestor(g); assert.ok(m.finalizado); assert.strictEqual(m.feitas, 1);
+  assert.ok((await N.salvarRotinasGestor(g, { padrao: true })).ok);                     // volta à lista sugerida
+  assert.ok((await N.meuCheckinGestor(g)).padrao);
+});
+
+test('sorteio por cliente (v184): sinal da distância, 1º prêmio × 5 prêmios, agrupado por cliente', async () => {
+  // sinal: + acima, − abaixo, menor caminho no anel
+  assert.strictEqual(N.distanciaComSinal(459, 457, 1000), 2);
+  assert.strictEqual(N.distanciaComSinal(455, 457, 1000), -2);
+  assert.strictEqual(N.distanciaComSinal(1, 1000, 1000), 1);      // dá a volta: 1 está 1 acima do 1000
+  assert.strictEqual(N.distanciaComSinal(999, 1, 1000), -2);
+  assert.strictEqual(N.distanciaComSinal(457, 457, 1000), 0);
+  auth.criarUsuario('gSrt', 'x1234', 'Gestor Sorteio', 'gestor', { time: 'TSRT', cor: '#A78BFA' });
+  const g = { papel: 'gestor', email: 'gsrt', nome: 'Gestor Sorteio', time: 'TSRT' };
+  const nova = (nome, grupo, cota, tipo) => N.criarVenda(g, { nome, valor: 1000, status: 'fechada', carteira: true, _import: true, grupo, cota, tamanhoGrupo: 1000, tipo });
+  await nova('Cli A', '8801', '458', 'veiculo');   // 1º prêmio 39457 → 457 no grupo de 1000 → +1
+  await nova('Cli A', '8802', '900', 'veiculo');   // outra cota do mesmo cliente (longe)
+  await nova('Cli B', '8801', '455', 'veiculo');   // −2
+  await nova('Cli C', '8803', '120', 'veiculo');   // perto do 2º prêmio (81120 → 120) = 0 só no modo 5
+  await nova('Cli D', '8804', '457', 'imovel');    // outro tipo: não entra em veículos
+  const premios = ['39457', '81120', '', '', ''];
+  const r1 = await N.sorteioClientes(g, { premios, tipo: 'veiculo', modo: '1' });
+  assert.ok(r1.ok);
+  assert.deepStrictEqual(r1.clientes.map(c => c.nome).slice(0, 2), ['Cli A', 'Cli B']);
+  assert.strictEqual(r1.clientes[0].cotas[0].d, 1); assert.strictEqual(r1.clientes[0].cotas.length, 2);
+  assert.strictEqual(r1.clientes[1].cotas[0].d, -2);
+  assert.ok(!r1.clientes.some(c => c.nome === 'Cli D'));
+  const r5 = await N.sorteioClientes(g, { premios, tipo: 'veiculo', modo: '5' });
+  assert.strictEqual(r5.clientes[0].nome, 'Cli C'); assert.strictEqual(r5.clientes[0].cotas[0].d, 0); assert.strictEqual(r5.clientes[0].cotas[0].premio, 2);
+  const ri = await N.sorteioClientes(g, { premios, tipo: 'imovel', modo: '1' });
+  assert.strictEqual(ri.clientes[0].nome, 'Cli D'); assert.strictEqual(ri.clientes[0].cotas[0].d, 0);
+  assert.ok((await N.sorteioClientes(g, { premios: ['', '81120'], tipo: 'veiculo', modo: '1' })).erro); // modo 1 exige o 1º prêmio
+});
