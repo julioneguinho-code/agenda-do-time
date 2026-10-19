@@ -212,17 +212,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
       <div class="mut" id="cc-total" style="font-size:12px;margin-bottom:8px">—</div>
       <div id="vd-clientes"></div>
     </div>
-    <div id="cc-sorteio" style="display:none">
-      <div class="card" style="padding:12px;margin-bottom:10px">
-        <div class="mut" style="font-size:12px;margin-bottom:10px">Digite os números da <b>Loteria Federal</b> (5 prêmios) e escolha o grupo. Mostra <b>as suas cotas</b> por proximidade do número sorteado, indicando de qual prêmio cada uma está mais perto. <i>Não é contemplação oficial.</i></div>
-        <button class="btn sec2 full" style="margin-bottom:8px;padding:9px" onclick="Chama.extrairLoteria('cs-premio','cs-lot-info',this)">📥 Extrair números da Loteria</button>
-        <div id="cs-lot-info" style="font-size:11px;margin-bottom:8px"></div>
-        <div id="cs-premios"></div>
-        <label style="font-size:12px;color:var(--mut);display:block;margin-top:6px">Grupos — toque num grupo para calcular</label>
-        <div id="cs-grupos-list"><div class="mut" style="font-size:12px;padding:8px">Carregando…</div></div>
-      </div>
-      <div id="cs-resultado"></div>
-    </div>
+    <div id="cc-sorteio" style="display:none"></div><!-- v185: tela do sorteio vem de public/sorteio.js (igual no gestor) -->
   </div>
 </div>
 
@@ -348,6 +338,7 @@ input:focus,select:focus{outline:none;border-color:var(--acc)}
 <script src="/public/simuladores.js"></script>
 <script src="/public/ficha.js"></script>
 <script src="/public/funil.js"></script>
+<script src="/public/sorteio.js"></script>
 <script>
 let dados = null;
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
@@ -559,7 +550,7 @@ async function excluirGrupoC(i){const g=(window._gruposV||[])[i];if(!g)return;co
 async function toggleGrupoFechada(i,checked){const g=(window._gruposV||[])[i];if(!g)return;const cpf=(g.cliente&&g.cliente.cpf)||'';if(checked&&!cpfValido(cpf)){toast('Para efetivar, informe um CPF válido do cliente');return abrirGrupoV(i);}const st=checked?'fechada':'negociacao';for(const v of g.vendas){await fetch('/api/vendas/editar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:v.id,status:st})});}toast(checked?'Fechada(s) ✅':'Voltou para negociação');carregarVendas();}
 // aba Clientes (separada de Vendas) com sub-abas Cliente | Sorteio
 async function carregarClientesTab(){setCcTab('cliente');try{if(!(_vendas||[]).length){const d=await(await fetch('/api/vendas')).json();_vendas=d.vendas||[];}}catch(e){}renderClientes();}
-function setCcTab(t){document.getElementById('cc-tab-cliente').classList.toggle('on',t==='cliente');document.getElementById('cc-tab-sorteio').classList.toggle('on',t==='sorteio');document.getElementById('cc-cliente').style.display=t==='cliente'?'block':'none';document.getElementById('cc-sorteio').style.display=t==='sorteio'?'block':'none';if(t==='cliente'){renderClientes();}else{renderPremiosC();Chama.carregarLoteria('cs-premio','cs-lot-info');carregarGruposSorteioC();}}
+function setCcTab(t){document.getElementById('cc-tab-cliente').classList.toggle('on',t==='cliente');document.getElementById('cc-tab-sorteio').classList.toggle('on',t==='sorteio');document.getElementById('cc-cliente').style.display=t==='cliente'?'block':'none';document.getElementById('cc-sorteio').style.display=t==='sorteio'?'block':'none';if(t==='cliente'){renderClientes();}else{Chama.sorteio.montar('cc-sorteio');}}
 function renderPremiosC(){const el=document.getElementById('cs-premios');if(!el||el.dataset.done)return;const ord=['1º','2º','3º','4º','5º'];el.innerHTML=ord.map(o=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="mut" style="width:26px;font-size:13px;font-weight:600">${o}</span><input type="text" class="cs-premio" inputmode="numeric" maxlength="5" placeholder="00000" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,5)" style="flex:1;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:15px;letter-spacing:2px;background:var(--bg)"></div>`).join('');el.dataset.done='1';}
 async function carregarGruposSorteioC(){const el=document.getElementById('cs-grupos-list');if(!el)return;try{const j=await(await fetch('/api/sorteio-grupos')).json();const gs=j.grupos||[];el.innerHTML=gs.length?gs.map(g=>{const bar=`<div class="prog" style="margin-top:5px;height:6px"><div style="width:${g.pct}%;height:100%;background:${g.lotado?'#3E8E6E':'var(--acc)'}"></div></div>`;const badge=g.lotado?'<span class="badge b-ok" style="font-size:10px">LOTADO</span>':`<span class="mut" style="font-size:10px">${g.pct}%</span>`;return `<div class="card" style="padding:9px 11px;margin-bottom:6px;cursor:pointer" onclick="calcularSorteioC('${esc(g.grupo)}',${g.tamanho})"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="font-weight:600;font-size:13px">Grupo ${esc(g.grupo)} <span class="mut" style="font-weight:400">· ${g.tamanho} part.</span></div><div style="text-align:right;flex:none">${badge}<div class="mut" style="font-size:10px">${g.qtd}/${g.tamanho} suas</div></div></div>${bar}</div>`;}).join(''):'<div class="mut" style="font-size:12px;padding:8px">Você ainda não tem cota fechada com tamanho de grupo.</div>';}catch(e){el.innerHTML='<div class="mut" style="font-size:12px;padding:8px">Erro ao carregar grupos</div>';}}
 async function calcularSorteioC(grupo,tamanho){
