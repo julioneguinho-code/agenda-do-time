@@ -379,6 +379,10 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/gestor/ranking') return send(res, 200, await notion.rankingGestor(session));
       if (p === '/api/gestor/meta' && req.method === 'POST') { const r = await notion.definirMeta(session, await readBody(req)); if (r.ok) notion.auditar(session, 'alterou meta semanal', (r.time || 'geral') + ' → ' + r.metaSemanal, ''); return send(res, 200, r); }
       if (p === '/api/gestor/agenda') return send(res, 200, await notion.agendaGestor(session));
+      // v186: compromissos próprios do gestor
+      if (p === '/api/gestor/compromisso' && req.method === 'POST') return send(res, 200, await notion.criarCompromisso(session, await readBody(req)));
+      if (p === '/api/gestor/compromisso/editar' && req.method === 'POST') return send(res, 200, await notion.editarCompromisso(session, await readBody(req)));
+      if (p === '/api/gestor/compromisso/excluir' && req.method === 'POST') return send(res, 200, await notion.excluirCompromisso(session, await readBody(req)));
       if (p === '/api/gestor/decidir' && req.method === 'POST') {
         return send(res, 200, await notion.decidirSolicitacao(session, await readBody(req)));
       }

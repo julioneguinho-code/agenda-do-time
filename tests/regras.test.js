@@ -426,3 +426,24 @@ test('sorteio por cliente (v184): sinal da distância, 1º prêmio × 5 prêmios
   assert.strictEqual(ri.clientes[0].nome, 'Cli D'); assert.strictEqual(ri.clientes[0].cotas[0].d, 0);
   assert.ok((await N.sorteioClientes(g, { premios: ['', '81120'], tipo: 'veiculo', modo: '1' })).erro); // modo 1 exige o 1º prêmio
 });
+
+test('agenda do gestor (v186): compromissos próprios — só o dono vê, edita e exclui', async () => {
+  auth.criarUsuario('gAg1', 'x1234', 'Gestor Agenda', 'gestor', { time: 'TAG', cor: '#A78BFA' });
+  auth.criarUsuario('gAg2', 'x1234', 'Outro Agenda', 'gestor', { time: 'TAG', cor: '#A78BFA' });
+  const g1 = { papel: 'gestor', email: 'gag1', nome: 'Gestor Agenda', time: 'TAG' };
+  const g2 = { papel: 'gestor', email: 'gag2', nome: 'Outro Agenda', time: 'TAG' };
+  const c = { papel: 'consultor', email: 'qualquer', nome: 'Cons', time: 'TAG' };
+  assert.ok((await N.criarCompromisso(g1, { assunto: '', inicio: '2026-10-21T12:00:00.000Z' })).erro);
+  assert.ok((await N.criarCompromisso(g1, { assunto: 'Banco', inicio: 'xx' })).erro);
+  assert.ok((await N.criarCompromisso(c, { assunto: 'X', inicio: '2026-10-21T12:00:00.000Z' })).erro);
+  const r = await N.criarCompromisso(g1, { assunto: 'Visita ao banco', inicio: '2026-10-21T12:00:00.000Z', duracao: 90, local: 'Centro' });
+  assert.ok(r.ok); assert.strictEqual(r.compromisso.duracao, 90);
+  assert.strictEqual((await N.agendaGestor(g1)).compromissos.length, 1);
+  assert.strictEqual((await N.agendaGestor(g2)).compromissos.length, 0);              // outro gestor não vê
+  assert.ok((await N.editarCompromisso(g2, { id: r.compromisso.id, assunto: 'X', inicio: '2026-10-21T12:00:00.000Z' })).erro);
+  assert.ok((await N.editarCompromisso(g1, { id: r.compromisso.id, assunto: 'Visita ao banco (adiada)', inicio: '2026-10-22T12:00:00.000Z', duracao: 60 })).ok);
+  assert.strictEqual((await N.agendaGestor(g1)).compromissos[0].assunto, 'Visita ao banco (adiada)');
+  assert.ok((await N.excluirCompromisso(g2, { id: r.compromisso.id })).erro);
+  assert.ok((await N.excluirCompromisso(g1, { id: r.compromisso.id })).ok);
+  assert.strictEqual((await N.agendaGestor(g1)).compromissos.length, 0);
+});

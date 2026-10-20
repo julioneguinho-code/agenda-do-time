@@ -105,6 +105,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
 <!-- AGENDA (unificada com Aprovações) -->
 <div class="aba" id="aba-agenda">
   <div class="sec">
+    <div class="row" style="margin-bottom:10px;gap:8px"><div class="h" style="margin:0">📅 Minha agenda</div><button class="btn" style="padding:9px 14px" onclick="abrirCompromisso()">＋ Novo compromisso</button></div>
     <div class="card" style="margin-bottom:12px">
       <div class="row" style="cursor:pointer" onclick="const f=document.getElementById('form-reuniao-g');f.style.display=f.style.display==='none'?'block':'none'"><div class="titulo" style="font-weight:600">📅 Reunião com outro gestor</div><span class="mut">＋</span></div>
       <div id="form-reuniao-g" style="display:none;margin-top:10px">
@@ -127,7 +128,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc)}
     </div>
     <div id="cal-dow" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px"></div>
     <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
-    <div style="display:flex;gap:12px;margin:8px 2px;font-size:10px;color:var(--mut)"><span><b class="dot v"></b>aprovada</span><span><b class="dot a"></b>pendente</span><span><b class="dot az"></b>Google</span></div>
+    <div style="display:flex;gap:12px;margin:8px 2px;font-size:10px;color:var(--mut)"><span><b class="dot v"></b>aprovada</span><span><b class="dot a"></b>pendente</span><span><b class="dot az"></b>Google</span><span><b style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6A55D8;margin-right:3px"></b>meu compromisso</span></div>
     <div class="h" id="dia-label">Compromissos do dia</div>
     <div id="eventos"></div>
     <div class="h" style="margin-top:16px">Últimas decididas</div><div id="decididas"></div>
@@ -1297,8 +1298,8 @@ async function novaAtividade(){
 }
 let mesRef=null, diaSel=null, _agenda={eventos:[],googleEventos:[]};
 function isoLocal(dt){const d=new Date(dt);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function appsDoDia(iso){return [...(_agenda.eventos||[]),...(_agenda.googleEventos||[])].filter(e=>isoLocal(e.inicio)===iso).sort((a,b)=>a.inicio<b.inicio?-1:1)}
-function corStatusEv(e){return (e.google||e.status==='Google')?'#3E6FA0':e.status==='Aprovada'?'#3E8E6E':e.status==='Pendente'?'#A9772F':'#9CA3AF'}
+function appsDoDia(iso){return [...(_agenda.eventos||[]),...(_agenda.googleEventos||[]),...(_agenda.compromissos||[])].filter(e=>isoLocal(e.inicio)===iso).sort((a,b)=>a.inicio<b.inicio?-1:1)}
+function corStatusEv(e){return e.compromisso?'#6A55D8':(e.google||e.status==='Google')?'#3E6FA0':e.status==='Aprovada'?'#3E8E6E':e.status==='Pendente'?'#A9772F':'#9CA3AF'}
 async function carregarGestoresSelect(){
   try{
     const j=await(await fetch('/api/gestores')).json();
@@ -1343,10 +1344,42 @@ function renderCalendario(){
   renderDiaAgenda();
 }
 function selDia(iso){diaSel=iso;renderCalendario()}
+// ===== v186: MEUS COMPROMISSOS (agenda pessoal do gestor — só ele vê, sem aprovação) =====
+function cardCompromisso(e){const h=new Date(e.inicio),hh=String(h.getHours()).padStart(2,'0')+':'+String(h.getMinutes()).padStart(2,'0');
+  return `<div class="card" style="border-left:5px solid #6A55D8;padding:10px 12px"><div class="row" style="align-items:flex-start;gap:8px"><div style="min-width:0"><div class="titulo" style="font-weight:650">📌 ${esc(e.assunto)}</div><div class="mut">${hh} · ${e.duracao<60?e.duracao+' min':Math.floor(e.duracao/60)+'h'+(e.duracao%60?String(e.duracao%60).padStart(2,'0'):'')}${e.local?' · 📍 '+esc(e.local):''}</div>${e.obs?`<div style="font-size:13px;margin-top:4px;white-space:pre-wrap">${esc(e.obs)}</div>`:''}</div><div style="display:flex;gap:6px;flex:none"><button class="btn sec2" style="padding:5px 9px;font-size:12px" onclick="abrirCompromisso('${e.id}')" title="Editar">✏️</button><button class="btn sec2 no-s" style="padding:5px 9px;font-size:12px" onclick="excluirCompromissoG('${e.id}')" title="Excluir">🗑️</button></div></div></div>`;}
+function abrirCompromisso(id){
+  const e=id?(_agenda.compromissos||[]).find(x=>x.id===id):null;
+  const ini=e?new Date(e.inicio):null, dia=e?isoLocal(ini):(diaSel||isoLocal(new Date())), hora=e?String(ini.getHours()).padStart(2,'0')+':'+String(ini.getMinutes()).padStart(2,'0'):'09:00', dur=e?e.duracao:60;
+  const inp='width:100%;padding:11px;border:1px solid var(--bord);border-radius:10px;font-size:14px;background:#fff;box-sizing:border-box;font-family:inherit';
+  abrirPop(e?'Editar compromisso':'Novo compromisso',`<div class="mut" style="font-size:12px;margin-bottom:8px">📌 Só você vê. Entra direto na sua agenda, sem aprovação.</div>
+    <label style="font-size:12px;color:var(--mut)">O quê</label><input id="cp-assunto" maxlength="120" value="${esc(e?e.assunto:'')}" placeholder="Ex.: Visita ao cliente, reunião no banco…" style="${inp};margin-bottom:8px">
+    <div style="display:flex;gap:8px;margin-bottom:8px"><div style="flex:1.3"><label style="font-size:12px;color:var(--mut)">Dia</label><input type="date" id="cp-dia" value="${dia}" style="${inp}"></div><div style="flex:1"><label style="font-size:12px;color:var(--mut)">Hora</label><input type="time" id="cp-hora" value="${hora}" style="${inp}"></div></div>
+    <label style="font-size:12px;color:var(--mut)">Duração</label><select id="cp-dur" style="${inp};margin-bottom:8px">${[[15,'15 min'],[30,'30 min'],[60,'1 hora'],[90,'1h30'],[120,'2 horas'],[180,'3 horas'],[240,'4 horas'],[480,'Dia todo (8h)']].map(o=>`<option value="${o[0]}" ${+dur===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>
+    <label style="font-size:12px;color:var(--mut)">Local</label><input id="cp-local" maxlength="120" value="${esc(e?e.local:'')}" placeholder="Ex.: Escritório, Google Meet…" style="${inp};margin-bottom:8px">
+    <label style="font-size:12px;color:var(--mut)">Observação</label><textarea id="cp-obs" rows="3" maxlength="1000" style="${inp};resize:vertical">${esc(e?e.obs:'')}</textarea>
+    <button class="btn" style="width:100%;margin-top:12px" onclick="salvarCompromisso(${e?`'${e.id}'`:''})">${e?'Salvar alterações':'Salvar na agenda'}</button>`);
+  setTimeout(()=>{const i=document.getElementById('cp-assunto');if(i&&!e)i.focus();},50);
+}
+async function salvarCompromisso(id){
+  const dia=document.getElementById('cp-dia').value,hora=document.getElementById('cp-hora').value||'09:00';
+  const b={assunto:document.getElementById('cp-assunto').value.trim(),duracao:+document.getElementById('cp-dur').value,local:document.getElementById('cp-local').value.trim(),obs:document.getElementById('cp-obs').value.trim()};
+  if(!b.assunto){toast('Escreva o compromisso');return}
+  if(!dia){toast('Escolha o dia');return}
+  b.inicio=new Date(dia+'T'+hora).toISOString();if(id)b.id=id;
+  const j=await(await fetch(id?'/api/gestor/compromisso/editar':'/api/gestor/compromisso',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)})).json();
+  if(!j.ok){toast(j.erro||'Erro');return}
+  fecharPop();toast(id?'Compromisso atualizado ✓':'Compromisso salvo na agenda ✓');
+  diaSel=dia;const d=new Date(dia+'T12:00');mesRef=new Date(d.getFullYear(),d.getMonth(),1);await carregarAgenda();
+}
+async function excluirCompromissoG(id){
+  if(!confirm('Excluir este compromisso da sua agenda?'))return;
+  const j=await(await fetch('/api/gestor/compromisso/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})})).json();
+  if(j.ok){toast('Compromisso excluído');carregarAgenda();}else toast(j.erro||'Erro');
+}
 function renderDiaAgenda(){
   const apps=appsDoDia(diaSel), dd=diaSel.split('-');
   document.getElementById('dia-label').textContent='Compromissos · '+dd[2]+'/'+dd[1];
-  document.getElementById('eventos').innerHTML=apps.map(e=>`<div class="card row"><div><div class="titulo" style="font-weight:500">${e.assunto||'Reunião'}${e.google?'':' · '+e.consultor}</div><div class="mut">${fmtData(e.inicio)} · ${e.duracao} min · ${e.local||''}</div></div><div style="display:flex;gap:6px;align-items:center">${e.vinculado||e.google?`<a href="${e.link||'#'}" target="_blank" class="badge b-blue" style="text-decoration:none">🔗 Google</a>`:''}<span class="badge ${e.status==='Aprovada'?'b-ok':e.status==='Google'?'b-blue':'b-warn'}">${e.status}</span>${!e.google?`<button class="btn sec2" style="padding:5px 9px;font-size:11px;color:var(--no)" onclick="cancelarAgendaGestor('${e.id}')" title="Cancelar">✕</button>`:''}</div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum compromisso neste dia</div>';
+  document.getElementById('eventos').innerHTML=apps.map(e=>e.compromisso?cardCompromisso(e):`<div class="card row"><div><div class="titulo" style="font-weight:500">${e.assunto||'Reunião'}${e.google?'':' · '+e.consultor}</div><div class="mut">${fmtData(e.inicio)} · ${e.duracao} min · ${e.local||''}</div></div><div style="display:flex;gap:6px;align-items:center">${e.vinculado||e.google?`<a href="${e.link||'#'}" target="_blank" class="badge b-blue" style="text-decoration:none">🔗 Google</a>`:''}<span class="badge ${e.status==='Aprovada'?'b-ok':e.status==='Google'?'b-blue':'b-warn'}">${e.status}</span>${!e.google?`<button class="btn sec2" style="padding:5px 9px;font-size:11px;color:var(--no)" onclick="cancelarAgendaGestor('${e.id}')" title="Cancelar">✕</button>`:''}</div></div>`).join('')||'<div class="mut" style="padding:0 4px">Nenhum compromisso neste dia</div>';
 }
 async function decidir(id,decisao){
   let resposta='';
